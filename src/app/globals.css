@@ -1,0 +1,288 @@
+@import "tailwindcss";
+
+/* Tokens base */
+:root {
+  --background: #ffffff;
+  --foreground: #000000;
+  --color-azul-oscuro: #0a3d62;
+  --color-verde: #1abc9c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #020817;
+    --foreground: #e5e7eb;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Blocks reutilizables */
+.block-base {
+  border: 2px solid black;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.5s ease, transform 0.3s ease;
+  cursor: pointer;
+  transform: translateZ(0);
+}
+.block-base:hover {
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-0.5rem);
+}
+.block-light {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+.block-dark {
+  background-color: var(--foreground);
+  color: var(--background);
+  border-color: var(--background);
+}
+
+/* ========== NAVBAR MATRIX EFFECT ========== */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Blocks reutilizables */
+.block-base {
+  border: 2px solid black;
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.5s ease, transform 0.3s ease;
+  cursor: pointer;
+  transform: translateZ(0);
+}
+.block-base:hover {
+  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
+  transform: translateY(-0.5rem);
+}
+.block-light {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+.block-dark {
+  background-color: var(--foreground);
+  color: var(--background);
+  border-color: var(--background);
+}
+
+/* Para las tarjetas 3D de servicios */
+@layer utilities {
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .perspective {
+    perspective: 1000px;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+}
+
+
+@keyframes shimmer {
+  0% { text-shadow: 0 0 4px rgba(45, 212, 191, 0.3); }
+  50% { text-shadow: 0 0 16px rgba(45, 212, 191, 0.8); }
+  100% { text-shadow: 0 0 4px rgba(45, 212, 191, 0.3); }
+}
+
+.text-shimmer {
+  animation: shimmer 3s infinite linear;
+}
+
+/* globals.css */
+
+/* Animación de fondo para el gradiente */
+@keyframes background-pan {
+  from {
+    background-position: 0% center;
+  }
+  to {
+    background-position: -200% center;
+  }
+}
+
+/* Estilo para el fondo del hero section */
+.hero-gradient-background {
+  background: linear-gradient(
+    to right,
+    #0d0d0d, /* Negro muy oscuro */
+    #1a1a1a, /* Gris oscuro */
+    #0d0d0d  /* Negro muy oscuro */
+  );
+  background-size: 200% auto; /* Permite que el gradiente sea más largo que la pantalla */
+  animation: background-pan 10s linear infinite; /* Animación lenta */
+  opacity: 0.9; /* Un poco de opacidad para que no sea un negro absoluto */
+}
+
+/* === GLASS SCROLLBAR PREMIUM (Opción 1) === */
+
+.no-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.no-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04); /* vidrio muy tenue */
+  border-radius: 9999px;
+  backdrop-filter: blur(6px); /* efecto glass */
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    to right,
+    rgba(16, 185, 129, 0.45),  /* esmeralda */
+    rgba(56, 189, 248, 0.45)   /* cyan */
+  );
+  border-radius: 9999px;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); /* glow azul/esmeralda */
+  backdrop-filter: blur(4px);
+  transition: all 0.25s ease;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    to right,
+    rgba(16, 185, 129, 0.8),
+    rgba(56, 189, 248, 0.8)
+  );
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.6);
+}
+
+/* Firefox */
+.no-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(56,189,248,0.5) rgba(255,255,255,0.06);
+}
+
+/* Service card aurora */
+@keyframes aurora {
+  0% {
+    transform: translateX(-20%) translateY(-10%) scale(1);
+  }
+  50% {
+    transform: translateX(15%) translateY(10%) scale(1.15);
+  }
+  100% {
+    transform: translateX(-20%) translateY(-10%) scale(1);
+  }
+}
+
+.animate-aurora > div {
+  animation: aurora 14s ease-in-out infinite alternate;
+}
+
+/* AboutSection */
+
+@keyframes hero-shimmer {
+  0% {
+    transform: translate3d(-10%, 0, 0) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate3d(10%, 0, 0) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(-10%, 0, 0) rotate(0deg);
+    opacity: 0.6;
+  }
+}
+
+.animate-hero-shimmer {
+  animation: hero-shimmer 14s ease-in-out infinite;
+}
+
+/* flotación suave de chips */
+@keyframes float-slow {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 7s ease-in-out infinite;
+}
+
+.animate-float-slow-delayed {
+  animation: float-slow 8s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+@keyframes aurora-3d {
+  0% {
+    transform: rotate(0deg) scale(1) translate3d(-10%, -10%, 0);
+  }
+  50% {
+    transform: rotate(8deg) scale(1.25) translate3d(10%, 10%, 0);
+  }
+  100% {
+    transform: rotate(0deg) scale(1) translate3d(-10%, -10%, 0);
+  }
+}
+
+.animate-aurora-3d {
+  animation: aurora-3d 22s ease-in-out infinite alternate;
+}
+
+@keyframes lightflow {
+  0% {
+    transform: translateX(-40%) translateY(-20%);
+  }
+  50% {
+    transform: translateX(40%) translateY(20%);
+  }
+  100% {
+    transform: translateX(-40%) translateY(-20%);
+  }
+}
+
+.animate-lightflow {
+  animation: lightflow 18s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-aurora-3d,
+  .animate-lightflow,
+  .animate-hero-shimmer,
+  .animate-float-slow,
+  .animate-float-slow-delayed {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .animate-aurora-3d,
+  .animate-lightflow {
+    animation: none;
+    opacity: 0.18; /* dejarlas estáticas y ligeras */
+  }
+}
+
+/*animacion btn wsp*/
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
