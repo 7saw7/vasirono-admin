@@ -1,0 +1,27 @@
+export const ROUTES = {
+  HOME: "/",
+  LOGIN: "/login",
+  RECOVER_PASSWORD: "/recuperar-clave",
+
+  BACKOFFICE_ROOT: "/dashboard",
+  BACKOFFICE_DASHBOARD: "/dashboard",
+  BACKOFFICE_COMPANIES: "/empresas",
+  BACKOFFICE_BRANCHES: "/sucursales",
+  BACKOFFICE_CLAIMS: "/claims",
+  BACKOFFICE_VERIFICATIONS: "/verificaciones",
+  BACKOFFICE_REVIEWS: "/reseñas",
+  BACKOFFICE_REVIEW_REPORTS: "/reportes-reseñas",
+  BACKOFFICE_USERS: "/usuarios",
+  BACKOFFICE_ANALYTICS: "/analytics",
+  BACKOFFICE_TAXONOMIES: "/taxonomias",
+  BACKOFFICE_PLANS: "/planes",
+  BACKOFFICE_SUBSCRIPTIONS: "/suscripciones",
+  BACKOFFICE_PAYMENTS: "/pagos",
+  BACKOFFICE_PROMOTIONS: "/promociones",
+  BACKOFFICE_NOTIFICATIONS: "/notificaciones",
+  BACKOFFICE_SETTINGS: "/configuracion",
+
+  API_LOGIN: "/api/auth/login",
+  API_LOGOUT: "/api/auth/logout",
+  API_ME: "/api/auth/me",
+} as const;
