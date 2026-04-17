@@ -1,37 +1,36 @@
-import { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
+import { getBaseUrl } from "@/config/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://tu-dominio.com";
-
-  const routes = [
-    {
-      path: "/",
-      priority: 1,
-      changeFrequency: "yearly" as const,
-    },
-    {
-      path: "/momentos",
-      priority: 0.9,
-      changeFrequency: "monthly" as const,
-    },
-    {
-      path: "/historia",
-      priority: 0.8,
-      changeFrequency: "monthly" as const,
-    },
-    {
-      path: "/mensaje",
-      priority: 0.8,
-      changeFrequency: "monthly" as const,
-    },
-  ];
-
+  const baseUrl = getBaseUrl();
   const now = new Date();
 
+  const routes = [
+    "",
+    "/login",
+    "/recuperar-clave",
+    "/dashboard",
+    "/empresas",
+    "/sucursales",
+    "/claims",
+    "/verificaciones",
+    "/resenas",
+    "/reportes-resenas",
+    "/usuarios",
+    "/analytics",
+    "/taxonomias",
+    "/planes",
+    "/suscripciones",
+    "/pagos",
+    "/promociones",
+    "/notificaciones",
+    "/configuracion",
+  ];
+
   return routes.map((route) => ({
-    url: `${baseUrl}${route.path === "/" ? "" : route.path}`,
+    url: `${baseUrl}${route}`,
     lastModified: now,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
+    changeFrequency: route === "" ? "weekly" : "daily",
+    priority: route === "" ? 1 : 0.7,
   }));
 }

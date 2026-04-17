@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -38,10 +39,7 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
             <Field
               label="Empresa"
               value={
-                <Link
-                  href={`/empresas/${data.companyId}`}
-                  className="underline"
-                >
+                <Link href={`/empresas/${data.companyId}`} className="underline">
                   {data.companyName}
                 </Link>
               }
@@ -85,7 +83,10 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
           ) : null}
         </SectionCard>
 
-        <SectionCard title="Evidencia" description="Archivo o imagen aportada por el solicitante.">
+        <SectionCard
+          title="Evidencia"
+          description="Archivo o imagen aportada por el solicitante."
+        >
           <ClaimEvidencePreview evidenceUrl={data.evidenceUrl} />
         </SectionCard>
       </div>
@@ -100,7 +101,7 @@ function Field({
   value,
 }: {
   label: string;
-  value: React.ReactNode;
+  value: ReactNode;
 }) {
   return (
     <div className="rounded-2xl border border-neutral-100 p-4">

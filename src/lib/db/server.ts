@@ -1,4 +1,9 @@
-import { Pool, type PoolClient, type QueryResult } from "pg";
+import {
+  Pool,
+  type PoolClient,
+  type QueryResult,
+  type QueryResultRow,
+} from "pg";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -28,24 +33,25 @@ function createPool() {
   });
 }
 
-export const db =
-  global.__vasirono_pg_pool__ ?? createPool();
+export function getDb() {
+  if (!global.__vasirono_pg_pool__) {
+    global.__vasirono_pg_pool__ = createPool();
+  }
 
-if (process.env.NODE_ENV !== "production") {
-  global.__vasirono_pg_pool__ = db;
+  return global.__vasirono_pg_pool__;
 }
 
-export async function query<T = unknown>(
+export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
   params: unknown[] = []
 ): Promise<QueryResult<T>> {
-  return db.query<T>(text, params);
+  return getDb().query<T>(text, params);
 }
 
 export async function withTransaction<T>(
   callback: (client: PoolClient) => Promise<T>
 ): Promise<T> {
-  const client = await db.connect();
+  const client = await getDb().connect();
 
   try {
     await client.query("BEGIN");
@@ -53,7 +59,11 @@ export async function withTransaction<T>(
     await client.query("COMMIT");
     return result;
   } catch (error) {
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch {
+      // noop
+    }
     throw error;
   } finally {
     client.release();

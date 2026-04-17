@@ -1,7 +1,9 @@
 const DEFAULT_LOCALE = "es-PE";
+const DEFAULT_CURRENCY = "PEN";
 
 export function toDate(value: string | Date | null | undefined): Date | null {
   if (!value) return null;
+
   const date = value instanceof Date ? value : new Date(value);
   return Number.isNaN(date.getTime()) ? null : date;
 }
@@ -52,4 +54,29 @@ export function formatRelativeDaysFromNow(
   if (diffDays === -1) return "ayer";
   if (diffDays > 1) return `en ${diffDays} días`;
   return `hace ${Math.abs(diffDays)} días`;
+}
+
+export function formatCurrency(
+  value: number | null | undefined,
+  currency = DEFAULT_CURRENCY,
+  locale = DEFAULT_LOCALE
+): string {
+  if (typeof value !== "number" || Number.isNaN(value)) return "—";
+
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+export function formatText(value: string | null | undefined): string {
+  const normalized = value?.trim();
+  return normalized ? normalized : "—";
+}
+
+export function formatBoolean(value: boolean | null | undefined): string {
+  if (value === true) return "Sí";
+  if (value === false) return "No";
+  return "—";
 }

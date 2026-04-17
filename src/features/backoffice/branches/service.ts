@@ -1,11 +1,17 @@
-import { branchDetailSchema, branchListFiltersSchema, branchListResultSchema } from "./schema";
+import {
+  branchDetailSchema,
+  branchListFiltersSchema,
+  branchListResultSchema,
+} from "./schema";
 import { mapBranchDetailRow, mapBranchListRow } from "./mapper";
 import type { BranchListFilters } from "./types";
-import { getBranchDetailQuery, listBranchesQuery } from "@/lib/db/queries/backoffice/branches";
+import {
+  getBranchDetailQuery,
+  listBranchesQuery,
+} from "@/lib/db/queries/backoffice/branches";
 
 export async function getBranchesList(input: BranchListFilters) {
   const filters = branchListFiltersSchema.parse(input);
-
   const result = await listBranchesQuery(filters);
 
   const mapped = {

@@ -6,7 +6,27 @@ import type {
   BranchDetailMedia,
   BranchDetailSchedule,
   BranchDetailService,
+  BranchListItem,
 } from "./types";
+
+export type BranchListRow = {
+  branch_id: number | string;
+  company_id: number | string;
+  company_name: string;
+  name: string;
+  address: string;
+  district_name: string | null;
+  is_main: boolean | null;
+  is_active: boolean | null;
+  visits_count: number | string | null;
+  reviews_count: number | string | null;
+  final_score: number | string | null;
+  contacts_count: number | string | null;
+  schedules_count: number | string | null;
+  services_count: number | string | null;
+  media_count: number | string | null;
+  updated_at: Date | string;
+};
 
 export type BranchDetailRow = {
   branch_id: number | string;
@@ -94,7 +114,9 @@ function toNumber(value: number | string | null | undefined): number {
   return 0;
 }
 
-function toNullableNumber(value: number | string | null | undefined): number | null {
+function toNullableNumber(
+  value: number | string | null | undefined
+): number | null {
   if (value === null || value === undefined) return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -102,10 +124,34 @@ function toNullableNumber(value: number | string | null | undefined): number | n
 
 function toIsoString(value: Date | string | null | undefined): string | null {
   if (!value) return null;
-  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-export function mapBranchDetailContactRow(row: BranchDetailContactRow): BranchDetailContact {
+export function mapBranchListRow(row: BranchListRow): BranchListItem {
+  return {
+    branchId: toNumber(row.branch_id),
+    companyId: toNumber(row.company_id),
+    companyName: row.company_name,
+    name: row.name,
+    address: row.address,
+    districtName: row.district_name,
+    isMain: Boolean(row.is_main),
+    isActive: Boolean(row.is_active),
+    visitsCount: toNumber(row.visits_count),
+    reviewsCount: toNumber(row.reviews_count),
+    finalScore: toNumber(row.final_score),
+    contactsCount: toNumber(row.contacts_count),
+    schedulesCount: toNumber(row.schedules_count),
+    servicesCount: toNumber(row.services_count),
+    mediaCount: toNumber(row.media_count),
+    updatedAt: toIsoString(row.updated_at) ?? new Date(0).toISOString(),
+  };
+}
+
+export function mapBranchDetailContactRow(
+  row: BranchDetailContactRow
+): BranchDetailContact {
   return {
     contactId: toNumber(row.contact_id),
     contactTypeName: row.contact_type_name,
@@ -117,7 +163,9 @@ export function mapBranchDetailContactRow(row: BranchDetailContactRow): BranchDe
   };
 }
 
-export function mapBranchDetailScheduleRow(row: BranchDetailScheduleRow): BranchDetailSchedule {
+export function mapBranchDetailScheduleRow(
+  row: BranchDetailScheduleRow
+): BranchDetailSchedule {
   return {
     scheduleId: toNumber(row.schedule_id),
     dayName: row.day_name,
@@ -128,7 +176,9 @@ export function mapBranchDetailScheduleRow(row: BranchDetailScheduleRow): Branch
   };
 }
 
-export function mapBranchDetailServiceRow(row: BranchDetailServiceRow): BranchDetailService {
+export function mapBranchDetailServiceRow(
+  row: BranchDetailServiceRow
+): BranchDetailService {
   return {
     serviceId: toNumber(row.service_id),
     code: row.code,
@@ -139,7 +189,9 @@ export function mapBranchDetailServiceRow(row: BranchDetailServiceRow): BranchDe
   };
 }
 
-export function mapBranchDetailMediaRow(row: BranchDetailMediaRow): BranchDetailMedia {
+export function mapBranchDetailMediaRow(
+  row: BranchDetailMediaRow
+): BranchDetailMedia {
   return {
     mediaId: toNumber(row.media_id),
     mediaType: row.media_type,
@@ -167,7 +219,9 @@ export function mapBranchDetailAnalyticsRow(
   };
 }
 
-export function mapBranchDetailAforoRow(row: BranchDetailAforoRow): BranchDetailAforoReport {
+export function mapBranchDetailAforoRow(
+  row: BranchDetailAforoRow
+): BranchDetailAforoReport {
   return {
     reportId: toNumber(row.report_id),
     statusLabel: row.status_label,

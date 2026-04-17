@@ -23,7 +23,7 @@ export async function getBackofficeDashboardData() {
     getDashboardModerationQueueQuery(),
     getDashboardClaimsQueueQuery(),
     getDashboardRevenueSummaryQuery(),
-    getDashboardRecentActivityQuery(),
+    getDashboardRecentActivityQuery(12),
   ]);
 
   const mapped = mapDashboardData({

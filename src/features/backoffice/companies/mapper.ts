@@ -7,7 +7,24 @@ import type {
   CompanyDetailPayment,
   CompanyDetailSubscription,
   CompanyDetailVerification,
+  CompanyListItem,
 } from "./types";
+
+export type CompanyListRow = {
+  company_id: number | string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  verification_status: string | null;
+  verification_level: string | null;
+  verification_score: number | string | null;
+  plan_name: string | null;
+  subscription_status: string | null;
+  branches_count: number | string | null;
+  district_label: string | null;
+  pending_claims_count: number | string | null;
+  updated_at: Date | string;
+};
 
 export type CompanyDetailRow = {
   company_id: number | string;
@@ -103,18 +120,51 @@ function toNumber(value: number | string | null | undefined): number {
   return 0;
 }
 
-function toNullableNumber(value: number | string | null | undefined): number | null {
+function toNullableNumber(
+  value: number | string | null | undefined
+): number | null {
   if (value === null || value === undefined) return null;
-  const parsed = toNumber(value);
+  const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
 function toIsoString(value: Date | string | null | undefined): string | null {
   if (!value) return null;
-  return value instanceof Date ? value.toISOString() : new Date(value).toISOString();
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-export function mapCompanyDetailBranchRow(row: CompanyDetailBranchRow): CompanyDetailBranch {
+function toStatusCode(label: string | null | undefined): string {
+  const normalized = (label ?? "sin estado").trim().toLowerCase();
+  return normalized
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+export function mapCompanyListRow(row: CompanyListRow): CompanyListItem {
+  return {
+    companyId: toNumber(row.company_id),
+    name: row.name,
+    email: row.email,
+    phone: row.phone,
+    verificationStatus: row.verification_status ?? "Sin estado",
+    verificationStatusCode: toStatusCode(row.verification_status),
+    verificationLevel: row.verification_level,
+    verificationScore: toNumber(row.verification_score),
+    planName: row.plan_name,
+    subscriptionStatus: row.subscription_status,
+    branchesCount: toNumber(row.branches_count),
+    districtLabel: row.district_label,
+    pendingClaimsCount: toNumber(row.pending_claims_count),
+    updatedAt: toIsoString(row.updated_at) ?? new Date(0).toISOString(),
+  };
+}
+
+export function mapCompanyDetailBranchRow(
+  row: CompanyDetailBranchRow
+): CompanyDetailBranch {
   return {
     branchId: toNumber(row.branch_id),
     name: row.name,
@@ -129,7 +179,9 @@ export function mapCompanyDetailBranchRow(row: CompanyDetailBranchRow): CompanyD
   };
 }
 
-export function mapCompanyDetailMediaRow(row: CompanyDetailMediaRow): CompanyDetailMediaItem {
+export function mapCompanyDetailMediaRow(
+  row: CompanyDetailMediaRow
+): CompanyDetailMediaItem {
   return {
     mediaId: toNumber(row.media_id),
     mediaType: row.media_type,
@@ -170,7 +222,9 @@ export function mapCompanyDetailSubscriptionRow(
   };
 }
 
-export function mapCompanyDetailPaymentRow(row: CompanyDetailPaymentRow): CompanyDetailPayment {
+export function mapCompanyDetailPaymentRow(
+  row: CompanyDetailPaymentRow
+): CompanyDetailPayment {
   return {
     paymentId: toNumber(row.payment_id),
     amount: toNumber(row.amount),
@@ -180,7 +234,9 @@ export function mapCompanyDetailPaymentRow(row: CompanyDetailPaymentRow): Compan
   };
 }
 
-export function mapCompanyDetailClaimRow(row: CompanyDetailClaimRow): CompanyDetailClaim {
+export function mapCompanyDetailClaimRow(
+  row: CompanyDetailClaimRow
+): CompanyDetailClaim {
   return {
     claimRequestId: toNumber(row.claim_request_id),
     statusName: row.status_name,
@@ -191,7 +247,9 @@ export function mapCompanyDetailClaimRow(row: CompanyDetailClaimRow): CompanyDet
   };
 }
 
-export function mapCompanyDetailAuditRow(row: CompanyDetailAuditRow): CompanyDetailAuditItem {
+export function mapCompanyDetailAuditRow(
+  row: CompanyDetailAuditRow
+): CompanyDetailAuditItem {
   return {
     auditLogId: toNumber(row.audit_log_id),
     action: row.action,

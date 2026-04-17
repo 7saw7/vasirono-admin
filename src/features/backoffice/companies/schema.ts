@@ -1,3 +1,49 @@
+import { z } from "zod";
+
+const optionalTrimmedString = z.preprocess((value) => {
+  if (typeof value !== "string") return value;
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
+}, z.string().optional());
+
+const positiveIntFromUnknown = z.preprocess((value) => {
+  if (value === undefined || value === null || value === "") return undefined;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : value;
+}, z.number().int().positive().optional());
+
+export const companyListFiltersSchema = z.object({
+  search: optionalTrimmedString,
+  verificationStatus: optionalTrimmedString,
+  subscriptionStatus: optionalTrimmedString,
+  page: positiveIntFromUnknown.default(1),
+  pageSize: positiveIntFromUnknown.default(20),
+});
+
+export const companyListItemSchema = z.object({
+  companyId: z.number().int(),
+  name: z.string(),
+  email: z.string().nullable(),
+  phone: z.string().nullable(),
+  verificationStatus: z.string(),
+  verificationStatusCode: z.string(),
+  verificationLevel: z.string().nullable(),
+  verificationScore: z.number(),
+  planName: z.string().nullable(),
+  subscriptionStatus: z.string().nullable(),
+  branchesCount: z.number().int(),
+  districtLabel: z.string().nullable(),
+  pendingClaimsCount: z.number().int(),
+  updatedAt: z.string(),
+});
+
+export const companyListResultSchema = z.object({
+  items: z.array(companyListItemSchema),
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+});
+
 export const companyDetailBranchSchema = z.object({
   branchId: z.number().int(),
   name: z.string(),

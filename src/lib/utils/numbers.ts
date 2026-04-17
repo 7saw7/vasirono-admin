@@ -1,6 +1,18 @@
 const DEFAULT_LOCALE = "es-PE";
 const DEFAULT_CURRENCY = "PEN";
 
+export function formatNumber(
+  value: number | null | undefined,
+  locale = DEFAULT_LOCALE,
+  maximumFractionDigits = 2
+): string {
+  if (typeof value !== "number" || Number.isNaN(value)) return "—";
+
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits,
+  }).format(value);
+}
+
 export function formatCurrency(
   value: number | null | undefined,
   currency = DEFAULT_CURRENCY,

@@ -1,3 +1,35 @@
+export type CompanyListFilters = {
+  search?: string;
+  verificationStatus?: string;
+  subscriptionStatus?: string;
+  page?: string | number;
+  pageSize?: string | number;
+};
+
+export type CompanyListItem = {
+  companyId: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  verificationStatus: string;
+  verificationStatusCode: string;
+  verificationLevel: string | null;
+  verificationScore: number;
+  planName: string | null;
+  subscriptionStatus: string | null;
+  branchesCount: number;
+  districtLabel: string | null;
+  pendingClaimsCount: number;
+  updatedAt: string;
+};
+
+export type CompanyListResult = {
+  items: CompanyListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
 export type CompanyDetailBranch = {
   branchId: number;
   name: string;

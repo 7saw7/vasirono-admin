@@ -1,3 +1,38 @@
+export type BranchListFilters = {
+  search?: string;
+  companyId?: string | number;
+  districtId?: string | number;
+  isActive?: string | boolean;
+  page?: string | number;
+  pageSize?: string | number;
+};
+
+export type BranchListItem = {
+  branchId: number;
+  companyId: number;
+  companyName: string;
+  name: string;
+  address: string;
+  districtName: string | null;
+  isMain: boolean;
+  isActive: boolean;
+  visitsCount: number;
+  reviewsCount: number;
+  finalScore: number;
+  contactsCount: number;
+  schedulesCount: number;
+  servicesCount: number;
+  mediaCount: number;
+  updatedAt: string;
+};
+
+export type BranchListResult = {
+  items: BranchListItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
 export type BranchDetailContact = {
   contactId: number;
   contactTypeName: string;

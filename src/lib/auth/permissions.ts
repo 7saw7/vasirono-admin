@@ -18,12 +18,21 @@ export type BackofficePermission =
   | "users.read"
   | "users.manage"
   | "analytics.read"
+  | "taxonomies.read"
   | "taxonomies.manage"
+  | "taxonomies.businessTypes.manage"
+  | "taxonomies.categories.manage"
+  | "taxonomies.subcategories.manage"
+  | "taxonomies.services.manage"
+  | "plans.read"
   | "plans.manage"
   | "subscriptions.read"
   | "payments.read"
+  | "promotions.read"
   | "promotions.manage"
+  | "notifications.read"
   | "notifications.manage"
+  | "settings.read"
   | "settings.manage";
 
 const ALL_PERMISSIONS: BackofficePermission[] = [
@@ -43,18 +52,28 @@ const ALL_PERMISSIONS: BackofficePermission[] = [
   "users.read",
   "users.manage",
   "analytics.read",
+  "taxonomies.read",
   "taxonomies.manage",
+  "taxonomies.businessTypes.manage",
+  "taxonomies.categories.manage",
+  "taxonomies.subcategories.manage",
+  "taxonomies.services.manage",
+  "plans.read",
   "plans.manage",
   "subscriptions.read",
   "payments.read",
+  "promotions.read",
   "promotions.manage",
+  "notifications.read",
   "notifications.manage",
+  "settings.read",
   "settings.manage",
 ];
 
 const ROLE_PERMISSIONS: Record<AppRole, BackofficePermission[]> = {
   [APP_ROLES.SUPER_ADMIN]: ALL_PERMISSIONS,
   [APP_ROLES.ADMIN]: ALL_PERMISSIONS,
+
   [APP_ROLES.MODERATOR]: [
     "dashboard.read",
     "claims.read",
@@ -68,7 +87,13 @@ const ROLE_PERMISSIONS: Record<AppRole, BackofficePermission[]> = {
     "companies.read",
     "branches.read",
     "users.read",
+    "taxonomies.read",
+    "plans.read",
+    "promotions.read",
+    "notifications.read",
+    "settings.read",
   ],
+
   [APP_ROLES.ANALYST]: [
     "dashboard.read",
     "analytics.read",
@@ -77,7 +102,13 @@ const ROLE_PERMISSIONS: Record<AppRole, BackofficePermission[]> = {
     "users.read",
     "subscriptions.read",
     "payments.read",
+    "taxonomies.read",
+    "plans.read",
+    "promotions.read",
+    "notifications.read",
+    "settings.read",
   ],
+
   [APP_ROLES.SUPPORT]: [
     "dashboard.read",
     "companies.read",
@@ -89,8 +120,10 @@ const ROLE_PERMISSIONS: Record<AppRole, BackofficePermission[]> = {
     "users.read",
     "subscriptions.read",
     "payments.read",
-    "notifications.manage",
+    "notifications.read",
+    "taxonomies.read",
   ],
+
   [APP_ROLES.COMPANY_OWNER]: [],
   [APP_ROLES.COMPANY_MANAGER]: [],
   [APP_ROLES.USER]: [],

@@ -1,19 +1,20 @@
-import React from "react";
-import HistoriaSection from "src/components/HistoriaSection/page";
-import MomentosSection from "src/components/MomentosSection/page";
-import CartaSection from "src/components/CartaSection/page";
-import SorpresaSection from "src/components/SorpresaSection/page";
-const Home: React.FC = () => {
+import { redirect } from "next/navigation";
+import { getCurrentSessionUser } from "@/lib/auth/session";
+import { isBackofficeRole } from "@/lib/constants/roles";
+import { ROUTES } from "@/lib/constants/routes";
 
-  return (
-    <>
+export const dynamic = "force-dynamic";
 
-        <HistoriaSection />
-        <MomentosSection />
-        <CartaSection />
-        <SorpresaSection />
-    </>
-  );
-};
+export default async function HomePage() {
+  const session = await getCurrentSessionUser();
 
-export default Home;
+  if (!session.user) {
+    redirect(ROUTES.LOGIN);
+  }
+
+  if (!isBackofficeRole(session.user.role)) {
+    redirect(ROUTES.LOGIN);
+  }
+
+  redirect(ROUTES.BACKOFFICE_ROOT);
+}

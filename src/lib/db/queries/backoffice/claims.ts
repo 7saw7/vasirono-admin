@@ -1,9 +1,14 @@
 import type { PoolClient } from "pg";
 import { query, withTransaction } from "@/lib/db/server";
-import type { ClaimDetailRow } from "@/features/backoffice/claims/mapper";
+import type {
+  ClaimDecisionResultRow,
+  ClaimDetailRow,
+  ClaimListRow,
+} from "@/features/backoffice/claims/mapper";
+import type { ClaimListFilters } from "@/features/backoffice/claims/types";
 
-type IdRow = {
-  id: number;
+type CountRow = {
+  total: number | string;
 };
 
 type ClaimStatusRow = {
@@ -18,6 +23,126 @@ type VerificationRequestStatusRow = {
 type VerificationLevelRow = {
   id: number;
 };
+
+type IdRow = {
+  id: number;
+};
+
+function buildListClaimsWhere(filters: ClaimListFilters) {
+  const clauses: string[] = [];
+  const params: unknown[] = [];
+
+  if (filters.search?.trim()) {
+    params.push(`%${filters.search.trim()}%`);
+    const index = params.length;
+    clauses.push(`
+      (
+        c.name ilike $${index}
+        or u.name ilike $${index}
+        or u.email ilike $${index}
+        or coalesce(ccr.notes, '') ilike $${index}
+      )
+    `);
+  }
+
+  if (filters.status?.trim()) {
+    params.push(filters.status.trim().toLowerCase());
+    const index = params.length;
+    clauses.push(`
+      (
+        lower(coalesce(crs.name, '')) = $${index}
+      )
+    `);
+  }
+
+  if (filters.companyId !== undefined && filters.companyId !== null) {
+    params.push(Number(filters.companyId));
+    clauses.push(`ccr.company_id = $${params.length}`);
+  }
+
+  return {
+    params,
+    whereSql: clauses.length > 0 ? `where ${clauses.join(" and ")}` : "",
+  };
+}
+
+export async function listClaimsQuery(filters: ClaimListFilters) {
+  const page = typeof filters.page === "number" ? filters.page : Number(filters.page ?? 1);
+  const pageSize =
+    typeof filters.pageSize === "number"
+      ? filters.pageSize
+      : Number(filters.pageSize ?? 10);
+
+  const safePage = Number.isFinite(page) && page > 0 ? page : 1;
+  const safePageSize =
+    Number.isFinite(pageSize) && pageSize > 0 ? Math.min(pageSize, 100) : 10;
+  const offset = (safePage - 1) * safePageSize;
+
+  const { params, whereSql } = buildListClaimsWhere(filters);
+
+  const countResult = await query<CountRow>(
+    `
+      select count(*)::int as total
+      from company_claim_requests ccr
+      inner join companies c
+        on c.company_id = ccr.company_id
+      inner join users u
+        on u.id = ccr.user_id
+      left join claim_request_statuses crs
+        on crs.id = ccr.status_id
+      ${whereSql}
+    `,
+    params
+  );
+
+  const listParams = [...params, safePageSize, offset];
+  const limitParam = listParams.length - 1;
+  const offsetParam = listParams.length;
+
+  const listResult = await query<ClaimListRow>(
+    `
+      select
+        ccr.claim_request_id,
+        ccr.company_id,
+        c.name as company_name,
+        u.id as user_id,
+        u.name as claimant_name,
+        u.email as claimant_email,
+        coalesce(crs.name, 'Sin estado') as status_name,
+        lower(coalesce(crs.name, 'unknown')) as status_code,
+        ccr.submitted_at,
+        ccr.reviewed_at,
+        reviewer.name as reviewed_by_name,
+        ccr.notes,
+        ccr.evidence_url,
+        exists(
+          select 1
+          from company_verification_requests cvr
+          where cvr.claim_request_id = ccr.claim_request_id
+        ) as has_verification_request
+      from company_claim_requests ccr
+      inner join companies c
+        on c.company_id = ccr.company_id
+      inner join users u
+        on u.id = ccr.user_id
+      left join claim_request_statuses crs
+        on crs.id = ccr.status_id
+      left join users reviewer
+        on reviewer.id = ccr.reviewed_by
+      ${whereSql}
+      order by ccr.submitted_at desc, ccr.claim_request_id desc
+      limit $${limitParam} offset $${offsetParam}
+    `,
+    listParams
+  );
+
+  return {
+    rows: listResult.rows,
+    total: Number(countResult.rows[0]?.total ?? 0),
+    page: safePage,
+    pageSize: safePageSize,
+  };
+}
 
 export async function getClaimDetailQuery(claimRequestId: number) {
   const { rows } = await query<ClaimDetailRow>(
@@ -83,8 +208,9 @@ async function findClaimStatusIdByNames(
       order by
         case
           when lower(name) = 'approved' then 1
+          when lower(name) = 'accepted' then 2
           when lower(name) = 'rejected' then 1
-          when lower(name) = 'in review' then 2
+          when lower(name) = 'denied' then 2
           else 10
         end,
         id asc
@@ -165,7 +291,7 @@ export async function approveClaimQuery(input: {
   claimRequestId: number;
   reviewerUserId: string;
   notes?: string;
-}) {
+}): Promise<ClaimDecisionResultRow> {
   return withTransaction(async (client) => {
     const detail = await client.query<ClaimDetailRow>(
       `
@@ -214,11 +340,12 @@ export async function approveClaimQuery(input: {
     );
 
     const claim = detail.rows[0];
-    if (!claim) {
-      throw new Error("CLAIM_NOT_FOUND");
-    }
+    if (!claim) throw new Error("CLAIM_NOT_FOUND");
 
-    const approvedStatus = await findClaimStatusIdByNames(client, ["approved", "accepted"]);
+    const approvedStatus = await findClaimStatusIdByNames(client, [
+      "approved",
+      "accepted",
+    ]);
     if (!approvedStatus) {
       throw new Error("MISSING_APPROVED_CLAIM_STATUS");
     }
@@ -238,11 +365,17 @@ export async function approveClaimQuery(input: {
           updated_at = now()
         where claim_request_id = $1
       `,
-      [input.claimRequestId, approvedStatus.id, input.reviewerUserId, input.notes ?? null]
+      [
+        input.claimRequestId,
+        approvedStatus.id,
+        input.reviewerUserId,
+        input.notes ?? null,
+      ]
     );
 
     let verificationRequestId =
-      claim.verification_request_id === null || claim.verification_request_id === undefined
+      claim.verification_request_id === null ||
+      claim.verification_request_id === undefined
         ? null
         : Number(claim.verification_request_id);
 
@@ -291,7 +424,7 @@ export async function rejectClaimQuery(input: {
   claimRequestId: number;
   reviewerUserId: string;
   notes?: string;
-}) {
+}): Promise<ClaimDecisionResultRow> {
   return withTransaction(async (client) => {
     const exists = await client.query<{ claim_request_id: number }>(
       `
@@ -307,7 +440,10 @@ export async function rejectClaimQuery(input: {
       throw new Error("CLAIM_NOT_FOUND");
     }
 
-    const rejectedStatus = await findClaimStatusIdByNames(client, ["rejected", "denied"]);
+    const rejectedStatus = await findClaimStatusIdByNames(client, [
+      "rejected",
+      "denied",
+    ]);
     if (!rejectedStatus) {
       throw new Error("MISSING_REJECTED_CLAIM_STATUS");
     }
@@ -327,7 +463,12 @@ export async function rejectClaimQuery(input: {
           updated_at = now()
         where claim_request_id = $1
       `,
-      [input.claimRequestId, rejectedStatus.id, input.reviewerUserId, input.notes ?? null]
+      [
+        input.claimRequestId,
+        rejectedStatus.id,
+        input.reviewerUserId,
+        input.notes ?? null,
+      ]
     );
 
     return {
