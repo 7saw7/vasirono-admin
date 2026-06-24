@@ -17,7 +17,7 @@ export function VerificationDecisionForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleDecision(decision: "approve" | "reject") {
+  async function handleDecision(decision: "approved" | "rejected") {
     try {
       setIsSubmitting(true);
       setError("");
@@ -29,10 +29,11 @@ export function VerificationDecisionForm({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            decision,
-            notes,
-          }),
+          body: JSON.stringify(
+            decision === "approved"
+              ? { decision, approvalNotes: notes }
+              : { decision, rejectionReason: notes }
+          ),
         }
       );
 
@@ -78,7 +79,7 @@ export function VerificationDecisionForm({
         <Button
           type="button"
           loading={isSubmitting}
-          onClick={() => void handleDecision("approve")}
+          onClick={() => void handleDecision("approved")}
         >
           Aprobar
         </Button>
@@ -86,7 +87,7 @@ export function VerificationDecisionForm({
           type="button"
           variant="danger"
           loading={isSubmitting}
-          onClick={() => void handleDecision("reject")}
+          onClick={() => void handleDecision("rejected")}
         >
           Rechazar
         </Button>

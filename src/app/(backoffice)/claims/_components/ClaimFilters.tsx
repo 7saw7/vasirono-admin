@@ -53,7 +53,7 @@ export function ClaimFilters() {
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_auto]">
         <Input
           label="Buscar claim"
-          placeholder="Empresa, solicitante, correo o notas"
+          placeholder="Empresa, local, solicitante, correo, teléfono o canal"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
@@ -64,11 +64,16 @@ export function ClaimFilters() {
           onChange={(event) => setStatus(event.target.value)}
           placeholder="Todos"
           options={[
-            { label: "Pending", value: "pending" },
-            { label: "Submitted", value: "submitted" },
-            { label: "In review", value: "in_review" },
-            { label: "Approved", value: "approved" },
-            { label: "Rejected", value: "rejected" },
+            { label: "Solicitud recibida", value: "received" },
+            { label: "Revisión de canal público", value: "pending_public_contact_review" },
+            { label: "Código pendiente", value: "otp_pending" },
+            { label: "Canal oficial validado", value: "official_channel_verified" },
+            { label: "Visita requerida", value: "visit_required" },
+            { label: "Visita programada", value: "visit_scheduled" },
+            { label: "Visita aprobada", value: "onsite_review_passed" },
+            { label: "Acceso básico aprobado", value: "approved_basic_access" },
+            { label: "Requiere evidencia", value: "needs_more_evidence" },
+            { label: "Rechazado", value: "rejected" },
           ]}
         />
 

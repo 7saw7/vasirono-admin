@@ -2,15 +2,26 @@ import type {
   ClaimDecisionResult,
   ClaimDetail,
   ClaimListItem,
+  ClaimPublicContact,
+  ClaimWhatsappVerification,
 } from "./types";
 
 export type ClaimListRow = {
   claim_request_id: number | string;
   company_id: number | string;
   company_name: string;
-  user_id: string;
-  claimant_name: string;
-  claimant_email: string;
+  branch_id: number | string | null;
+  branch_name: string | null;
+  branch_address: string | null;
+  user_id: string | null;
+  claimant_name: string | null;
+  claimant_email: string | null;
+  claimant_phone: string | null;
+  applicant_role: string | null;
+  source: string | null;
+  declared_channel_type: string | null;
+  declared_channel_value: string | null;
+  preferred_verification_route: string | null;
   status_name: string | null;
   status_code: string | null;
   submitted_at: Date | string;
@@ -21,24 +32,47 @@ export type ClaimListRow = {
   has_verification_request: boolean | null;
 };
 
-export type ClaimDetailRow = {
-  claim_request_id: number | string;
-  company_id: number | string;
-  company_name: string;
-  user_id: string;
-  claimant_name: string;
-  claimant_email: string;
+export type ClaimDetailRow = ClaimListRow & {
+  branch_phone: string | null;
+  branch_email: string | null;
+  onsite_visit_scheduled_at: Date | string | null;
+  onsite_visit_address: string | null;
+  onsite_contact_person: string | null;
+  onsite_contact_phone: string | null;
+  onsite_visit_notes: string | null;
   status_id: number | string | null;
-  status_name: string | null;
-  status_code: string | null;
-  submitted_at: Date | string;
-  reviewed_at: Date | string | null;
   reviewed_by_id: string | null;
-  reviewed_by_name: string | null;
-  notes: string | null;
-  evidence_url: string | null;
   verification_request_id: number | string | null;
   verification_status_name: string | null;
+  verification_status_code: string | null;
+  verification_level: string | null;
+};
+
+export type ClaimPublicContactRow = {
+  public_contact_verification_id: number | string;
+  contact_source: string;
+  contact_label: string | null;
+  contact_value: string;
+  normalized_contact_value: string | null;
+  matched_with_branch_contact: boolean | null;
+  evidence_url: string | null;
+  verified_at: Date | string | null;
+  verified_by_name: string | null;
+  created_at: Date | string;
+};
+
+export type ClaimWhatsappVerificationRow = {
+  whatsapp_verification_id: number | string;
+  public_phone: string;
+  normalized_phone: string;
+  attempts_count: number | string;
+  max_attempts: number | string;
+  status: string;
+  sent_at: Date | string | null;
+  expires_at: Date | string | null;
+  verified_at: Date | string | null;
+  provider_name: string | null;
+  failure_reason: string | null;
 };
 
 export type ClaimDecisionResultRow = {
@@ -70,14 +104,31 @@ function toIsoString(value: Date | string | null | undefined): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function publicClaimantName(row: { claimant_name: string | null }): string {
+  return row.claimant_name?.trim() || "Solicitante público";
+}
+
+function publicClaimantEmail(row: { claimant_email: string | null }): string {
+  return row.claimant_email?.trim() || "Sin correo registrado";
+}
+
 export function mapClaimListRow(row: ClaimListRow): ClaimListItem {
   return {
     claimRequestId: toNumber(row.claim_request_id),
     companyId: toNumber(row.company_id),
     companyName: row.company_name,
+    branchId: toNullableNumber(row.branch_id),
+    branchName: row.branch_name,
+    branchAddress: row.branch_address,
     userId: row.user_id,
-    claimantName: row.claimant_name,
-    claimantEmail: row.claimant_email,
+    claimantName: publicClaimantName(row),
+    claimantEmail: publicClaimantEmail(row),
+    claimantPhone: row.claimant_phone,
+    applicantRole: row.applicant_role,
+    source: row.source ?? "public_web",
+    declaredChannelType: row.declared_channel_type,
+    declaredChannelValue: row.declared_channel_value,
+    preferredVerificationRoute: row.preferred_verification_route,
     statusName: row.status_name ?? "Sin estado",
     statusCode: (row.status_code ?? "unknown").toLowerCase(),
     submittedAt: toIsoString(row.submitted_at) ?? new Date(0).toISOString(),
@@ -89,14 +140,71 @@ export function mapClaimListRow(row: ClaimListRow): ClaimListItem {
   };
 }
 
-export function mapClaimDetailRow(row: ClaimDetailRow): ClaimDetail {
+export function mapClaimPublicContactRow(
+  row: ClaimPublicContactRow
+): ClaimPublicContact {
+  return {
+    publicContactVerificationId: toNumber(row.public_contact_verification_id),
+    contactSource: row.contact_source,
+    contactLabel: row.contact_label,
+    contactValue: row.contact_value,
+    normalizedContactValue: row.normalized_contact_value,
+    matchedWithBranchContact: Boolean(row.matched_with_branch_contact),
+    evidenceUrl: row.evidence_url,
+    verifiedAt: toIsoString(row.verified_at),
+    verifiedByName: row.verified_by_name,
+    createdAt: toIsoString(row.created_at) ?? new Date(0).toISOString(),
+  };
+}
+
+export function mapClaimWhatsappVerificationRow(
+  row: ClaimWhatsappVerificationRow
+): ClaimWhatsappVerification {
+  return {
+    whatsappVerificationId: toNumber(row.whatsapp_verification_id),
+    publicPhone: row.public_phone,
+    normalizedPhone: row.normalized_phone,
+    attemptsCount: toNumber(row.attempts_count),
+    maxAttempts: toNumber(row.max_attempts),
+    status: row.status,
+    sentAt: toIsoString(row.sent_at),
+    expiresAt: toIsoString(row.expires_at),
+    verifiedAt: toIsoString(row.verified_at),
+    providerName: row.provider_name,
+    failureReason: row.failure_reason,
+  };
+}
+
+export function mapClaimDetailRow(
+  row: ClaimDetailRow,
+  relations: {
+    publicContacts: ClaimPublicContactRow[];
+    whatsappVerifications: ClaimWhatsappVerificationRow[];
+  } = { publicContacts: [], whatsappVerifications: [] }
+): ClaimDetail {
   return {
     claimRequestId: toNumber(row.claim_request_id),
     companyId: toNumber(row.company_id),
     companyName: row.company_name,
+    branchId: toNullableNumber(row.branch_id),
+    branchName: row.branch_name,
+    branchAddress: row.branch_address,
+    branchPhone: row.branch_phone,
+    branchEmail: row.branch_email,
     userId: row.user_id,
-    claimantName: row.claimant_name,
-    claimantEmail: row.claimant_email,
+    claimantName: publicClaimantName(row),
+    claimantEmail: publicClaimantEmail(row),
+    claimantPhone: row.claimant_phone,
+    applicantRole: row.applicant_role,
+    source: row.source ?? "public_web",
+    declaredChannelType: row.declared_channel_type,
+    declaredChannelValue: row.declared_channel_value,
+    preferredVerificationRoute: row.preferred_verification_route,
+    onsiteVisitScheduledAt: toIsoString(row.onsite_visit_scheduled_at),
+    onsiteVisitAddress: row.onsite_visit_address,
+    onsiteContactPerson: row.onsite_contact_person,
+    onsiteContactPhone: row.onsite_contact_phone,
+    onsiteVisitNotes: row.onsite_visit_notes,
     statusId: toNullableNumber(row.status_id),
     statusName: row.status_name ?? "Sin estado",
     statusCode: (row.status_code ?? "unknown").toLowerCase(),
@@ -108,6 +216,12 @@ export function mapClaimDetailRow(row: ClaimDetailRow): ClaimDetail {
     evidenceUrl: row.evidence_url,
     verificationRequestId: toNullableNumber(row.verification_request_id),
     verificationStatusName: row.verification_status_name,
+    verificationStatusCode: row.verification_status_code,
+    verificationLevel: row.verification_level,
+    publicContacts: relations.publicContacts.map(mapClaimPublicContactRow),
+    whatsappVerifications: relations.whatsappVerifications.map(
+      mapClaimWhatsappVerificationRow
+    ),
   };
 }
 

@@ -3,17 +3,17 @@ import Link from "next/link";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateTime } from "@/lib/utils/dates";
-import { ClaimDecisionForm } from "../../_components/ClaimDecisionForm";
 import { ClaimEvidencePreview } from "../../_components/ClaimEvidencePreview";
 import type { ClaimDetail } from "@/features/backoffice/claims/types";
+import { ClaimProfessionalFlowPanel } from "./ClaimProfessionalFlowPanel";
 
 type ClaimDetailViewProps = {
   data: ClaimDetail;
 };
 
 function mapTone(statusCode: string) {
-  if (["approved", "accepted"].includes(statusCode)) return "success" as const;
-  if (["pending", "submitted", "in_review", "reviewing"].includes(statusCode)) {
+  if (["approved", "accepted", "approved_basic_access", "official_channel_verified", "onsite_review_passed"].includes(statusCode)) return "success" as const;
+  if (["pending", "submitted", "in_review", "reviewing", "received", "pending_public_contact_review", "otp_pending", "visit_required", "visit_scheduled", "needs_more_evidence"].includes(statusCode)) {
     return "warning" as const;
   }
   if (["rejected", "denied"].includes(statusCode)) return "danger" as const;
@@ -29,7 +29,7 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
           Claim #{data.claimRequestId}
         </h1>
         <p className="mt-2 text-sm text-neutral-500">
-          Revisión completa de la solicitud de claim empresarial.
+          Revisión profesional de solicitud: canal oficial, WhatsApp/correo, visita presencial y evidencias.
         </p>
       </div>
 
@@ -54,7 +54,10 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
               }
             />
             <Field label="Solicitante" value={data.claimantName} />
-            <Field label="Correo" value={data.claimantEmail} />
+            <Field label="Correo solicitante" value={data.claimantEmail} />
+            <Field label="Teléfono solicitante" value={data.claimantPhone ?? "—"} />
+            <Field label="Rol declarado" value={data.applicantRole ?? "—"} />
+            <Field label="Origen" value={data.source} />
             <Field label="Enviado" value={formatDateTime(data.submittedAt)} />
             <Field label="Revisado" value={formatDateTime(data.reviewedAt)} />
             <Field label="Revisado por" value={data.reviewedByName ?? "—"} />
@@ -62,15 +65,15 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
               label="Verification request"
               value={
                 data.verificationRequestId ? (
-                  <span>
-                    #{data.verificationRequestId} ·{" "}
-                    {data.verificationStatusName ?? "—"}
-                  </span>
+                  <Link href={`/verificaciones/${data.verificationRequestId}`} className="underline">
+                    #{data.verificationRequestId} · {data.verificationStatusName ?? "—"}
+                  </Link>
                 ) : (
                   "No generado"
                 )
               }
             />
+            <Field label="Nivel" value={data.verificationLevel ?? "—"} />
           </div>
 
           {data.notes ? (
@@ -84,14 +87,73 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
         </SectionCard>
 
         <SectionCard
-          title="Evidencia"
-          description="Archivo o imagen aportada por el solicitante."
+          title="Local y canal declarado"
+          description="Información necesaria para decidir canal oficial o visita presencial."
         >
-          <ClaimEvidencePreview evidenceUrl={data.evidenceUrl} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Sucursal" value={data.branchName ?? "—"} />
+            <Field label="Dirección" value={data.branchAddress ?? "—"} />
+            <Field label="Teléfono local" value={data.branchPhone ?? "—"} />
+            <Field label="Correo local" value={data.branchEmail ?? "—"} />
+            <Field label="Canal declarado" value={data.declaredChannelType ?? "—"} />
+            <Field label="Valor declarado" value={data.declaredChannelValue ?? "—"} />
+            <Field label="Ruta preferida" value={data.preferredVerificationRoute ?? "—"} />
+            <Field label="Visita programada" value={formatDateTime(data.onsiteVisitScheduledAt)} />
+          </div>
         </SectionCard>
       </div>
 
-      <ClaimDecisionForm claimId={data.claimRequestId} />
+      <ClaimProfessionalFlowPanel claim={data} />
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <SectionCard
+          title="Evidencia enviada"
+          description="URL o evidencia inicial aportada por el solicitante."
+        >
+          <ClaimEvidencePreview evidenceUrl={data.evidenceUrl} />
+        </SectionCard>
+
+        <SectionCard
+          title="Historial de canal oficial"
+          description="Últimos canales públicos y códigos WhatsApp asociados a esta solicitud."
+        >
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-semibold text-neutral-900">Contactos públicos registrados</p>
+              {data.publicContacts.length > 0 ? (
+                <div className="mt-2 space-y-2">
+                  {data.publicContacts.map((contact) => (
+                    <div key={contact.publicContactVerificationId} className="rounded-2xl border border-neutral-100 p-3 text-sm">
+                      <p className="font-medium text-neutral-900">{contact.contactSource} · {contact.contactValue}</p>
+                      <p className="mt-1 text-neutral-500">Evidencia: {contact.evidenceUrl ?? "—"}</p>
+                      <p className="mt-1 text-neutral-500">Verificado por: {contact.verifiedByName ?? "—"}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-neutral-500">Aún no se registró canal oficial.</p>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold text-neutral-900">WhatsApp OTP</p>
+              {data.whatsappVerifications.length > 0 ? (
+                <div className="mt-2 space-y-2">
+                  {data.whatsappVerifications.map((item) => (
+                    <div key={item.whatsappVerificationId} className="rounded-2xl border border-neutral-100 p-3 text-sm">
+                      <p className="font-medium text-neutral-900">{item.publicPhone} · {item.status}</p>
+                      <p className="mt-1 text-neutral-500">Enviado/preparado: {formatDateTime(item.sentAt)}</p>
+                      <p className="mt-1 text-neutral-500">Vence: {formatDateTime(item.expiresAt)}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 text-sm text-neutral-500">No hay códigos WhatsApp generados.</p>
+              )}
+            </div>
+          </div>
+        </SectionCard>
+      </div>
     </div>
   );
 }
@@ -106,7 +168,7 @@ function Field({
   return (
     <div className="rounded-2xl border border-neutral-100 p-4">
       <p className="text-sm text-neutral-500">{label}</p>
-      <div className="mt-2 text-sm font-medium text-neutral-900">{value}</div>
+      <div className="mt-2 break-words text-sm font-medium text-neutral-900">{value}</div>
     </div>
   );
 }

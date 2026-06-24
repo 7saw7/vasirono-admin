@@ -12,8 +12,8 @@ type ClaimRequestsTableProps = {
 };
 
 function mapTone(statusCode: string) {
-  if (["approved", "accepted"].includes(statusCode)) return "success" as const;
-  if (["pending", "submitted", "in_review", "reviewing"].includes(statusCode)) {
+  if (["approved", "accepted", "approved_basic_access", "official_channel_verified", "onsite_review_passed"].includes(statusCode)) return "success" as const;
+  if (["pending", "submitted", "in_review", "reviewing", "received", "pending_public_contact_review", "otp_pending", "visit_required", "visit_scheduled", "needs_more_evidence"].includes(statusCode)) {
     return "warning" as const;
   }
   if (["rejected", "denied"].includes(statusCode)) return "danger" as const;
@@ -43,8 +43,11 @@ export function ClaimRequestsTable({ data }: ClaimRequestsTableProps) {
                   {row.companyName}
                 </Link>
                 <p className="text-xs text-neutral-500">
-                  Claim #{row.claimRequestId}
+                  Claim #{row.claimRequestId}{row.branchName ? ` · ${row.branchName}` : ""}
                 </p>
+                {row.branchAddress ? (
+                  <p className="text-xs text-neutral-400">{row.branchAddress}</p>
+                ) : null}
               </div>
             ),
           },
@@ -55,6 +58,26 @@ export function ClaimRequestsTable({ data }: ClaimRequestsTableProps) {
               <div className="space-y-1">
                 <p className="font-medium text-neutral-900">{row.claimantName}</p>
                 <p className="text-xs text-neutral-500">{row.claimantEmail}</p>
+                {row.claimantPhone ? (
+                  <p className="text-xs text-neutral-400">{row.claimantPhone}</p>
+                ) : null}
+                {row.applicantRole ? (
+                  <p className="text-xs text-neutral-400">Rol: {row.applicantRole}</p>
+                ) : null}
+              </div>
+            ),
+          },
+
+          {
+            key: "declaredChannel",
+            title: "Canal declarado",
+            render: (row: ClaimListItem) => (
+              <div className="space-y-1 text-sm text-neutral-600">
+                <p>{row.declaredChannelType ?? "—"}</p>
+                <p className="text-xs text-neutral-500">{row.declaredChannelValue ?? "Sin valor"}</p>
+                {row.preferredVerificationRoute ? (
+                  <p className="text-xs text-neutral-400">Ruta: {row.preferredVerificationRoute}</p>
+                ) : null}
               </div>
             ),
           },

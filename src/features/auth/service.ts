@@ -30,11 +30,13 @@ async function findUserByEmail(
         u.name,
         u.email,
         u.verified,
-        u.password_hash,
+        ac.password_hash,
         r.name as role_name
       from users u
       inner join roles r on r.id = u.role_id
+      inner join auth_credentials ac on ac.user_id = u.id
       where lower(u.email) = lower($1)
+        and coalesce(u.is_active, true) = true
       limit 1
     `,
     [email]

@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import type { ClaimListItem } from "@/features/backoffice/claims/types";
 import { formatDateTime } from "@/lib/utils/dates";
-import { ClaimDecisionForm } from "./ClaimDecisionForm";
 import { ClaimEvidencePreview } from "./ClaimEvidencePreview";
 
 type ClaimReviewDrawerProps = {
@@ -30,6 +29,9 @@ export function ClaimReviewDrawer({ claim }: ClaimReviewDrawerProps) {
                 <h2 className="mt-1 text-2xl font-semibold text-neutral-950">
                   {claim.companyName}
                 </h2>
+                {claim.branchName ? (
+                  <p className="mt-1 text-sm text-neutral-500">Local: {claim.branchName}</p>
+                ) : null}
               </div>
 
               <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
@@ -42,7 +44,7 @@ export function ClaimReviewDrawer({ claim }: ClaimReviewDrawerProps) {
                 href={`/claims/${claim.claimRequestId}`}
                 className="text-sm font-medium text-neutral-900 underline"
               >
-                Abrir vista completa
+                Abrir flujo profesional completo
               </Link>
             </div>
 
@@ -52,19 +54,22 @@ export function ClaimReviewDrawer({ claim }: ClaimReviewDrawerProps) {
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <Field label="Solicitante" value={claim.claimantName} />
                   <Field label="Correo" value={claim.claimantEmail} />
+                  <Field label="Teléfono" value={claim.claimantPhone ?? "—"} />
+                  <Field label="Rol" value={claim.applicantRole ?? "—"} />
+                  <Field label="Canal declarado" value={claim.declaredChannelType ?? "—"} />
+                  <Field label="Valor declarado" value={claim.declaredChannelValue ?? "—"} />
                   <Field label="Estado" value={claim.statusName} />
                   <Field label="Enviado" value={formatDateTime(claim.submittedAt)} />
                   <Field label="Revisado" value={formatDateTime(claim.reviewedAt)} />
-                  <Field
-                    label="Verification flow"
-                    value={claim.hasVerificationRequest ? "Sí" : "No"}
-                  />
+                  <Field label="Ruta preferida" value={claim.preferredVerificationRoute ?? "—"} />
+                  <Field label="Verification flow" value={claim.hasVerificationRequest ? "Sí" : "No"} />
+                  <Field label="Origen" value={claim.source} />
                 </div>
 
                 {claim.notes ? (
                   <div className="mt-4">
                     <p className="text-sm font-medium text-neutral-900">Notas</p>
-                    <p className="mt-2 text-sm text-neutral-600">{claim.notes}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-sm text-neutral-600">{claim.notes}</p>
                   </div>
                 ) : null}
               </section>
@@ -74,10 +79,9 @@ export function ClaimReviewDrawer({ claim }: ClaimReviewDrawerProps) {
                 <ClaimEvidencePreview evidenceUrl={claim.evidenceUrl} />
               </section>
 
-              <ClaimDecisionForm
-                claimId={claim.claimRequestId}
-                onSuccess={() => setOpen(false)}
-              />
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                Para enviar código al canal oficial, generar link WhatsApp o derivar a visita presencial, abre la vista completa del claim. Esto evita aprobar por error sin trazabilidad.
+              </div>
             </div>
           </div>
         </div>
@@ -90,7 +94,7 @@ function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-neutral-100 p-3">
       <p className="text-xs text-neutral-500">{label}</p>
-      <p className="mt-1 text-sm font-medium text-neutral-900">{value}</p>
+      <p className="mt-1 break-words text-sm font-medium text-neutral-900">{value}</p>
     </div>
   );
 }
