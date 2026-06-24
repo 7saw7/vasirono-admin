@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { BackofficeShell } from "@/components/layout/BackofficeShell";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { ROUTES } from "@/lib/constants/routes";
+import { backofficeNav } from "@/config/nav/backoffice-nav";
 
 type BackofficeLayoutProps = {
   children: ReactNode;
@@ -16,10 +17,14 @@ export default async function BackofficeLayout({
   try {
     const context = await getBackofficeContext();
 
+    const visibleNavItems = backofficeNav.filter(
+      (item) => !item.isHidden && context.hasPermission(item.permission)
+    );
+
     return (
       <BackofficeShell
         user={context.user}
-        canAccess={context.hasPermission}
+        navItems={visibleNavItems}
       >
         {children}
       </BackofficeShell>

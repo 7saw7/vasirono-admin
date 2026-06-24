@@ -2,23 +2,23 @@ import type { ReactNode } from "react";
 import { BackofficeHeader } from "./BackofficeHeader";
 import { BackofficeSidebar } from "./BackofficeSidebar";
 import type { AuthUser } from "@/features/auth/types";
-import type { BackofficePermission } from "@/lib/auth/permissions";
+import type { BackofficeNavItem } from "@/config/nav/backoffice-nav";
 
 type BackofficeShellProps = {
   user: AuthUser;
-  canAccess: (permission: BackofficePermission) => boolean;
+  navItems: BackofficeNavItem[];
   children: ReactNode;
 };
 
 export function BackofficeShell({
   user,
-  canAccess,
+  navItems,
   children,
 }: BackofficeShellProps) {
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-950">
       <div className="flex min-h-screen">
-        <BackofficeSidebar canAccess={canAccess} />
+        <BackofficeSidebar items={navItems} />
 
         <div className="flex min-w-0 flex-1 flex-col">
           <BackofficeHeader user={user} />

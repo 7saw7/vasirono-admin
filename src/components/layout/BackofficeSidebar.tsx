@@ -2,22 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { backofficeNav } from "@/config/nav/backoffice-nav";
-import type { BackofficePermission } from "@/lib/auth/permissions";
+import type { BackofficeNavItem } from "@/config/nav/backoffice-nav";
 import { cn } from "@/lib/utils/cn";
 
 type BackofficeSidebarProps = {
-  canAccess: (permission: BackofficePermission) => boolean;
+  items: BackofficeNavItem[];
 };
 
 export function BackofficeSidebar({
-  canAccess,
+  items,
 }: BackofficeSidebarProps) {
   const pathname = usePathname();
 
-  const visibleItems = backofficeNav.filter(
-    (item) => !item.isHidden && canAccess(item.permission)
-  );
+  const visibleItems = items;
 
   return (
     <aside className="hidden w-72 shrink-0 border-r border-neutral-200 bg-white lg:flex lg:flex-col">
