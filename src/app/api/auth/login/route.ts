@@ -53,6 +53,12 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
+    console.error("[backoffice-login-error]", {
+      message: error instanceof Error ? error.message : String(error),
+      name: error instanceof Error ? error.name : undefined,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     const mapped = getStatusAndMessage(error);
 
     return NextResponse.json(

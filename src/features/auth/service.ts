@@ -1,48 +1,32 @@
-import bcrypt from "bcryptjs";
-import type { PoolClient } from "pg";
 import { loginSchema } from "./schema";
-import { mapAuthRowToUser, type AuthRow } from "./mapper";
 import type { CurrentUserResult, LoginInput, LoginResult } from "./types";
-import { isBackofficeRole } from "@/lib/constants/roles";
 import {
   clearSessionCookie,
-  generateSessionToken,
   getCurrentSessionUser,
-  getSessionExpirationDate,
-  hashSessionToken,
   revokeCurrentSession,
   setSessionCookie,
 } from "@/lib/auth/session";
-import { withTransaction } from "@/lib/db/server";
+import { loginBackofficeWithAuthService } from "@/lib/auth/auth-service-client";
 
-type UserWithPasswordRow = AuthRow & {
-  password_hash: string;
-};
+function normalizeAuthError(error: unknown): Error {
+  const status = (error as { status?: number })?.status;
+  const code = (error as { code?: string })?.code;
+  const message = error instanceof Error ? error.message : String(error);
 
-async function findUserByEmail(
-  client: PoolClient,
-  email: string
-): Promise<UserWithPasswordRow | null> {
-  const { rows } = await client.query<UserWithPasswordRow>(
-    `
-      select
-        u.id,
-        u.name,
-        u.email,
-        u.verified,
-        ac.password_hash,
-        r.name as role_name
-      from users u
-      inner join roles r on r.id = u.role_id
-      inner join auth_credentials ac on ac.user_id = u.id
-      where lower(u.email) = lower($1)
-        and coalesce(u.is_active, true) = true
-      limit 1
-    `,
-    [email]
-  );
+  if (status === 401 || code === "INVALID_CREDENTIALS") {
+    return new Error("INVALID_CREDENTIALS");
+  }
 
-  return rows[0] ?? null;
+  if (
+    status === 403 ||
+    code === "INVALID_PORTAL_ACCESS" ||
+    code === "FORBIDDEN" ||
+    message === "FORBIDDEN"
+  ) {
+    return new Error("FORBIDDEN");
+  }
+
+  return error instanceof Error ? error : new Error(message);
 }
 
 export async function loginWithCredentials(
@@ -50,50 +34,18 @@ export async function loginWithCredentials(
 ): Promise<LoginResult> {
   const parsed = loginSchema.parse(input);
 
-  return withTransaction(async (client) => {
-    const userRow = await findUserByEmail(client, parsed.email);
+  try {
+    const result = await loginBackofficeWithAuthService({
+      email: parsed.email,
+      password: parsed.password,
+    });
 
-    if (!userRow) {
-      throw new Error("INVALID_CREDENTIALS");
-    }
+    await setSessionCookie(result.session.token, new Date(result.session.expiresAt));
 
-    const passwordMatches = await bcrypt.compare(
-      parsed.password,
-      userRow.password_hash
-    );
-
-    if (!passwordMatches) {
-      throw new Error("INVALID_CREDENTIALS");
-    }
-
-    if (!isBackofficeRole(userRow.role_name)) {
-      throw new Error("FORBIDDEN");
-    }
-
-    const rawToken = generateSessionToken();
-    const tokenHash = hashSessionToken(rawToken);
-    const expiresAt = getSessionExpirationDate();
-
-    const insertResult = await client.query<{ id: number }>(
-      `
-        insert into user_sessions (user_id, token, created_at, updated_at, revoked, expires_at)
-        values ($1, $2, now(), now(), false, $3)
-        returning id
-      `,
-      [userRow.id, tokenHash, expiresAt]
-    );
-
-    await setSessionCookie(rawToken, expiresAt);
-
-    return {
-      user: mapAuthRowToUser(userRow),
-      session: {
-        sessionId: insertResult.rows[0].id,
-        token: rawToken,
-        expiresAt: expiresAt.toISOString(),
-      },
-    };
-  });
+    return result;
+  } catch (error) {
+    throw normalizeAuthError(error);
+  }
 }
 
 export async function logoutCurrentUser(): Promise<void> {
@@ -105,11 +57,6 @@ export async function getCurrentUser(): Promise<CurrentUserResult> {
   const session = await getCurrentSessionUser();
 
   if (!session.user) {
-    return { user: null };
-  }
-
-  if (!isBackofficeRole(session.user.role)) {
-    await revokeCurrentSession();
     return { user: null };
   }
 
