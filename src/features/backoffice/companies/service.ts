@@ -3,43 +3,23 @@ import {
   companyListFiltersSchema,
   companyListResultSchema,
 } from "./schema";
-import { mapCompanyDetailRow, mapCompanyListRow } from "./mapper";
 import type { CompanyListFilters } from "./types";
-import {
-  getCompanyDetailQuery,
-  listCompaniesQuery,
-} from "@/lib/db/queries/backoffice/companies";
+import { callBackofficeService } from "@/lib/microservices/backoffice-client";
+
+function unwrapList(raw: any) {
+  return raw?.items ? raw : raw?.data?.items ? raw.data : raw;
+}
 
 export async function getCompaniesList(input: CompanyListFilters) {
   const filters = companyListFiltersSchema.parse(input);
-  const result = await listCompaniesQuery(filters);
-
-  const mapped = {
-    items: result.rows.map(mapCompanyListRow),
-    page: result.page,
-    pageSize: result.pageSize,
-    total: result.total,
-  };
-
-  return companyListResultSchema.parse(mapped);
+  const raw = await callBackofficeService<unknown>("companies", "/api/backoffice/companies", {
+    query: filters,
+  });
+  return companyListResultSchema.parse(unwrapList(raw));
 }
 
 export async function getCompanyDetail(companyId: number) {
-  const detail = await getCompanyDetailQuery(companyId);
-
-  if (!detail) {
-    return null;
-  }
-
-  const mapped = mapCompanyDetailRow(detail.company, {
-    branches: detail.branches,
-    media: detail.media,
-    verification: detail.verification,
-    subscription: detail.subscription,
-    payments: detail.payments,
-    claims: detail.claims,
-    audit: detail.audit,
-  });
-
-  return companyDetailSchema.parse(mapped);
+  const raw = await callBackofficeService<unknown>("companies", `/api/backoffice/companies/${companyId}`);
+  if (!raw) return null;
+  return companyDetailSchema.parse(raw);
 }
