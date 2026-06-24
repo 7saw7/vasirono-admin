@@ -1,4 +1,5 @@
-import { getRawSessionTokenFromCookie } from "@/lib/auth/session";
+import { getRawSessionTokenFromCookie, getCurrentSessionUser } from "@/lib/auth/session";
+import { getRolePermissions } from "@/lib/auth/permissions";
 
 export type BackofficeServiceName =
   | "analytics"
@@ -77,6 +78,10 @@ function unwrapEnvelope<T>(payload: unknown): T {
   return payload as T;
 }
 
+function toBase64Json(value: unknown): string {
+  return Buffer.from(JSON.stringify(value), "utf8").toString("base64");
+}
+
 export async function callBackofficeService<T>(
   service: BackofficeServiceName,
   path: string,
@@ -90,8 +95,13 @@ export async function callBackofficeService<T>(
 ): Promise<T> {
   const baseUrl = getBaseUrl(service);
   const token = await getRawSessionTokenFromCookie();
+  const session = await getCurrentSessionUser().catch(() => ({
+    user: null,
+    sessionId: null,
+  }));
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 15_000);
+  const requestUrl = buildUrl(baseUrl, path, options.query);
 
   try {
     const headers: Record<string, string> = {
@@ -99,7 +109,52 @@ export async function callBackofficeService<T>(
     };
 
     if (token) headers.authorization = `Bearer ${token}`;
-    if (options.actorUserId) headers["x-user-id"] = options.actorUserId;
+
+    const user = session.user;
+    const actorUserId = options.actorUserId ?? user?.id ?? null;
+
+    if (actorUserId) headers["x-user-id"] = actorUserId;
+
+    if (user) {
+      const permissions = Array.from(getRolePermissions(user.role));
+
+      headers["x-user-role"] = user.role;
+      headers["x-role-name"] = user.role;
+      headers["x-user-email"] = user.email;
+      headers["x-portal"] = "backoffice";
+      headers["x-user-permissions"] = permissions.join(",");
+      headers["x-user-claims"] = toBase64Json({
+        userId: actorUserId,
+        portal: "backoffice",
+        activeRole: user.role,
+        role: user.role,
+        permissions,
+        user: {
+          id: actorUserId,
+          name: user.name,
+          email: user.email,
+          globalRole: user.role,
+          verified: user.verified,
+        },
+        sessionId: session.sessionId,
+      });
+    }
+
+    const internalSecret =
+      process.env.INTERNAL_SERVICE_TOKEN?.trim() ||
+      process.env.INTERNAL_SERVICE_SECRET?.trim();
+
+    if (internalSecret) {
+      headers["x-internal-service-secret"] = internalSecret;
+    }
+
+    const edgeToken =
+      process.env.EDGE_AUTH_TOKEN?.trim() ||
+      process.env.EDGE_INTERNAL_TOKEN?.trim();
+
+    if (edgeToken) {
+      headers["x-edge-auth"] = edgeToken;
+    }
 
     let body: string | undefined;
     if (typeof options.body !== "undefined") {
@@ -107,7 +162,7 @@ export async function callBackofficeService<T>(
       body = JSON.stringify(options.body);
     }
 
-    const response = await fetch(buildUrl(baseUrl, path, options.query), {
+    const response = await fetch(requestUrl, {
       method: options.method ?? "GET",
       headers,
       body,
@@ -119,10 +174,26 @@ export async function callBackofficeService<T>(
 
     if (!response.ok || (payload && typeof payload === "object" && (payload as { success?: boolean }).success === false)) {
       const envelope = payload as { error?: { code?: string; message?: string }; message?: string } | null;
+      const message =
+        envelope?.error?.message ||
+        envelope?.message ||
+        response.statusText ||
+        "Error consultando microservicio.";
+      const code = envelope?.error?.code || "BACKOFFICE_SERVICE_REQUEST_FAILED";
+
+      console.error("backoffice.service.request_failed", {
+        service,
+        path,
+        status: response.status,
+        code,
+        message,
+        details: payload,
+      });
+
       throw new BackofficeServiceError(
-        envelope?.error?.message || envelope?.message || response.statusText || "Error consultando microservicio.",
+        message,
         response.status,
-        envelope?.error?.code || "BACKOFFICE_SERVICE_REQUEST_FAILED",
+        code,
         payload
       );
     }
