@@ -3,61 +3,77 @@ import {
   subscriptionsDashboardDataSchema,
   subscriptionsListResultSchema,
 } from "./schema";
-import {
-  mapSubscriptionFilterOptionRow,
-  mapSubscriptionListRow,
-} from "./mapper";
-import type { BillingListFilters } from "./types";
-import {
-  getSubscriptionsSummaryQuery,
-  listPlansQuery,
-  listSubscriptionStatusesQuery,
-  listSubscriptionsQuery,
-} from "@/lib/db/queries/backoffice/billing";
+import type { BillingListFilters, SubscriptionFilterOption, SubscriptionListItem, SubscriptionSummary } from "./types";
+import { callBilling, filtersQuery, optionFromName, paginatedPayload, unwrapPayload } from "./service-helpers";
+
+function mapSubscriptionItem(raw: unknown): SubscriptionListItem {
+  const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  return {
+    id: Number(item.id ?? item.subscriptionId ?? 0),
+    companyId: Number(item.companyId ?? item.company_id ?? 0),
+    companyName: String(item.companyName ?? item.company_name ?? "Sin empresa"),
+    planId: Number(item.planId ?? item.plan_id ?? 0),
+    planName: String(item.planName ?? item.plan_name ?? "Sin plan"),
+    statusId: item.statusId === undefined && item.status_id === undefined ? null : item.statusId === null || item.status_id === null ? null : Number(item.statusId ?? item.status_id),
+    statusName: item.statusName === undefined && item.status_name === undefined ? null : item.statusName === null || item.status_name === null ? null : String(item.statusName ?? item.status_name),
+    startDate: item.startDate === undefined && item.start_date === undefined ? null : item.startDate === null || item.start_date === null ? null : String(item.startDate ?? item.start_date),
+    endDate: item.endDate === undefined && item.end_date === undefined ? null : item.endDate === null || item.end_date === null ? null : String(item.endDate ?? item.end_date),
+  };
+}
+
+function uniqueOptions(items: unknown[], idKey: string, nameKey: string): SubscriptionFilterOption[] {
+  const map = new Map<number, string>();
+  for (const raw of items) {
+    const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    const option = optionFromName(item[idKey], item[nameKey]);
+    if (option) map.set(option.value, option.label);
+  }
+  return Array.from(map, ([value, label]) => ({ value, label }));
+}
+
+function mapSubscriptionSummary(raw: unknown, items: SubscriptionListItem[], total: number): SubscriptionSummary {
+  const payload = unwrapPayload<Record<string, unknown>>(raw) ?? {};
+  const summary =
+    typeof payload.summary === "object" && payload.summary !== null
+      ? (payload.summary as Record<string, unknown>)
+      : payload;
+  return {
+    totalSubscriptions: Number(summary.totalSubscriptions ?? summary.total_subscriptions ?? summary.total ?? total ?? 0),
+    activeSubscriptions: Number(summary.activeSubscriptions ?? summary.active_subscriptions ?? summary.active ?? items.filter((item) => (item.statusName ?? "").toLowerCase().includes("activ")).length),
+    inactiveSubscriptions: Number(summary.inactiveSubscriptions ?? summary.inactive_subscriptions ?? summary.inactive ?? 0),
+    expiringSoonSubscriptions: Number(summary.expiringSoonSubscriptions ?? summary.expiring_soon_subscriptions ?? summary.expiringSoon ?? summary.expiring_soon ?? 0),
+  };
+}
 
 export async function getSubscriptionsList(input: BillingListFilters = {}) {
   const filters = billingListFiltersSchema.parse(input);
-  const result = await listSubscriptionsQuery(filters);
-
+  const raw = await callBilling<unknown>("/subscriptions", { query: filtersQuery(filters) });
+  const pageData = paginatedPayload(raw);
   return subscriptionsListResultSchema.parse({
-    items: result.rows.map(mapSubscriptionListRow),
-    page: result.page,
-    pageSize: result.pageSize,
-    total: result.total,
+    items: pageData.items.map(mapSubscriptionItem),
+    page: pageData.page,
+    pageSize: pageData.pageSize,
+    total: pageData.total,
   });
 }
 
-export async function getSubscriptionsDashboard(
-  input: BillingListFilters = {}
-) {
+export async function getSubscriptionsDashboard(input: BillingListFilters = {}) {
   const filters = billingListFiltersSchema.parse(input);
-
-  const [subscriptionsResult, statusesRows, plansRows, summaryRow] =
-    await Promise.all([
-      listSubscriptionsQuery(filters),
-      listSubscriptionStatusesQuery(),
-      listPlansQuery(),
-      getSubscriptionsSummaryQuery(filters),
-    ]);
-
-  return subscriptionsDashboardDataSchema.parse({
-    subscriptions: {
-      items: subscriptionsResult.rows.map(mapSubscriptionListRow),
-      page: subscriptionsResult.page,
-      pageSize: subscriptionsResult.pageSize,
-      total: subscriptionsResult.total,
-    },
-    meta: {
-      statuses: statusesRows.map(mapSubscriptionFilterOptionRow),
-      plans: plansRows.map(mapSubscriptionFilterOptionRow),
-    },
-    summary: {
-      totalSubscriptions: Number(summaryRow.total_subscriptions ?? 0),
-      activeSubscriptions: Number(summaryRow.active_subscriptions ?? 0),
-      inactiveSubscriptions: Number(summaryRow.inactive_subscriptions ?? 0),
-      expiringSoonSubscriptions: Number(
-        summaryRow.expiring_soon_subscriptions ?? 0
-      ),
-    },
+  const [subscriptionsRaw, summaryRaw] = await Promise.all([
+    callBilling<unknown>("/subscriptions", { query: filtersQuery(filters) }),
+    callBilling<unknown>("/subscriptions/dashboard").catch(() => null),
+  ]);
+  const pageData = paginatedPayload(subscriptionsRaw);
+  const subscriptions = subscriptionsListResultSchema.parse({
+    items: pageData.items.map(mapSubscriptionItem),
+    page: pageData.page,
+    pageSize: pageData.pageSize,
+    total: pageData.total,
   });
+  const meta = {
+    statuses: uniqueOptions(pageData.items, "statusId", "statusName"),
+    plans: uniqueOptions(pageData.items, "planId", "planName"),
+  };
+  const summary = mapSubscriptionSummary(summaryRaw, subscriptions.items, subscriptions.total);
+  return subscriptionsDashboardDataSchema.parse({ subscriptions, meta, summary });
 }
