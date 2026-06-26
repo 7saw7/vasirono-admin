@@ -91,6 +91,9 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
           <div className="space-y-1">
             <p className="font-medium text-neutral-900">{row.branchesCount}</p>
             <p className="text-xs text-neutral-500">
+              Activas: {row.activeBranchesCount}
+            </p>
+            <p className="text-xs text-neutral-500">
               {row.districtLabel ?? "Sin distrito principal"}
             </p>
           </div>

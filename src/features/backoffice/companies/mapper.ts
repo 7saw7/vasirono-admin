@@ -21,6 +21,7 @@ export type CompanyListRow = {
   plan_name: string | null;
   subscription_status: string | null;
   branches_count: number | string | null;
+  active_branches_count?: number | string | null;
   district_label: string | null;
   pending_claims_count: number | string | null;
   updated_at: Date | string;
@@ -156,6 +157,7 @@ export function mapCompanyListRow(row: CompanyListRow): CompanyListItem {
     planName: row.plan_name,
     subscriptionStatus: row.subscription_status,
     branchesCount: toNumber(row.branches_count),
+    activeBranchesCount: toNumber(row.active_branches_count),
     districtLabel: row.district_label,
     pendingClaimsCount: toNumber(row.pending_claims_count),
     updatedAt: toIsoString(row.updated_at) ?? new Date(0).toISOString(),

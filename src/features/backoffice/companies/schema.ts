@@ -32,6 +32,7 @@ export const companyListItemSchema = z.object({
   planName: z.string().nullable(),
   subscriptionStatus: z.string().nullable(),
   branchesCount: z.number().int(),
+  activeBranchesCount: z.number().int(),
   districtLabel: z.string().nullable(),
   pendingClaimsCount: z.number().int(),
   updatedAt: z.string(),
@@ -42,6 +43,7 @@ export const companyListResultSchema = z.object({
   page: z.number().int().positive(),
   pageSize: z.number().int().positive(),
   total: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative().optional(),
 });
 
 export const companyDetailBranchSchema = z.object({

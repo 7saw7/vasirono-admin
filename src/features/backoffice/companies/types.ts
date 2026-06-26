@@ -18,6 +18,7 @@ export type CompanyListItem = {
   planName: string | null;
   subscriptionStatus: string | null;
   branchesCount: number;
+  activeBranchesCount: number;
   districtLabel: string | null;
   pendingClaimsCount: number;
   updatedAt: string;
@@ -28,6 +29,7 @@ export type CompanyListResult = {
   page: number;
   pageSize: number;
   total: number;
+  totalPages?: number;
 };
 
 export type CompanyDetailBranch = {
