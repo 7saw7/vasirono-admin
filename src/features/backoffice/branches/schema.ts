@@ -42,6 +42,7 @@ export const branchListItemSchema = z.object({
   companyName: z.string(),
   name: z.string(),
   address: z.string(),
+  districtId: z.number().int().nullable(),
   districtName: z.string().nullable(),
   isMain: z.boolean(),
   isActive: z.boolean(),
@@ -60,6 +61,7 @@ export const branchListResultSchema = z.object({
   page: z.number().int().positive(),
   pageSize: z.number().int().positive(),
   total: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative().optional().default(0),
 });
 
 export const branchDetailContactSchema = z.object({
@@ -130,11 +132,14 @@ export const branchDetailSchema = z.object({
   address: z.string(),
   phone: z.string().nullable(),
   email: z.string().nullable(),
+  districtId: z.number().int().nullable(),
   districtName: z.string().nullable(),
   lat: z.number().nullable(),
   lon: z.number().nullable(),
   isMain: z.boolean(),
   isActive: z.boolean(),
+  logoUrl: z.string().nullable().optional().default(null),
+  companyCoverUrl: z.string().nullable().optional().default(null),
   createdAt: z.string(),
   updatedAt: z.string(),
   contacts: z.array(branchDetailContactSchema),

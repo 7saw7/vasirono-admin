@@ -13,6 +13,7 @@ export type BranchListItem = {
   companyName: string;
   name: string;
   address: string;
+  districtId: number | null;
   districtName: string | null;
   isMain: boolean;
   isActive: boolean;
@@ -31,6 +32,7 @@ export type BranchListResult = {
   page: number;
   pageSize: number;
   total: number;
+  totalPages: number;
 };
 
 export type BranchDetailContact = {
@@ -101,11 +103,14 @@ export type BranchDetail = {
   address: string;
   phone: string | null;
   email: string | null;
+  districtId: number | null;
   districtName: string | null;
   lat: number | null;
   lon: number | null;
   isMain: boolean;
   isActive: boolean;
+  logoUrl: string | null;
+  companyCoverUrl: string | null;
   createdAt: string;
   updatedAt: string;
   contacts: BranchDetailContact[];

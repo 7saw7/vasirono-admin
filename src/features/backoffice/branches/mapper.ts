@@ -15,6 +15,7 @@ export type BranchListRow = {
   company_name: string;
   name: string;
   address: string;
+  district_id: number | string | null;
   district_name: string | null;
   is_main: boolean | null;
   is_active: boolean | null;
@@ -37,11 +38,14 @@ export type BranchDetailRow = {
   address: string;
   phone: string | null;
   email: string | null;
+  district_id: number | string | null;
   district_name: string | null;
   lat: number | string | null;
   lon: number | string | null;
   is_main: boolean | null;
   is_active: boolean | null;
+  logo_url?: string | null;
+  company_cover_url?: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 };
@@ -135,6 +139,7 @@ export function mapBranchListRow(row: BranchListRow): BranchListItem {
     companyName: row.company_name,
     name: row.name,
     address: row.address,
+    districtId: toNullableNumber(row.district_id),
     districtName: row.district_name,
     isMain: Boolean(row.is_main),
     isActive: Boolean(row.is_active),
@@ -252,11 +257,14 @@ export function mapBranchDetailRow(
     address: row.address,
     phone: row.phone,
     email: row.email,
+    districtId: toNullableNumber(row.district_id),
     districtName: row.district_name,
     lat: toNullableNumber(row.lat),
     lon: toNullableNumber(row.lon),
     isMain: Boolean(row.is_main),
     isActive: Boolean(row.is_active),
+    logoUrl: row.logo_url ?? null,
+    companyCoverUrl: row.company_cover_url ?? null,
     createdAt: toIsoString(row.created_at) ?? new Date(0).toISOString(),
     updatedAt: toIsoString(row.updated_at) ?? new Date(0).toISOString(),
     contacts: input.contacts.map(mapBranchDetailContactRow),
