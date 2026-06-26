@@ -14,8 +14,58 @@ import type {
 } from "./types";
 import { callBackofficeService } from "@/lib/microservices/backoffice-client";
 
-function unwrapList(raw: any) {
-  return raw?.items ? raw : raw?.data?.items ? raw.data : raw;
+function asNumber(value: unknown, fallback = 0): number {
+  const n = Number(value ?? fallback);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function normalizeSummary(raw: any) {
+  const source = raw && typeof raw === "object" ? raw : {};
+
+  return {
+    total: asNumber(source.total ?? source.totalCount),
+    pending: asNumber(source.pending ?? source.pendingCount),
+    inReview: asNumber(source.inReview ?? source.inReviewCount),
+    approved: asNumber(source.approved ?? source.approvedCount),
+    rejected: asNumber(source.rejected ?? source.rejectedCount),
+  };
+}
+
+function normalizeList(raw: any, page: number, pageSize: number) {
+  const source = raw?.items ? raw : raw?.data?.items ? raw.data : raw;
+  const pagination = source?.pagination ?? {};
+  const items = Array.isArray(source?.items) ? source.items : [];
+
+  return {
+    items,
+    page: asNumber(source?.page ?? pagination.page, page),
+    pageSize: asNumber(source?.pageSize ?? pagination.pageSize, pageSize),
+    total: asNumber(source?.total ?? pagination.total, items.length),
+    summary: normalizeSummary(source?.summary),
+  };
+}
+
+function unwrapDetail(raw: any) {
+  const source = raw?.data ?? raw;
+  if (!source) return source;
+
+  if (source.verification && typeof source.verification === "object") {
+    return {
+      ...source.verification,
+      documents: Array.isArray(source.documents) ? source.documents : [],
+      checks: Array.isArray(source.checks) ? source.checks : [],
+      timeline: Array.isArray(source.timeline) ? source.timeline : [],
+      publicContacts: Array.isArray(source.publicContacts) ? source.publicContacts : [],
+      whatsappVerifications: Array.isArray(source.whatsappVerifications)
+        ? source.whatsappVerifications
+        : Array.isArray(source.whatsapp)
+          ? source.whatsapp
+          : [],
+      addressMatches: Array.isArray(source.addressMatches) ? source.addressMatches : [],
+    };
+  }
+
+  return source;
 }
 
 export async function getVerificationRequestsList(input: VerificationListFilters) {
@@ -23,13 +73,14 @@ export async function getVerificationRequestsList(input: VerificationListFilters
   const raw = await callBackofficeService<unknown>("verifications", "/api/verifications/admin/verifications", {
     query: filters,
   });
-  return verificationListResultSchema.parse(unwrapList(raw));
+  return verificationListResultSchema.parse(normalizeList(raw, filters.page, filters.pageSize));
 }
 
 export async function getVerificationDetail(requestId: number) {
   const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/verifications/${requestId}`);
-  if (!raw) return null;
-  return verificationDetailSchema.parse(raw);
+  const payload = unwrapDetail(raw);
+  if (!payload) return null;
+  return verificationDetailSchema.parse(payload);
 }
 
 export async function assignVerificationReviewer(
