@@ -1,4 +1,4 @@
-import { withTransaction } from "@/lib/db/server";
+import { callBackofficeService } from "@/lib/microservices/backoffice-client";
 import {
   createBusinessTypeSchema,
   createCategorySchema,
@@ -15,367 +15,238 @@ import {
   updateServiceSchema,
   updateSubcategorySchema,
 } from "./schema";
-import {
-  mapBusinessTypeListRow,
-  mapCategoryListRow,
-  mapServiceListRow,
-  mapSubcategoryListRow,
-} from "./mapper";
 import type {
   CreateBusinessTypeInput,
   CreateCategoryInput,
   CreateServiceInput,
   CreateSubcategoryInput,
+  TaxonomiesDashboardFilters,
   TaxonomyListFilters,
   UpdateBusinessTypeInput,
   UpdateCategoryInput,
   UpdateServiceInput,
   UpdateSubcategoryInput,
 } from "./types";
-import {
-  createBusinessTypeQuery,
-  createCategoryQuery,
-  createServiceQuery,
-  createSubcategoryQuery,
-  ensureBusinessTypeNameAvailableQuery,
-  ensureCategoryExistsQuery,
-  ensureCategoryNameAvailableQuery,
-  ensureServiceCodeAvailableQuery,
-  ensureServiceNameAvailableQuery,
-  ensureSubcategoryNameAvailableQuery,
-  getBusinessTypeByIdQuery,
-  getCategoryByIdQuery,
-  getServiceByIdQuery,
-  getSubcategoryByIdQuery,
-  getTaxonomiesSummaryQuery,
-  listBusinessTypesQuery,
-  listCategoriesQuery,
-  listServicesQuery,
-  listSubcategoriesQuery,
-  updateBusinessTypeQuery,
-  updateCategoryQuery,
-  updateServiceQuery,
-  updateSubcategoryQuery,
-} from "@/lib/db/queries/backoffice/taxonomies";
-import type { TaxonomiesDashboardFilters } from "./types";
+
+function unwrapData<T = unknown>(raw: unknown): T {
+  if (raw && typeof raw === "object" && "data" in raw) {
+    return (raw as { data: T }).data;
+  }
+
+  return raw as T;
+}
+
+function paginationFallback(value: unknown) {
+  if (!value || typeof value !== "object") return value;
+  const payload = value as Record<string, unknown>;
+  const pagination =
+    payload.pagination && typeof payload.pagination === "object"
+      ? (payload.pagination as Record<string, unknown>)
+      : {};
+
+  return {
+    ...payload,
+    items: payload.items ?? payload.rows ?? [],
+    page: payload.page ?? pagination.page ?? 1,
+    pageSize: payload.pageSize ?? pagination.pageSize ?? 10,
+    total: payload.total ?? pagination.total ?? 0,
+  };
+}
+
+function taxonomyPath(path = "") {
+  const suffix = path ? `/${path.replace(/^\/+/, "")}` : "";
+  return `/api/companies/backoffice/taxonomies${suffix}`;
+}
 
 export async function getBusinessTypesList(input: TaxonomyListFilters = {}) {
   const filters = taxonomyListFiltersSchema.parse(input);
-  const result = await listBusinessTypesQuery(filters);
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath("business-types"),
+    {
+      query: {
+        search: filters.search,
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    },
+  );
 
-  return paginatedBusinessTypesSchema.parse({
-    items: result.rows.map(mapBusinessTypeListRow),
-    page: result.page,
-    pageSize: result.pageSize,
-    total: result.total,
-  });
+  return paginatedBusinessTypesSchema.parse(paginationFallback(unwrapData(raw)));
 }
 
 export async function getCategoriesList(input: TaxonomyListFilters = {}) {
   const filters = taxonomyListFiltersSchema.parse(input);
-  const result = await listCategoriesQuery(filters);
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath("categories"),
+    {
+      query: {
+        search: filters.search,
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    },
+  );
 
-  return paginatedCategoriesSchema.parse({
-    items: result.rows.map(mapCategoryListRow),
-    page: result.page,
-    pageSize: result.pageSize,
-    total: result.total,
-  });
+  return paginatedCategoriesSchema.parse(paginationFallback(unwrapData(raw)));
 }
 
 export async function getSubcategoriesList(input: TaxonomyListFilters = {}) {
   const filters = taxonomyListFiltersSchema.parse(input);
-  const result = await listSubcategoriesQuery(filters);
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath("subcategories"),
+    {
+      query: {
+        search: filters.search,
+        categoryId: filters.categoryId,
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    },
+  );
 
-  return paginatedSubcategoriesSchema.parse({
-    items: result.rows.map(mapSubcategoryListRow),
-    page: result.page,
-    pageSize: result.pageSize,
-    total: result.total,
-  });
+  return paginatedSubcategoriesSchema.parse(paginationFallback(unwrapData(raw)));
 }
 
 export async function getServicesList(input: TaxonomyListFilters = {}) {
   const filters = taxonomyListFiltersSchema.parse(input);
-  const result = await listServicesQuery(filters);
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath("services"),
+    {
+      query: {
+        search: filters.search,
+        active: filters.active,
+        page: filters.page,
+        pageSize: filters.pageSize,
+      },
+    },
+  );
 
-  return paginatedServicesSchema.parse({
-    items: result.rows.map(mapServiceListRow),
-    page: result.page,
-    pageSize: result.pageSize,
-    total: result.total,
-  });
+  return paginatedServicesSchema.parse(paginationFallback(unwrapData(raw)));
 }
 
 export async function getTaxonomiesDashboard(
-  input: TaxonomiesDashboardFilters = {}
+  input: TaxonomiesDashboardFilters = {},
 ) {
-  const businessTypesFilters = taxonomyListFiltersSchema.parse(
-    input.businessTypes ?? {}
-  );
-  const categoriesFilters = taxonomyListFiltersSchema.parse(
-    input.categories ?? {}
-  );
-  const subcategoriesFilters = taxonomyListFiltersSchema.parse(
-    input.subcategories ?? {}
-  );
-  const servicesFilters = taxonomyListFiltersSchema.parse(
-    input.services ?? {}
-  );
+  const businessTypes = taxonomyListFiltersSchema.parse(input.businessTypes ?? {});
+  const categories = taxonomyListFiltersSchema.parse(input.categories ?? {});
+  const subcategories = taxonomyListFiltersSchema.parse(input.subcategories ?? {});
+  const services = taxonomyListFiltersSchema.parse(input.services ?? {});
 
-  const [summaryRow, businessTypes, categories, subcategories, services] =
-    await Promise.all([
-      getTaxonomiesSummaryQuery(),
-      listBusinessTypesQuery(businessTypesFilters),
-      listCategoriesQuery(categoriesFilters),
-      listSubcategoriesQuery(subcategoriesFilters),
-      listServicesQuery(servicesFilters),
-    ]);
+  const raw = await callBackofficeService<unknown>("companies", taxonomyPath(), {
+    query: {
+      btSearch: businessTypes.search,
+      btPage: businessTypes.page,
+      btPageSize: businessTypes.pageSize,
+      catSearch: categories.search,
+      catPage: categories.page,
+      catPageSize: categories.pageSize,
+      subSearch: subcategories.search,
+      subCategoryId: subcategories.categoryId,
+      subPage: subcategories.page,
+      subPageSize: subcategories.pageSize,
+      srvSearch: services.search,
+      srvActive: services.active,
+      srvPage: services.page,
+      srvPageSize: services.pageSize,
+    },
+  });
 
+  const data = unwrapData<Record<string, unknown>>(raw);
   return taxonomiesDashboardDataSchema.parse({
-    summary: {
-      totalBusinessTypes: Number(summaryRow.total_business_types ?? 0),
-      totalCategories: Number(summaryRow.total_categories ?? 0),
-      totalSubcategories: Number(summaryRow.total_subcategories ?? 0),
-      totalServices: Number(summaryRow.total_services ?? 0),
-    },
-    businessTypes: {
-      items: businessTypes.rows.map(mapBusinessTypeListRow),
-      page: businessTypes.page,
-      pageSize: businessTypes.pageSize,
-      total: businessTypes.total,
-    },
-    categories: {
-      items: categories.rows.map(mapCategoryListRow),
-      page: categories.page,
-      pageSize: categories.pageSize,
-      total: categories.total,
-    },
-    subcategories: {
-      items: subcategories.rows.map(mapSubcategoryListRow),
-      page: subcategories.page,
-      pageSize: subcategories.pageSize,
-      total: subcategories.total,
-    },
-    services: {
-      items: services.rows.map(mapServiceListRow),
-      page: services.page,
-      pageSize: services.pageSize,
-      total: services.total,
-    },
+    ...data,
+    businessTypes: paginationFallback(data.businessTypes),
+    categories: paginationFallback(data.categories),
+    subcategories: paginationFallback(data.subcategories),
+    services: paginationFallback(data.services),
   });
 }
 
 export async function createBusinessType(input: CreateBusinessTypeInput) {
   const payload = createBusinessTypeSchema.parse(input);
-
-  return withTransaction(async (client) => {
-    await ensureBusinessTypeNameAvailableQuery(payload.name, undefined, client);
-
-    const id = await createBusinessTypeQuery(payload, client);
-    const row = await getBusinessTypeByIdQuery(id, client);
-
-    if (!row) {
-      throw new Error("No se pudo recuperar el tipo de negocio creado.");
-    }
-
-    return mapBusinessTypeListRow(row);
-  });
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath("business-types"),
+    { method: "POST", body: payload },
+  );
+  return unwrapData(raw);
 }
 
 export async function updateBusinessType(
   typeId: number,
-  input: UpdateBusinessTypeInput
+  input: UpdateBusinessTypeInput,
 ) {
   const payload = updateBusinessTypeSchema.parse(input);
-
-  return withTransaction(async (client) => {
-    const current = await getBusinessTypeByIdQuery(typeId, client);
-
-    if (!current) {
-      const error = new Error("El tipo de negocio no existe.");
-      Object.assign(error, { status: 404 });
-      throw error;
-    }
-
-    if (payload.name !== undefined) {
-      await ensureBusinessTypeNameAvailableQuery(payload.name, typeId, client);
-    }
-
-    const id = await updateBusinessTypeQuery(typeId, payload, client);
-    const row = await getBusinessTypeByIdQuery(id, client);
-
-    if (!row) {
-      throw new Error("No se pudo recuperar el tipo de negocio actualizado.");
-    }
-
-    return mapBusinessTypeListRow(row);
-  });
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath(`business-types/${typeId}`),
+    { method: "PATCH", body: payload },
+  );
+  return unwrapData(raw);
 }
 
 export async function createCategory(input: CreateCategoryInput) {
   const payload = createCategorySchema.parse(input);
-
-  return withTransaction(async (client) => {
-    await ensureCategoryNameAvailableQuery(payload.name, undefined, client);
-
-    const id = await createCategoryQuery(payload, client);
-    const row = await getCategoryByIdQuery(id, client);
-
-    if (!row) {
-      throw new Error("No se pudo recuperar la categoría creada.");
-    }
-
-    return mapCategoryListRow(row);
-  });
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath("categories"),
+    { method: "POST", body: payload },
+  );
+  return unwrapData(raw);
 }
 
-export async function updateCategory(
-  categoryId: number,
-  input: UpdateCategoryInput
-) {
+export async function updateCategory(categoryId: number, input: UpdateCategoryInput) {
   const payload = updateCategorySchema.parse(input);
-
-  return withTransaction(async (client) => {
-    const current = await getCategoryByIdQuery(categoryId, client);
-
-    if (!current) {
-      const error = new Error("La categoría no existe.");
-      Object.assign(error, { status: 404 });
-      throw error;
-    }
-
-    if (payload.name !== undefined) {
-      await ensureCategoryNameAvailableQuery(payload.name, categoryId, client);
-    }
-
-    const id = await updateCategoryQuery(categoryId, payload, client);
-    const row = await getCategoryByIdQuery(id, client);
-
-    if (!row) {
-      throw new Error("No se pudo recuperar la categoría actualizada.");
-    }
-
-    return mapCategoryListRow(row);
-  });
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath(`categories/${categoryId}`),
+    { method: "PATCH", body: payload },
+  );
+  return unwrapData(raw);
 }
 
 export async function createSubcategory(input: CreateSubcategoryInput) {
   const payload = createSubcategorySchema.parse(input);
-
-  return withTransaction(async (client) => {
-    await ensureCategoryExistsQuery(payload.categoryId, client);
-    await ensureSubcategoryNameAvailableQuery(
-      payload.categoryId,
-      payload.name,
-      undefined,
-      client
-    );
-
-    const id = await createSubcategoryQuery(payload, client);
-    const row = await getSubcategoryByIdQuery(id, client);
-
-    if (!row) {
-      throw new Error("No se pudo recuperar la subcategoría creada.");
-    }
-
-    return mapSubcategoryListRow(row);
-  });
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath("subcategories"),
+    { method: "POST", body: payload },
+  );
+  return unwrapData(raw);
 }
 
 export async function updateSubcategory(
   subcategoryId: number,
-  input: UpdateSubcategoryInput
+  input: UpdateSubcategoryInput,
 ) {
   const payload = updateSubcategorySchema.parse(input);
-
-  return withTransaction(async (client) => {
-    const current = await getSubcategoryByIdQuery(subcategoryId, client);
-
-    if (!current) {
-      const error = new Error("La subcategoría no existe.");
-      Object.assign(error, { status: 404 });
-      throw error;
-    }
-
-    const targetCategoryId = Number(payload.categoryId ?? current.category_id);
-    const targetName = payload.name ?? current.name;
-
-    await ensureCategoryExistsQuery(targetCategoryId, client);
-    await ensureSubcategoryNameAvailableQuery(
-      targetCategoryId,
-      targetName,
-      subcategoryId,
-      client
-    );
-
-    const id = await updateSubcategoryQuery(
-      subcategoryId,
-      {
-        categoryId: payload.categoryId,
-        name: payload.name,
-      },
-      client
-    );
-
-    const row = await getSubcategoryByIdQuery(id, client);
-
-    if (!row) {
-      throw new Error("No se pudo recuperar la subcategoría actualizada.");
-    }
-
-    return mapSubcategoryListRow(row);
-  });
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath(`subcategories/${subcategoryId}`),
+    { method: "PATCH", body: payload },
+  );
+  return unwrapData(raw);
 }
 
 export async function createService(input: CreateServiceInput) {
   const payload = createServiceSchema.parse(input);
-
-  return withTransaction(async (client) => {
-    await ensureServiceCodeAvailableQuery(payload.code, undefined, client);
-    await ensureServiceNameAvailableQuery(payload.name, undefined, client);
-
-    const id = await createServiceQuery(payload, client);
-    const row = await getServiceByIdQuery(id, client);
-
-    if (!row) {
-      throw new Error("No se pudo recuperar el servicio creado.");
-    }
-
-    return mapServiceListRow(row);
-  });
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath("services"),
+    { method: "POST", body: payload },
+  );
+  return unwrapData(raw);
 }
 
-export async function updateService(
-  serviceId: number,
-  input: UpdateServiceInput
-) {
+export async function updateService(serviceId: number, input: UpdateServiceInput) {
   const payload = updateServiceSchema.parse(input);
-
-  return withTransaction(async (client) => {
-    const current = await getServiceByIdQuery(serviceId, client);
-
-    if (!current) {
-      const error = new Error("El servicio no existe.");
-      Object.assign(error, { status: 404 });
-      throw error;
-    }
-
-    if (payload.code !== undefined) {
-      await ensureServiceCodeAvailableQuery(payload.code, serviceId, client);
-    }
-
-    if (payload.name !== undefined) {
-      await ensureServiceNameAvailableQuery(payload.name, serviceId, client);
-    }
-
-    const id = await updateServiceQuery(serviceId, payload, client);
-    const row = await getServiceByIdQuery(id, client);
-
-    if (!row) {
-      throw new Error("No se pudo recuperar el servicio actualizado.");
-    }
-
-    return mapServiceListRow(row);
-  });
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath(`services/${serviceId}`),
+    { method: "PATCH", body: payload },
+  );
+  return unwrapData(raw);
 }
