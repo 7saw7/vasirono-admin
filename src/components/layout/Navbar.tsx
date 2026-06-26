@@ -1,11 +1,47 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { siteConfig } from "@/config/site";
 
 const navigation = [
   { label: "Login", href: "/login" },
 ];
 
+const backofficePrefixes = [
+  "/dashboard",
+  "/empresas",
+  "/sucursales",
+  "/claims",
+  "/verificaciones",
+  "/resenas",
+  "/reseñas",
+  "/reportes-resenas",
+  "/reportes-reseñas",
+  "/usuarios",
+  "/analytics",
+  "/taxonomias",
+  "/planes",
+  "/suscripciones",
+  "/pagos",
+  "/promociones",
+  "/notificaciones",
+  "/configuracion",
+];
+
+function isBackofficePath(pathname: string) {
+  return backofficePrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 export function Navbar() {
+  const pathname = usePathname();
+
+  if (isBackofficePath(pathname)) {
+    return null;
+  }
+
   return (
     <header className="border-b border-white/10 bg-neutral-950/95 backdrop-blur">
       <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">

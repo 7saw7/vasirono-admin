@@ -1,8 +1,43 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { siteConfig } from "@/config/site";
 
+const backofficePrefixes = [
+  "/dashboard",
+  "/empresas",
+  "/sucursales",
+  "/claims",
+  "/verificaciones",
+  "/resenas",
+  "/reseñas",
+  "/reportes-resenas",
+  "/reportes-reseñas",
+  "/usuarios",
+  "/analytics",
+  "/taxonomias",
+  "/planes",
+  "/suscripciones",
+  "/pagos",
+  "/promociones",
+  "/notificaciones",
+  "/configuracion",
+];
+
+function isBackofficePath(pathname: string) {
+  return backofficePrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
+}
+
 export function Footer() {
+  const pathname = usePathname();
   const year = new Date().getFullYear();
+
+  if (isBackofficePath(pathname)) {
+    return null;
+  }
 
   return (
     <footer className="border-t border-white/10 bg-neutral-950">
