@@ -9,8 +9,10 @@ export const ROUTES = {
   BACKOFFICE_BRANCHES: "/sucursales",
   BACKOFFICE_CLAIMS: "/claims",
   BACKOFFICE_VERIFICATIONS: "/verificaciones",
-  BACKOFFICE_REVIEWS: "/reseñas",
-  BACKOFFICE_REVIEW_REPORTS: "/reportes-reseñas",
+  // Canonical URLs stay ASCII to avoid Next route mismatches and broken deep links.
+  // Labels shown in the UI can keep accents (see backoffice-nav.ts).
+  BACKOFFICE_REVIEWS: "/resenas",
+  BACKOFFICE_REVIEW_REPORTS: "/reportes-resenas",
   BACKOFFICE_USERS: "/usuarios",
   BACKOFFICE_ANALYTICS: "/analytics",
   BACKOFFICE_TAXONOMIES: "/taxonomias",

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { reviewReportIdParamSchema } from "@/features/backoffice/reviews/schema";
-import { resolveReviewReport } from "@/features/backoffice/reviews/service";
+import { resolveReviewReport } from "@/features/backoffice/review-reports/service";
 
 export const runtime = "nodejs";
 
@@ -22,15 +22,14 @@ function getStatus(error: unknown) {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const session = await getBackofficeContext("reviewReports.resolve");
+    await getBackofficeContext("reviewReports.resolve");
     const params = reviewReportIdParamSchema.parse(await context.params);
     const body = await request.json();
 
-    const data = await resolveReviewReport(
-      params.reportId,
-      session.user.id,
-      body
-    );
+    const data = await resolveReviewReport(params.reportId, "", {
+      status: body?.status ?? body?.resolution ?? "resolved",
+      resolutionNotes: body?.resolutionNotes ?? body?.notes ?? null,
+    });
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {

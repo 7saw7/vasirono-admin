@@ -28,7 +28,7 @@ export type ReviewReportListItem = {
 export type ReviewReportListResult = PaginatedResult<ReviewReportListItem>;
 
 export type ReviewReportDecisionInput = {
-  status: "resolved" | "hidden";
+  status: "resolved" | "hidden" | "dismissed";
   resolutionNotes?: string;
 };
 

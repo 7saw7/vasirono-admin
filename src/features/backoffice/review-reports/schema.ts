@@ -33,7 +33,7 @@ export const reviewReportListResultSchema = z.object({
 });
 
 export const reviewReportDecisionSchema = z.object({
-  status: z.enum(["resolved", "hidden"]),
+  status: z.enum(["resolved", "hidden", "dismissed"]),
   resolutionNotes: z.string().trim().max(4000).optional(),
 });
 
