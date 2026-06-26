@@ -20,14 +20,14 @@ function unwrapList(raw: any) {
 
 export async function getVerificationRequestsList(input: VerificationListFilters) {
   const filters = verificationListFiltersSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", "/api/admin/verifications", {
+  const raw = await callBackofficeService<unknown>("verifications", "/api/verifications/admin/verifications", {
     query: filters,
   });
   return verificationListResultSchema.parse(unwrapList(raw));
 }
 
 export async function getVerificationDetail(requestId: number) {
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/verifications/${requestId}`);
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/verifications/${requestId}`);
   if (!raw) return null;
   return verificationDetailSchema.parse(raw);
 }
@@ -37,7 +37,7 @@ export async function assignVerificationReviewer(
   input: VerificationAssignInput
 ) {
   const parsed = verificationAssignSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/verifications/${requestId}/assign`, {
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/verifications/${requestId}/assign`, {
     method: "PATCH",
     body: parsed,
   });
@@ -51,7 +51,7 @@ export async function decideVerificationRequest(
 ): Promise<VerificationDecisionResult> {
   const payload = verificationDecisionInputSchema.parse(input);
   const path = payload.decision === "approved" ? "approve" : "reject";
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/verifications/${requestId}/${path}`, {
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/verifications/${requestId}/${path}`, {
     method: "PATCH",
     actorUserId: reviewerUserId,
     body: payload,

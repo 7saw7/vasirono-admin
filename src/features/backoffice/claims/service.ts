@@ -107,14 +107,14 @@ function normalizeClaimDetail(raw: any) {
 
 export async function getClaimsList(input: ClaimListFilters) {
   const filters = claimListFiltersSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", "/api/admin/claims", {
+  const raw = await callBackofficeService<unknown>("verifications", "/api/verifications/admin/claims", {
     query: filters,
   });
   return claimListResultSchema.parse(normalizeClaimList(raw, filters.page, filters.pageSize));
 }
 
 export async function getClaimDetail(claimRequestId: number) {
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/claims/${claimRequestId}`);
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}`);
   const normalized = normalizeClaimDetail(raw);
   return normalized ? claimDetailSchema.parse(normalized) : null;
 }
@@ -125,7 +125,7 @@ export async function sendOfficialChannelCode(
   input: OfficialChannelInput
 ) {
   const parsed = officialChannelSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/claims/${claimRequestId}/official-channel`, {
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/official-channel`, {
     method: "PATCH",
     actorUserId: reviewerUserId,
     body: parsed,
@@ -139,7 +139,7 @@ export async function markClaimOnsiteRequired(
   input: OnsiteRequiredInput
 ) {
   const parsed = onsiteRequiredSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/claims/${claimRequestId}/onsite-required`, {
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/onsite-required`, {
     method: "PATCH",
     actorUserId: reviewerUserId,
     body: parsed,
@@ -153,7 +153,7 @@ export async function approveOnsiteVerification(
   input: OnsiteApprovalInput
 ) {
   const parsed = onsiteApprovalSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/claims/${claimRequestId}/onsite-approve`, {
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/onsite-approve`, {
     method: "PATCH",
     actorUserId: reviewerUserId,
     body: parsed,
@@ -166,7 +166,7 @@ export async function requestMoreEvidenceClaim(
   reviewerUserId: string,
   notes?: string | null
 ) {
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/claims/${claimRequestId}/needs-more-evidence`, {
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/needs-more-evidence`, {
     method: "PATCH",
     actorUserId: reviewerUserId,
     body: { notes },
@@ -180,7 +180,7 @@ export async function approveClaim(
   input: ClaimDecisionInput
 ) {
   const parsed = claimDecisionSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/claims/${claimRequestId}/approve`, {
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/approve`, {
     method: "PATCH",
     actorUserId: reviewerUserId,
     body: { notes: parsed.notes },
@@ -198,7 +198,7 @@ export async function rejectClaim(
   input: ClaimDecisionInput
 ) {
   const parsed = claimDecisionSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/admin/claims/${claimRequestId}/reject`, {
+  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/reject`, {
     method: "PATCH",
     actorUserId: reviewerUserId,
     body: { reason: parsed.notes ?? "Rechazado desde backoffice" },
