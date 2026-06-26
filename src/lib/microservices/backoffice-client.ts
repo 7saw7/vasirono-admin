@@ -140,13 +140,9 @@ export async function callBackofficeService<T>(
       });
     }
 
-    const internalSecret =
-      process.env.INTERNAL_SERVICE_TOKEN?.trim() ||
-      process.env.INTERNAL_SERVICE_SECRET?.trim();
-
-    if (internalSecret) {
-      headers["x-internal-service-secret"] = internalSecret;
-    }
+    // El panel admin representa a un usuario backoffice, no a un microservicio interno.
+    // No enviamos x-internal-service-secret aquí porque algunos micros priorizan
+    // ese header y reemplazan el actor de usuario por actor interno.
 
     const edgeToken =
       process.env.EDGE_AUTH_TOKEN?.trim() ||
