@@ -1,5 +1,5 @@
 import { getRawSessionTokenFromCookie, getCurrentSessionUser } from "@/lib/auth/session";
-import { getRolePermissions } from "@/lib/auth/permissions";
+import { getBackendRolePermissions } from "@/lib/auth/permissions";
 
 export type BackofficeServiceName =
   | "analytics"
@@ -116,7 +116,7 @@ export async function callBackofficeService<T>(
     if (actorUserId) headers["x-user-id"] = actorUserId;
 
     if (user) {
-      const permissions = Array.from(getRolePermissions(user.role));
+      const permissions = Array.from(getBackendRolePermissions(user.role));
 
       headers["x-user-role"] = user.role;
       headers["x-role-name"] = user.role;

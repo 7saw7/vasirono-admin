@@ -129,6 +129,146 @@ const ROLE_PERMISSIONS: Record<AppRole, BackofficePermission[]> = {
   [APP_ROLES.USER]: [],
 };
 
+
+
+export type BackendBackofficePermission = string;
+
+const BACKEND_DASHBOARD_PERMISSIONS = [
+  "analytics.backoffice.read",
+] as const;
+
+const BACKEND_ANALYTICS_READ_PERMISSIONS = [
+  "analytics.backoffice.read",
+] as const;
+
+const BACKEND_BILLING_READ_PERMISSIONS = [
+  "billing.admin.payments.read",
+  "billing.admin.subscriptions.read",
+  "billing.admin.plans.read",
+  "billing.admin.promotions.read",
+] as const;
+
+const BACKEND_BILLING_WRITE_PERMISSIONS = [
+  "billing.admin.payments.write",
+  "billing.admin.subscriptions.write",
+  "billing.admin.plans.write",
+] as const;
+
+const BACKEND_VERIFICATION_READ_PERMISSIONS = [
+  "verifications.admin.list",
+  "verifications.admin.read",
+  "verifications.claims.list",
+  "verifications.claims.read",
+] as const;
+
+const BACKEND_VERIFICATION_WRITE_PERMISSIONS = [
+  "verifications.admin.assign",
+  "verifications.admin.decide",
+  "verifications.claims.decide",
+] as const;
+
+const BACKEND_REVIEW_READ_PERMISSIONS = [
+  "reviews.admin.read",
+  "reviews.admin.reports.read",
+] as const;
+
+const BACKEND_REVIEW_MODERATION_PERMISSIONS = [
+  "reviews.admin.moderate",
+  "reviews.admin.reports.resolve",
+] as const;
+
+const BACKEND_NOTIFICATION_PERMISSIONS = [
+  "notifications:read:all",
+] as const;
+
+const BACKEND_USER_READ_PERMISSIONS = [
+  "admin:users:read",
+  "admin:users:detail",
+] as const;
+
+const BACKEND_USER_WRITE_PERMISSIONS = [
+  "admin:users:update-role",
+  "admin:users:verify",
+  "admin:users:activate",
+  "admin:users:deactivate",
+] as const;
+
+const BACKEND_MEDIA_READ_PERMISSIONS = [
+  "media:company:read",
+  "media:branch:read",
+  "media:catalog-item:read",
+  "media:review:read",
+  "media:types:read",
+] as const;
+
+const BACKEND_MEDIA_WRITE_PERMISSIONS = [
+  "media:company:write",
+  "media:branch:write",
+  "media:catalog-item:write",
+  "media:review:write",
+  "media:company:delete",
+  "media:branch:delete",
+  "media:catalog-item:delete",
+  "media:review:delete",
+] as const;
+
+const BACKEND_FULL_PERMISSIONS = [
+  ...BACKEND_DASHBOARD_PERMISSIONS,
+  ...BACKEND_ANALYTICS_READ_PERMISSIONS,
+  ...BACKEND_BILLING_READ_PERMISSIONS,
+  ...BACKEND_BILLING_WRITE_PERMISSIONS,
+  ...BACKEND_VERIFICATION_READ_PERMISSIONS,
+  ...BACKEND_VERIFICATION_WRITE_PERMISSIONS,
+  ...BACKEND_REVIEW_READ_PERMISSIONS,
+  ...BACKEND_REVIEW_MODERATION_PERMISSIONS,
+  ...BACKEND_NOTIFICATION_PERMISSIONS,
+  ...BACKEND_USER_READ_PERMISSIONS,
+  ...BACKEND_USER_WRITE_PERMISSIONS,
+  ...BACKEND_MEDIA_READ_PERMISSIONS,
+  ...BACKEND_MEDIA_WRITE_PERMISSIONS,
+] as const;
+
+const BACKEND_ANALYST_PERMISSIONS = [
+  ...BACKEND_DASHBOARD_PERMISSIONS,
+  ...BACKEND_ANALYTICS_READ_PERMISSIONS,
+  ...BACKEND_BILLING_READ_PERMISSIONS,
+  ...BACKEND_NOTIFICATION_PERMISSIONS,
+  ...BACKEND_MEDIA_READ_PERMISSIONS,
+] as const;
+
+const BACKEND_SUPPORT_PERMISSIONS = [
+  ...BACKEND_DASHBOARD_PERMISSIONS,
+  ...BACKEND_VERIFICATION_READ_PERMISSIONS,
+  ...BACKEND_REVIEW_READ_PERMISSIONS,
+  ...BACKEND_NOTIFICATION_PERMISSIONS,
+  ...BACKEND_USER_READ_PERMISSIONS,
+  ...BACKEND_MEDIA_READ_PERMISSIONS,
+] as const;
+
+const BACKEND_MODERATOR_PERMISSIONS = [
+  ...BACKEND_DASHBOARD_PERMISSIONS,
+  ...BACKEND_REVIEW_READ_PERMISSIONS,
+  ...BACKEND_REVIEW_MODERATION_PERMISSIONS,
+  ...BACKEND_VERIFICATION_READ_PERMISSIONS,
+  ...BACKEND_NOTIFICATION_PERMISSIONS,
+  ...BACKEND_MEDIA_READ_PERMISSIONS,
+] as const;
+
+const BACKEND_ROLE_PERMISSIONS: Record<AppRole, readonly string[]> = {
+  [APP_ROLES.SUPER_ADMIN]: BACKEND_FULL_PERMISSIONS,
+  [APP_ROLES.ADMIN]: BACKEND_FULL_PERMISSIONS,
+  [APP_ROLES.MODERATOR]: BACKEND_MODERATOR_PERMISSIONS,
+  [APP_ROLES.ANALYST]: BACKEND_ANALYST_PERMISSIONS,
+  [APP_ROLES.SUPPORT]: BACKEND_SUPPORT_PERMISSIONS,
+  [APP_ROLES.COMPANY_OWNER]: [],
+  [APP_ROLES.COMPANY_MANAGER]: [],
+  [APP_ROLES.USER]: [],
+};
+
+export function getBackendRolePermissions(role: AppRole): Set<BackendBackofficePermission> {
+  return new Set(BACKEND_ROLE_PERMISSIONS[role] ?? []);
+}
+
 export function getRolePermissions(role: AppRole): Set<BackofficePermission> {
   return new Set(ROLE_PERMISSIONS[role] ?? []);
 }
