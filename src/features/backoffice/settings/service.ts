@@ -2,166 +2,173 @@ import {
   settingsDashboardDataSchema,
   settingsListFiltersSchema,
 } from "./schema";
-import {
-  mapSimpleSettingRow,
-  mapVerificationLevelRow,
-  mapVerificationMethodRow,
-  mapVerificationStatusRow,
-} from "./mapper";
 import type { SettingsListFilters } from "./types";
-import {
-  getSettingsSummaryQuery,
-  listClaimStatusesQuery,
-  listNotificationTypesQuery,
-  listPaymentStatusesQuery,
-  listRolesQuery,
-  listSubscriptionStatusesQuery,
-  listVerificationCheckStatusesQuery,
-  listVerificationDocumentReviewStatusesQuery,
-  listVerificationDocumentTypesQuery,
-  listVerificationLevelsQuery,
-  listVerificationMethodsQuery,
-  listVerificationRequestStatusesQuery,
-  listVerificationStatusesQuery,
-} from "@/lib/db/queries/backoffice/settings";
+import { callBackofficeService } from "@/lib/microservices/backoffice-client";
+
+const ADMIN_SETTINGS_PATH = "/api/users/backoffice/settings";
+
+type RecordLike = Record<string, unknown>;
+
+function asRecord(value: unknown): RecordLike {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as RecordLike)
+    : {};
+}
+
+function unwrapPayload(value: unknown): unknown {
+  const record = asRecord(value);
+  if ("data" in record) return record.data;
+  return value;
+}
+
+function toNumber(value: unknown, fallback = 0): number {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+}
+
+function toStringValue(value: unknown, fallback = ""): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return fallback;
+}
+
+function toNullableString(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return null;
+}
+
+function toBoolean(value: unknown, fallback = false): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["true", "1", "si", "sí", "yes"].includes(normalized)) return true;
+    if (["false", "0", "no"].includes(normalized)) return false;
+  }
+  if (typeof value === "number") return value !== 0;
+  return fallback;
+}
+
+function normalizeSimpleItem(value: unknown) {
+  const item = asRecord(value);
+  return {
+    id: toNumber(item.id),
+    name: toStringValue(item.name, "Sin nombre"),
+  };
+}
+
+function normalizeVerificationLevelItem(value: unknown) {
+  const item = asRecord(value);
+  return {
+    id: toNumber(item.id),
+    code: toStringValue(item.code),
+    name: toStringValue(item.name, "Sin nombre"),
+    description: toNullableString(item.description),
+    sortOrder: toNumber(item.sortOrder ?? item.sort_order),
+  };
+}
+
+function normalizeVerificationMethodItem(value: unknown) {
+  const item = asRecord(value);
+  return {
+    id: toNumber(item.id),
+    code: toStringValue(item.code),
+    name: toStringValue(item.name, "Sin nombre"),
+    description: toNullableString(item.description),
+    requiresDocument: toBoolean(item.requiresDocument ?? item.requires_document),
+    requiresManualReview: toBoolean(item.requiresManualReview ?? item.requires_manual_review),
+    isActive: toBoolean(item.isActive ?? item.is_active, true),
+  };
+}
+
+function normalizeVerificationStatusItem(value: unknown) {
+  const item = asRecord(value);
+  return {
+    id: toNumber(item.id),
+    code: toStringValue(item.code),
+    name: toStringValue(item.name, "Sin nombre"),
+    description: toNullableString(item.description),
+    sortOrder: toNumber(item.sortOrder ?? item.sort_order),
+    isTerminal: toBoolean(item.isTerminal ?? item.is_terminal),
+  };
+}
+
+function normalizePaginated<T>(
+  value: unknown,
+  mapper: (item: unknown) => T,
+  fallbackPage: number,
+  fallbackPageSize: number,
+) {
+  const payload = asRecord(value);
+  const pagination = asRecord(payload.pagination ?? payload.meta);
+  const rawItems = Array.isArray(payload.items)
+    ? payload.items
+    : Array.isArray(payload.rows)
+      ? payload.rows
+      : [];
+
+  return {
+    items: rawItems.map(mapper),
+    page: toNumber(payload.page ?? pagination.page, fallbackPage),
+    pageSize: toNumber(
+      payload.pageSize ?? payload.page_size ?? pagination.pageSize ?? pagination.page_size,
+      fallbackPageSize,
+    ),
+    total: toNumber(payload.total ?? pagination.total, rawItems.length),
+  };
+}
+
+function normalizeSettingsDashboard(value: unknown, filters: Required<Pick<SettingsListFilters, "page" | "pageSize">>) {
+  const payload = asRecord(unwrapPayload(value));
+  const summary = asRecord(payload.summary);
+  const page = Number(filters.page) || 1;
+  const pageSize = Number(filters.pageSize) || 10;
+
+  return {
+    summary: {
+      totalRoles: toNumber(summary.totalRoles ?? summary.total_roles),
+      totalVerificationStatuses: toNumber(summary.totalVerificationStatuses ?? summary.total_verification_statuses),
+      totalClaimStatuses: toNumber(summary.totalClaimStatuses ?? summary.total_claim_statuses),
+      totalPaymentStatuses: toNumber(summary.totalPaymentStatuses ?? summary.total_payment_statuses),
+      totalSubscriptionStatuses: toNumber(summary.totalSubscriptionStatuses ?? summary.total_subscription_statuses),
+      totalNotificationTypes: toNumber(summary.totalNotificationTypes ?? summary.total_notification_types),
+      totalVerificationLevels: toNumber(summary.totalVerificationLevels ?? summary.total_verification_levels),
+      totalVerificationMethods: toNumber(summary.totalVerificationMethods ?? summary.total_verification_methods),
+      totalVerificationRequestStatuses: toNumber(summary.totalVerificationRequestStatuses ?? summary.total_verification_request_statuses),
+      totalVerificationCheckStatuses: toNumber(summary.totalVerificationCheckStatuses ?? summary.total_verification_check_statuses),
+      totalVerificationDocumentTypes: toNumber(summary.totalVerificationDocumentTypes ?? summary.total_verification_document_types),
+      totalVerificationDocumentReviewStatuses: toNumber(summary.totalVerificationDocumentReviewStatuses ?? summary.total_verification_document_review_statuses),
+    },
+    roles: normalizePaginated(payload.roles, normalizeSimpleItem, page, pageSize),
+    verificationStatuses: normalizePaginated(payload.verificationStatuses ?? payload.verification_statuses, normalizeSimpleItem, page, pageSize),
+    claimStatuses: normalizePaginated(payload.claimStatuses ?? payload.claim_statuses, normalizeSimpleItem, page, pageSize),
+    paymentStatuses: normalizePaginated(payload.paymentStatuses ?? payload.payment_statuses, normalizeSimpleItem, page, pageSize),
+    subscriptionStatuses: normalizePaginated(payload.subscriptionStatuses ?? payload.subscription_statuses, normalizeSimpleItem, page, pageSize),
+    notificationTypes: normalizePaginated(payload.notificationTypes ?? payload.notification_types, normalizeSimpleItem, page, pageSize),
+    verificationLevels: normalizePaginated(payload.verificationLevels ?? payload.verification_levels, normalizeVerificationLevelItem, page, pageSize),
+    verificationMethods: normalizePaginated(payload.verificationMethods ?? payload.verification_methods, normalizeVerificationMethodItem, page, pageSize),
+    verificationRequestStatuses: normalizePaginated(payload.verificationRequestStatuses ?? payload.verification_request_statuses, normalizeVerificationStatusItem, page, pageSize),
+    verificationCheckStatuses: normalizePaginated(payload.verificationCheckStatuses ?? payload.verification_check_statuses, normalizeVerificationStatusItem, page, pageSize),
+    verificationDocumentTypes: normalizePaginated(payload.verificationDocumentTypes ?? payload.verification_document_types, normalizeVerificationLevelItem, page, pageSize),
+    verificationDocumentReviewStatuses: normalizePaginated(payload.verificationDocumentReviewStatuses ?? payload.verification_document_review_statuses, normalizeVerificationStatusItem, page, pageSize),
+  };
+}
 
 export async function getSettingsDashboard(input: SettingsListFilters = {}) {
   const filters = settingsListFiltersSchema.parse(input);
-
-  const [
-    summaryRow,
-    roles,
-    verificationStatuses,
-    claimStatuses,
-    paymentStatuses,
-    subscriptionStatuses,
-    notificationTypes,
-    verificationLevels,
-    verificationMethods,
-    verificationRequestStatuses,
-    verificationCheckStatuses,
-    verificationDocumentTypes,
-    verificationDocumentReviewStatuses,
-  ] = await Promise.all([
-    getSettingsSummaryQuery(),
-    listRolesQuery(filters),
-    listVerificationStatusesQuery(filters),
-    listClaimStatusesQuery(filters),
-    listPaymentStatusesQuery(filters),
-    listSubscriptionStatusesQuery(filters),
-    listNotificationTypesQuery(filters),
-    listVerificationLevelsQuery(filters),
-    listVerificationMethodsQuery(filters),
-    listVerificationRequestStatusesQuery(filters),
-    listVerificationCheckStatusesQuery(filters),
-    listVerificationDocumentTypesQuery(filters),
-    listVerificationDocumentReviewStatusesQuery(filters),
-  ]);
-
-  return settingsDashboardDataSchema.parse({
-    summary: {
-      totalRoles: Number(summaryRow.total_roles ?? 0),
-      totalVerificationStatuses: Number(
-        summaryRow.total_verification_statuses ?? 0
-      ),
-      totalClaimStatuses: Number(summaryRow.total_claim_statuses ?? 0),
-      totalPaymentStatuses: Number(summaryRow.total_payment_statuses ?? 0),
-      totalSubscriptionStatuses: Number(
-        summaryRow.total_subscription_statuses ?? 0
-      ),
-      totalNotificationTypes: Number(summaryRow.total_notification_types ?? 0),
-      totalVerificationLevels: Number(
-        summaryRow.total_verification_levels ?? 0
-      ),
-      totalVerificationMethods: Number(
-        summaryRow.total_verification_methods ?? 0
-      ),
-      totalVerificationRequestStatuses: Number(
-        summaryRow.total_verification_request_statuses ?? 0
-      ),
-      totalVerificationCheckStatuses: Number(
-        summaryRow.total_verification_check_statuses ?? 0
-      ),
-      totalVerificationDocumentTypes: Number(
-        summaryRow.total_verification_document_types ?? 0
-      ),
-      totalVerificationDocumentReviewStatuses: Number(
-        summaryRow.total_verification_document_review_statuses ?? 0
-      ),
-    },
-    roles: {
-      items: roles.rows.map(mapSimpleSettingRow),
-      page: roles.page,
-      pageSize: roles.pageSize,
-      total: roles.total,
-    },
-    verificationStatuses: {
-      items: verificationStatuses.rows.map(mapSimpleSettingRow),
-      page: verificationStatuses.page,
-      pageSize: verificationStatuses.pageSize,
-      total: verificationStatuses.total,
-    },
-    claimStatuses: {
-      items: claimStatuses.rows.map(mapSimpleSettingRow),
-      page: claimStatuses.page,
-      pageSize: claimStatuses.pageSize,
-      total: claimStatuses.total,
-    },
-    paymentStatuses: {
-      items: paymentStatuses.rows.map(mapSimpleSettingRow),
-      page: paymentStatuses.page,
-      pageSize: paymentStatuses.pageSize,
-      total: paymentStatuses.total,
-    },
-    subscriptionStatuses: {
-      items: subscriptionStatuses.rows.map(mapSimpleSettingRow),
-      page: subscriptionStatuses.page,
-      pageSize: subscriptionStatuses.pageSize,
-      total: subscriptionStatuses.total,
-    },
-    notificationTypes: {
-      items: notificationTypes.rows.map(mapSimpleSettingRow),
-      page: notificationTypes.page,
-      pageSize: notificationTypes.pageSize,
-      total: notificationTypes.total,
-    },
-    verificationLevels: {
-      items: verificationLevels.rows.map(mapVerificationLevelRow),
-      page: verificationLevels.page,
-      pageSize: verificationLevels.pageSize,
-      total: verificationLevels.total,
-    },
-    verificationMethods: {
-      items: verificationMethods.rows.map(mapVerificationMethodRow),
-      page: verificationMethods.page,
-      pageSize: verificationMethods.pageSize,
-      total: verificationMethods.total,
-    },
-    verificationRequestStatuses: {
-      items: verificationRequestStatuses.rows.map(mapVerificationStatusRow),
-      page: verificationRequestStatuses.page,
-      pageSize: verificationRequestStatuses.pageSize,
-      total: verificationRequestStatuses.total,
-    },
-    verificationCheckStatuses: {
-      items: verificationCheckStatuses.rows.map(mapVerificationStatusRow),
-      page: verificationCheckStatuses.page,
-      pageSize: verificationCheckStatuses.pageSize,
-      total: verificationCheckStatuses.total,
-    },
-    verificationDocumentTypes: {
-      items: verificationDocumentTypes.rows.map(mapVerificationLevelRow),
-      page: verificationDocumentTypes.page,
-      pageSize: verificationDocumentTypes.pageSize,
-      total: verificationDocumentTypes.total,
-    },
-    verificationDocumentReviewStatuses: {
-      items: verificationDocumentReviewStatuses.rows.map(
-        mapVerificationStatusRow
-      ),
-      page: verificationDocumentReviewStatuses.page,
-      pageSize: verificationDocumentReviewStatuses.pageSize,
-      total: verificationDocumentReviewStatuses.total,
-    },
+  const raw = await callBackofficeService<unknown>("users", ADMIN_SETTINGS_PATH, {
+    query: filters,
   });
+
+  return settingsDashboardDataSchema.parse(
+    normalizeSettingsDashboard(raw, {
+      page: filters.page,
+      pageSize: filters.pageSize,
+    }),
+  );
 }
