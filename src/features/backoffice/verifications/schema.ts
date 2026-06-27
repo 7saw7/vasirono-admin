@@ -49,6 +49,7 @@ export const verificationListResultSchema = z.object({
 
 export const verificationDocumentSchema = z.object({
   verificationDocumentId: z.number().int(),
+  verificationCheckId: z.number().int().nullable().optional(),
   documentType: z.string().nullable(),
   reviewStatus: z.string().nullable(),
   fileName: z.string(),
@@ -205,4 +206,66 @@ export const verificationDecisionInputSchema = z
 
 export const verificationRequestIdParamSchema = z.object({
   requestId: z.coerce.number().int().positive(),
+});
+
+export const verificationDocumentUploadUrlInputSchema = z.object({
+  documentTypeCode: z.string().trim().min(1),
+  fileName: z.string().trim().min(1),
+  mimeType: z.string().trim().min(3),
+  fileSizeBytes: z.number().int().positive(),
+  branchId: z.number().int().positive().nullable().optional(),
+  notes: z.string().trim().max(1000).nullable().optional(),
+});
+
+export const verificationDocumentUploadUrlResultSchema = z.object({
+  bucket: z.string(),
+  path: z.string(),
+  uploadUrl: z.string().url(),
+  method: z.literal("PUT"),
+  expiresIn: z.number().int(),
+  headers: z.record(z.string(), z.string()).default({}),
+  fileName: z.string(),
+  fileExtension: z.string().nullable(),
+  mimeType: z.string(),
+  fileSizeBytes: z.number().int(),
+});
+
+export const verificationDocumentConfirmInputSchema = z.object({
+  documentTypeCode: z.string().trim().min(1),
+  fileName: z.string().trim().min(1),
+  fileBucket: z.string().trim().min(1),
+  filePath: z.string().trim().min(1),
+  mimeType: z.string().trim().min(3),
+  fileExtension: z.string().nullable().optional(),
+  fileSizeBytes: z.number().int().positive(),
+  sha256Hash: z.string().nullable().optional(),
+  branchId: z.number().int().positive().nullable().optional(),
+  notes: z.string().trim().max(1000).nullable().optional(),
+});
+
+export const verificationDocumentConfirmResultSchema = z.object({
+  verificationRequestId: z.number().int(),
+  verificationCheckId: z.number().int(),
+  verificationDocumentId: z.number().int(),
+  documentTypeCode: z.string(),
+  fileName: z.string(),
+  reviewStatus: z.string(),
+});
+
+export const verificationDocumentViewUrlResultSchema = z.object({
+  verificationDocumentId: z.number().int(),
+  fileName: z.string(),
+  url: z.string().url(),
+  expiresIn: z.number().int(),
+});
+
+export const verificationDocumentReviewInputSchema = z.object({
+  statusCode: z.enum(["approved", "rejected", "needs_reupload", "pending"]),
+  reviewNotes: z.string().trim().max(2000).nullable().optional(),
+});
+
+export const verificationDocumentReviewResultSchema = z.object({
+  verificationRequestId: z.number().int(),
+  verificationDocumentId: z.number().int(),
+  reviewStatus: z.string(),
 });

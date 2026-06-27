@@ -50,6 +50,7 @@ export type VerificationSummaryRow = {
 
 export type VerificationDocumentRow = {
   verification_document_id: number | string;
+  verification_check_id?: number | string | null;
   document_type: string | null;
   review_status: string | null;
   file_name: string;
@@ -189,6 +190,7 @@ export function mapVerificationDocumentRow(
 ): VerificationDocument {
   return {
     verificationDocumentId: toNumber(row.verification_document_id),
+    verificationCheckId: toNullableNumber(row.verification_check_id),
     documentType: row.document_type,
     reviewStatus: row.review_status,
     fileName: row.file_name,

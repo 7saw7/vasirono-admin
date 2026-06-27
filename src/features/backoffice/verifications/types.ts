@@ -45,6 +45,7 @@ export type VerificationListResult = PaginatedResult<VerificationListItem> & {
 
 export type VerificationDocument = {
   verificationDocumentId: number;
+  verificationCheckId?: number | null;
   documentType: string | null;
   reviewStatus: string | null;
   fileName: string;
@@ -174,4 +175,66 @@ export type VerificationDecisionResult = {
   profileUpdated: boolean;
   reviewedAt: string | null;
   completedAt: string | null;
+};
+
+export type VerificationDocumentUploadUrlInput = {
+  documentTypeCode: string;
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  branchId?: number | null;
+  notes?: string | null;
+};
+
+export type VerificationDocumentUploadUrlResult = {
+  bucket: string;
+  path: string;
+  uploadUrl: string;
+  method: "PUT";
+  expiresIn: number;
+  headers: Record<string, string>;
+  fileName: string;
+  fileExtension: string | null;
+  mimeType: string;
+  fileSizeBytes: number;
+};
+
+export type VerificationDocumentConfirmInput = {
+  documentTypeCode: string;
+  fileName: string;
+  fileBucket: string;
+  filePath: string;
+  mimeType: string;
+  fileExtension?: string | null;
+  fileSizeBytes: number;
+  sha256Hash?: string | null;
+  branchId?: number | null;
+  notes?: string | null;
+};
+
+export type VerificationDocumentConfirmResult = {
+  verificationRequestId: number;
+  verificationCheckId: number;
+  verificationDocumentId: number;
+  documentTypeCode: string;
+  fileName: string;
+  reviewStatus: string;
+};
+
+export type VerificationDocumentViewUrlResult = {
+  verificationDocumentId: number;
+  fileName: string;
+  url: string;
+  expiresIn: number;
+};
+
+export type VerificationDocumentReviewInput = {
+  statusCode: "approved" | "rejected" | "needs_reupload" | "pending";
+  reviewNotes?: string | null;
+};
+
+export type VerificationDocumentReviewResult = {
+  verificationRequestId: number;
+  verificationDocumentId: number;
+  reviewStatus: string;
 };

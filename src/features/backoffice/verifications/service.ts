@@ -5,12 +5,22 @@ import {
   verificationListFiltersSchema,
   verificationListResultSchema,
   verificationDecisionInputSchema,
+  verificationDocumentConfirmInputSchema,
+  verificationDocumentConfirmResultSchema,
+  verificationDocumentReviewInputSchema,
+  verificationDocumentReviewResultSchema,
+  verificationDocumentUploadUrlInputSchema,
+  verificationDocumentUploadUrlResultSchema,
+  verificationDocumentViewUrlResultSchema,
 } from "./schema";
 import type {
   VerificationAssignInput,
   VerificationDecisionInput,
   VerificationListFilters,
   VerificationDecisionResult,
+  VerificationDocumentConfirmInput,
+  VerificationDocumentReviewInput,
+  VerificationDocumentUploadUrlInput,
 } from "./types";
 import { callBackofficeService } from "@/lib/microservices/backoffice-client";
 
@@ -108,4 +118,69 @@ export async function decideVerificationRequest(
     body: payload,
   });
   return raw as VerificationDecisionResult;
+}
+
+
+export async function requestVerificationDocumentUploadUrl(
+  requestId: number,
+  input: VerificationDocumentUploadUrlInput
+) {
+  const payload = verificationDocumentUploadUrlInputSchema.parse(input);
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/verifications/admin/verifications/${requestId}/documents/upload-url`,
+    {
+      method: "POST",
+      body: payload,
+    }
+  );
+
+  return verificationDocumentUploadUrlResultSchema.parse(raw);
+}
+
+export async function confirmVerificationDocumentUpload(
+  requestId: number,
+  input: VerificationDocumentConfirmInput
+) {
+  const payload = verificationDocumentConfirmInputSchema.parse(input);
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/verifications/admin/verifications/${requestId}/documents/confirm`,
+    {
+      method: "POST",
+      body: payload,
+    }
+  );
+
+  return verificationDocumentConfirmResultSchema.parse(raw);
+}
+
+export async function getVerificationDocumentViewUrl(
+  requestId: number,
+  documentId: number
+) {
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/verifications/admin/verifications/${requestId}/documents/${documentId}/view-url`
+  );
+
+  return verificationDocumentViewUrlResultSchema.parse(raw);
+}
+
+export async function reviewVerificationDocument(
+  requestId: number,
+  documentId: number,
+  input: VerificationDocumentReviewInput
+) {
+  const payload = verificationDocumentReviewInputSchema.parse(input);
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/verifications/admin/verifications/${requestId}/documents/${documentId}/review`,
+    {
+      method: "PATCH",
+      body: payload,
+    }
+  );
+
+  return verificationDocumentReviewResultSchema.parse(raw);
 }

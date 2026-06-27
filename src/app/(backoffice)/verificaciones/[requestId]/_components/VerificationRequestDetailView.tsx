@@ -7,6 +7,7 @@ import { VerificationAddressMatchesPanel } from "./VerificationAddressMatchesPan
 import { VerificationPublicContactsPanel } from "./VerificationPublicContactsPanel";
 import { VerificationWhatsappPanel } from "./VerificationWhatsappPanel";
 import { VerificationDocumentReviewPanel } from "./VerificationDocumentReviewPanel";
+import { VerificationDocumentActionsPanel } from "./VerificationDocumentActionsPanel";
 import type { VerificationDetail } from "@/features/backoffice/verifications/types";
 
 type VerificationRequestDetailViewProps = {
@@ -24,6 +25,11 @@ export function VerificationRequestDetailView({
         <VerificationDocumentsTable documents={data.documents} />
         <VerificationChecksTable checks={data.checks} />
       </div>
+
+      <VerificationDocumentActionsPanel
+        requestId={data.verificationRequestId}
+        documents={data.documents}
+      />
 
       <VerificationDocumentReviewPanel documents={data.documents} />
 
