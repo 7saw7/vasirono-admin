@@ -53,7 +53,7 @@ export function VerificationRequestHeader({
         <Field label="Requester" value={data.requestedByName} />
         <Field label="Reviewer" value={data.assignedReviewerName ?? "Sin asignar"} />
         <Field
-          label="Claim relacionado"
+          label="Reclamo relacionado"
           value={data.claimRequestId ? `#${data.claimRequestId}` : "No"}
         />
         <Field label="Iniciado" value={formatDateTime(data.startedAt)} />

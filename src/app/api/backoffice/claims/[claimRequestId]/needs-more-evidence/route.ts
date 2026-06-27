@@ -18,16 +18,16 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const { claimRequestId: rawId } = await context.params;
     const claimRequestId = Number(rawId);
     if (!Number.isInteger(claimRequestId) || claimRequestId <= 0) {
-      return NextResponse.json({ ok: false, error: "El claimRequestId no es válido." }, { status: 400 });
+      return NextResponse.json({ ok: false, error: "El identificador del reclamo no es válido." }, { status: 400 });
     }
     const body = await request.json();
     const data = await requestMoreEvidenceClaim(claimRequestId, auth.user.id, body?.notes ?? null);
     return NextResponse.json({ ok: true, data });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";
-    if (message === "CLAIM_NOT_FOUND") return NextResponse.json({ ok: false, error: "Claim no encontrado." }, { status: 404 });
+    if (message === "CLAIM_NOT_FOUND") return NextResponse.json({ ok: false, error: "Reclamo no encontrado." }, { status: 404 });
     if (message.startsWith("MISSING_")) return NextResponse.json({ ok: false, error: "Falta catálogo para pedir más evidencia." }, { status: 500 });
     const status = getStatus(error);
-    return NextResponse.json({ ok: false, error: status === 403 ? "No tienes permisos para revisar claims." : status === 401 ? "No autenticado." : "No se pudo pedir más evidencia." }, { status });
+    return NextResponse.json({ ok: false, error: status === 403 ? "No tienes permisos para revisar reclamos." : status === 401 ? "No autenticado." : "No se pudo pedir más evidencia." }, { status });
   }
 }

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (!Number.isInteger(claimRequestId) || claimRequestId <= 0) {
       return NextResponse.json(
-        { ok: false, error: "El claimRequestId no es válido." },
+        { ok: false, error: "El identificador del reclamo no es válido." },
         { status: 400 }
       );
     }
@@ -41,14 +41,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (message === "CLAIM_NOT_FOUND") {
       return NextResponse.json(
-        { ok: false, error: "Claim no encontrado." },
+        { ok: false, error: "Reclamo no encontrado." },
         { status: 404 }
       );
     }
 
     if (message === "MISSING_REJECTED_CLAIM_STATUS") {
       return NextResponse.json(
-        { ok: false, error: "Falta el catálogo base para rechazar el claim." },
+        { ok: false, error: "Falta el catálogo base para rechazar el reclamo." },
         { status: 500 }
       );
     }
@@ -66,10 +66,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
         ok: false,
         error:
           status === 403
-            ? "No tienes permisos para rechazar claims."
+            ? "No tienes permisos para rechazar reclamos."
             : status === 401
             ? "No autenticado."
-            : "No se pudo rechazar el claim.",
+            : "No se pudo rechazar el reclamo.",
       },
       { status }
     );

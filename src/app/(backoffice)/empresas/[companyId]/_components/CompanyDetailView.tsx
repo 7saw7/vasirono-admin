@@ -22,7 +22,7 @@ export function CompanyDetailView({ data }: CompanyDetailViewProps) {
         </h1>
         <p className="mt-2 text-sm text-neutral-500">
           Vista consolidada del perfil empresarial, sus locales, verificación,
-          suscripción, pagos, claims y trazabilidad.
+          suscripción, pagos, reclamos y trazabilidad.
         </p>
       </div>
 

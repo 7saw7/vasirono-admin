@@ -27,7 +27,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (!Number.isInteger(claimRequestId) || claimRequestId <= 0) {
       return NextResponse.json(
-        { ok: false, error: "El claimRequestId no es válido." },
+        { ok: false, error: "El identificador del reclamo no es válido." },
         { status: 400 }
       );
     }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const status = getStatus(error);
 
     if (message === "CLAIM_NOT_FOUND") {
-      return NextResponse.json({ ok: false, error: "Claim no encontrado." }, { status: 404 });
+      return NextResponse.json({ ok: false, error: "Reclamo no encontrado." }, { status: 404 });
     }
 
     if (message.startsWith("MISSING_") || message === "CHECK_CREATION_FAILED") {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         ok: false,
         error:
           status === 403
-            ? "No tienes permisos para revisar claims."
+            ? "No tienes permisos para revisar reclamos."
             : status === 401
             ? "No autenticado."
             : "No se pudo preparar la validación del canal oficial.",

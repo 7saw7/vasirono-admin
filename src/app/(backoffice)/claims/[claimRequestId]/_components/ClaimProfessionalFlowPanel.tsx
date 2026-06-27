@@ -126,7 +126,7 @@ export function ClaimProfessionalFlowPanel({ claim }: ClaimProfessionalFlowPanel
       },
       "onsite-required"
     );
-    if (result) setSuccess("El claim fue derivado a verificación presencial.");
+    if (result) setSuccess("El reclamo fue derivado a verificación presencial.");
   }
 
   async function handleOnsiteApprove() {
@@ -148,7 +148,7 @@ export function ClaimProfessionalFlowPanel({ claim }: ClaimProfessionalFlowPanel
       { notes: notes || "Se requiere evidencia adicional para continuar la validación." },
       "needs-more-evidence"
     );
-    if (result) setSuccess("El claim quedó marcado como requiere más evidencia.");
+    if (result) setSuccess("El reclamo quedó marcado como requiere más evidencia.");
   }
 
   async function handleReject() {
@@ -157,7 +157,7 @@ export function ClaimProfessionalFlowPanel({ claim }: ClaimProfessionalFlowPanel
       { decision: "reject", notes: notes || "No se pudo comprobar relación con el negocio." },
       "reject"
     );
-    if (result) setSuccess("Claim rechazado.");
+    if (result) setSuccess("Reclamo rechazado.");
   }
 
   return (

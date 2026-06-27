@@ -22,7 +22,7 @@ export function BackofficeDashboardView({
           Vista general del backoffice
         </h1>
         <p className="mt-2 text-sm text-neutral-500">
-          Estado agregado de operación, moderación, verificaciones, claims,
+          Estado agregado de operación, moderación, verificaciones, reclamos,
           pagos y actividad reciente.
         </p>
       </div>

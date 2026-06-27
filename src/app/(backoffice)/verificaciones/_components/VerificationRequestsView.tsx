@@ -18,7 +18,7 @@ export function VerificationRequestsView({
           Solicitudes de verificación
         </h1>
         <p className="mt-2 text-sm text-neutral-500">
-          Gestiona la cola operativa de requests creados desde claims y otros
+          Gestiona la cola operativa de solicitudes creadas desde reclamos y otros
           flujos de verificación empresarial.
         </p>
       </div>

@@ -101,7 +101,7 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
       },
       {
         key: "pendingClaimsCount",
-        title: "Claims",
+        title: "Reclamos",
         render: (row: CompanyListItem) => (
           <span className="text-sm font-medium text-neutral-900">
             {row.pendingClaimsCount}

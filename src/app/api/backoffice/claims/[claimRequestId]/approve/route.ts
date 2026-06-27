@@ -19,7 +19,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (!Number.isInteger(claimRequestId) || claimRequestId <= 0) {
       return NextResponse.json(
-        { ok: false, error: "El claimRequestId no es válido." },
+        { ok: false, error: "El identificador del reclamo no es válido." },
         { status: 400 }
       );
     }
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     if (message === "CLAIM_NOT_FOUND") {
       return NextResponse.json(
-        { ok: false, error: "Claim no encontrado." },
+        { ok: false, error: "Reclamo no encontrado." },
         { status: 404 }
       );
     }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       message === "MISSING_VERIFICATION_LEVEL"
     ) {
       return NextResponse.json(
-        { ok: false, error: "Faltan catálogos base para aprobar el claim." },
+        { ok: false, error: "Faltan catálogos base para aprobar el reclamo." },
         { status: 500 }
       );
     }
@@ -70,10 +70,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
         ok: false,
         error:
           status === 403
-            ? "No tienes permisos para aprobar claims."
+            ? "No tienes permisos para aprobar reclamos."
             : status === 401
             ? "No autenticado."
-            : "No se pudo aprobar el claim.",
+            : "No se pudo aprobar el reclamo.",
       },
       { status }
     );

@@ -25,7 +25,7 @@ export function ClaimReviewDrawer({ claim }: ClaimReviewDrawerProps) {
           <div className="h-full w-full max-w-2xl overflow-y-auto bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm text-neutral-500">Claim #{claim.claimRequestId}</p>
+                <p className="text-sm text-neutral-500">Reclamo #{claim.claimRequestId}</p>
                 <h2 className="mt-1 text-2xl font-semibold text-neutral-950">
                   {claim.companyName}
                 </h2>
@@ -62,7 +62,7 @@ export function ClaimReviewDrawer({ claim }: ClaimReviewDrawerProps) {
                   <Field label="Enviado" value={formatDateTime(claim.submittedAt)} />
                   <Field label="Revisado" value={formatDateTime(claim.reviewedAt)} />
                   <Field label="Ruta preferida" value={claim.preferredVerificationRoute ?? "—"} />
-                  <Field label="Verification flow" value={claim.hasVerificationRequest ? "Sí" : "No"} />
+                  <Field label="Flujo de verificación" value={claim.hasVerificationRequest ? "Sí" : "No"} />
                   <Field label="Origen" value={claim.source} />
                 </div>
 
@@ -80,7 +80,7 @@ export function ClaimReviewDrawer({ claim }: ClaimReviewDrawerProps) {
               </section>
 
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                Para enviar código al canal oficial, generar link WhatsApp o derivar a visita presencial, abre la vista completa del claim. Esto evita aprobar por error sin trazabilidad.
+                Para enviar código al canal oficial, generar link WhatsApp o derivar a visita presencial, abre la vista completa del reclamo. Esto evita aprobar por error sin trazabilidad.
               </div>
             </div>
           </div>

@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
         ok: false,
         error:
           status === 403
-            ? "No tienes permisos para ver claims."
+            ? "No tienes permisos para ver reclamos."
             : status === 401
             ? "No autenticado."
-            : "No se pudo obtener el listado de claims.",
+            : "No se pudo obtener el listado de reclamos.",
       },
       { status }
     );

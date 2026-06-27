@@ -25,7 +25,7 @@ export function LoginView() {
                 Operación centralizada
               </p>
               <p className="mt-2 text-sm text-neutral-300">
-                Revisión de claims, verificaciones, moderación de reseñas y
+                Revisión de reclamos, verificaciones, moderación de reseñas y
                 control transversal del ecosistema.
               </p>
             </div>

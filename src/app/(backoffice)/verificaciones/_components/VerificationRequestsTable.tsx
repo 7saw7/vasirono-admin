@@ -48,10 +48,10 @@ export function VerificationRequestsTable({
                   href={`/verificaciones/${row.verificationRequestId}`}
                   className="font-medium text-neutral-950 hover:underline"
                 >
-                  Verification #{row.verificationRequestId}
+                  Verificación #{row.verificationRequestId}
                 </Link>
                 <p className="text-xs text-neutral-500">
-                  Claim: {row.claimRequestId ? `#${row.claimRequestId}` : "—"}
+                  Reclamo: {row.claimRequestId ? `#${row.claimRequestId}` : "—"}
                 </p>
               </div>
             ),

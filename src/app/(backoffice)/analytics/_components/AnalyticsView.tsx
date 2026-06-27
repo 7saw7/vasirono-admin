@@ -12,7 +12,7 @@ const funnelLabels: Record<string, string> = {
   favorites_added: "Favoritos añadidos",
   promotion_opens: "Aperturas de promoción",
   contact_clicks: "Clicks de contacto",
-  claim_submissions: "Claims enviados",
+  claim_submissions: "Reclamos enviados",
 };
 
 export function AnalyticsView({ data }: AnalyticsViewProps) {

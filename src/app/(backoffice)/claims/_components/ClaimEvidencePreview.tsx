@@ -24,7 +24,7 @@ export function ClaimEvidencePreview({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={evidenceUrl}
-            alt="Evidencia del claim"
+            alt="Evidencia del reclamo"
             className="h-auto max-h-[420px] w-full object-contain"
           />
         </div>

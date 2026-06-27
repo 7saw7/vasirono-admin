@@ -12,7 +12,7 @@ export const backofficeNav: BackofficeNavItem[] = [
   { label: "Dashboard", href: BACKOFFICE_ROUTES.dashboard, permission: "dashboard.read" },
   { label: "Empresas", href: BACKOFFICE_ROUTES.companies, permission: "companies.read" },
   { label: "Sucursales", href: BACKOFFICE_ROUTES.branches, permission: "branches.read" },
-  { label: "Claims", href: BACKOFFICE_ROUTES.claims, permission: "claims.read" },
+  { label: "Reclamos", href: BACKOFFICE_ROUTES.claims, permission: "claims.read" },
   { label: "Verificaciones", href: BACKOFFICE_ROUTES.verifications, permission: "verifications.read" },
   { label: "Reseñas", href: BACKOFFICE_ROUTES.reviews, permission: "reviews.read" },
   { label: "Reportes reseñas", href: BACKOFFICE_ROUTES.reviewReports, permission: "reviewReports.read" },

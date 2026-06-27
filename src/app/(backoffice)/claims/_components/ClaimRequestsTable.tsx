@@ -25,7 +25,7 @@ export function ClaimRequestsTable({ data }: ClaimRequestsTableProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-end">
         <p className="text-sm text-neutral-500">
-          Total: {data.total} claim{data.total === 1 ? "" : "s"}
+          Total: {data.total} reclamo{data.total === 1 ? "" : "s"}
         </p>
       </div>
 
@@ -43,7 +43,7 @@ export function ClaimRequestsTable({ data }: ClaimRequestsTableProps) {
                   {row.companyName}
                 </Link>
                 <p className="text-xs text-neutral-500">
-                  Claim #{row.claimRequestId}{row.branchName ? ` · ${row.branchName}` : ""}
+                  Reclamo #{row.claimRequestId}{row.branchName ? ` · ${row.branchName}` : ""}
                 </p>
                 {row.branchAddress ? (
                   <p className="text-xs text-neutral-400">{row.branchAddress}</p>
@@ -121,7 +121,7 @@ export function ClaimRequestsTable({ data }: ClaimRequestsTableProps) {
         getRowKey={(row) => String(row.claimRequestId)}
         emptyState={
           <EmptyState
-            title="No se encontraron claims"
+            title="No se encontraron reclamos"
             description="Prueba ajustando filtros o verifica si existen solicitudes registradas."
           />
         }

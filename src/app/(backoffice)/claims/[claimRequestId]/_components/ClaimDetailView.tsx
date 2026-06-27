@@ -24,9 +24,9 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-neutral-500">Claims</p>
+        <p className="text-sm font-medium text-neutral-500">Reclamos</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-neutral-950">
-          Claim #{data.claimRequestId}
+          Reclamo #{data.claimRequestId}
         </h1>
         <p className="mt-2 text-sm text-neutral-500">
           Revisión profesional de solicitud: canal oficial, WhatsApp/correo, visita presencial y evidencias.
@@ -34,7 +34,7 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <SectionCard title="Resumen" description="Datos principales del claim.">
+        <SectionCard title="Resumen" description="Datos principales del reclamo.">
           <div className="grid gap-4 md:grid-cols-2">
             <Field
               label="Empresa"
@@ -62,7 +62,7 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
             <Field label="Revisado" value={formatDateTime(data.reviewedAt)} />
             <Field label="Revisado por" value={data.reviewedByName ?? "—"} />
             <Field
-              label="Verification request"
+              label="Solicitud de verificación"
               value={
                 data.verificationRequestId ? (
                   <Link href={`/verificaciones/${data.verificationRequestId}`} className="underline">

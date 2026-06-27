@@ -157,10 +157,10 @@ export function buildPlatformHealth(input: {
       helpText: "Reportes de reseñas pendientes o en proceso.",
     },
     {
-      label: "Claims empresariales",
+      label: "Reclamos empresariales",
       value: String(input.claimsPending),
       status: claimsStatus,
-      helpText: "Solicitudes de claim aún no resueltas.",
+      helpText: "Solicitudes de reclamo aún no resueltas.",
     },
     {
       label: "Eventos últimos 7 días",

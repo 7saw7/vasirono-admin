@@ -52,7 +52,7 @@ export function ClaimFilters() {
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="grid gap-4 lg:grid-cols-[2fr_1fr_1fr_auto]">
         <Input
-          label="Buscar claim"
+          label="Buscar reclamo"
           placeholder="Empresa, local, solicitante, correo, teléfono o canal"
           value={search}
           onChange={(event) => setSearch(event.target.value)}

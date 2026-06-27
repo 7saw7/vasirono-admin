@@ -25,7 +25,7 @@ export function SettingsView({ data }: SettingsViewProps) {
           value={String(data.summary.totalVerificationStatuses)}
         />
         <SummaryCard
-          label="Estados claim"
+          label="Estados de reclamo"
           value={String(data.summary.totalClaimStatuses)}
         />
         <SummaryCard
@@ -70,10 +70,10 @@ export function SettingsView({ data }: SettingsViewProps) {
       />
 
       <Section
-        title="Estados de claim"
+        title="Estados de reclamo"
         headers={["Nombre"]}
         rows={data.claimStatuses.items.map((item) => [item.name])}
-        emptyMessage="No se encontraron estados de claim."
+        emptyMessage="No se encontraron estados de reclamo."
       />
 
       <Section

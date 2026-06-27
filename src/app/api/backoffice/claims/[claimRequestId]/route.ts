@@ -19,7 +19,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     if (!Number.isInteger(claimRequestId) || claimRequestId <= 0) {
       return NextResponse.json(
-        { ok: false, error: "El claimRequestId no es válido." },
+        { ok: false, error: "El identificador del reclamo no es válido." },
         { status: 400 }
       );
     }
@@ -28,7 +28,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     if (!data) {
       return NextResponse.json(
-        { ok: false, error: "Claim no encontrado." },
+        { ok: false, error: "Reclamo no encontrado." },
         { status: 404 }
       );
     }
@@ -51,10 +51,10 @@ export async function GET(_request: NextRequest, context: RouteContext) {
         ok: false,
         error:
           status === 403
-            ? "No tienes permisos para ver este claim."
+            ? "No tienes permisos para ver este reclamo."
             : status === 401
             ? "No autenticado."
-            : "No se pudo obtener el detalle del claim.",
+            : "No se pudo obtener el detalle del reclamo.",
       },
       { status }
     );

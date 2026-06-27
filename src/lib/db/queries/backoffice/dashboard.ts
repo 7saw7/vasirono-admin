@@ -156,7 +156,7 @@ export async function getDashboardRecentActivityQuery(limit = 12) {
         select
           concat('claim-', claim_request_id) as id,
           'claim' as type,
-          'Nuevo claim empresarial' as title,
+          'Nuevo reclamo empresarial' as title,
           coalesce(notes, 'Solicitud registrada') as description,
           submitted_at as occurred_at
         from company_claim_requests

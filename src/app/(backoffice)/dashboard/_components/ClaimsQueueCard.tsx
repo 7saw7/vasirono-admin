@@ -9,8 +9,8 @@ type ClaimsQueueCardProps = {
 export function ClaimsQueueCard({ data }: ClaimsQueueCardProps) {
   return (
     <SectionCard
-      title="Claims empresariales"
-      description="Solicitudes de ownership o control empresarial."
+      title="Reclamos empresariales"
+      description="Solicitudes de propiedad o control empresarial."
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <Metric label="Total" value={data.total} />
