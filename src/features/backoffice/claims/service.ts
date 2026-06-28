@@ -41,6 +41,42 @@ function maybeIso(value: unknown): string | null {
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+function nullableString(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  return String(value);
+}
+
+function normalizeClaimPublicContact(row: any) {
+  return {
+    publicContactVerificationId: asNumber(row.publicContactVerificationId ?? row.public_contact_verification_id),
+    contactSource: String(row.contactSource ?? row.contact_source ?? "manual"),
+    contactLabel: nullableString(row.contactLabel ?? row.contact_label),
+    contactValue: String(row.contactValue ?? row.contact_value ?? row.normalizedContactValue ?? row.normalized_contact_value ?? "Sin valor"),
+    normalizedContactValue: nullableString(row.normalizedContactValue ?? row.normalized_contact_value),
+    matchedWithBranchContact: Boolean(row.matchedWithBranchContact ?? row.matched_with_branch_contact),
+    evidenceUrl: nullableString(row.evidenceUrl ?? row.evidence_url),
+    verifiedAt: maybeIso(row.verifiedAt ?? row.verified_at),
+    verifiedByName: nullableString(row.verifiedByName ?? row.verified_by_name),
+    createdAt: asIso(row.createdAt ?? row.created_at),
+  };
+}
+
+function normalizeClaimWhatsappVerification(row: any) {
+  return {
+    whatsappVerificationId: asNumber(row.whatsappVerificationId ?? row.whatsapp_verification_id),
+    publicPhone: String(row.publicPhone ?? row.public_phone ?? row.normalizedPhone ?? row.normalized_phone ?? "Sin teléfono"),
+    normalizedPhone: String(row.normalizedPhone ?? row.normalized_phone ?? row.publicPhone ?? row.public_phone ?? "Sin teléfono"),
+    attemptsCount: asNumber(row.attemptsCount ?? row.attempts_count),
+    maxAttempts: asNumber(row.maxAttempts ?? row.max_attempts),
+    status: String(row.status ?? "pending"),
+    sentAt: maybeIso(row.sentAt ?? row.sent_at),
+    expiresAt: maybeIso(row.expiresAt ?? row.expires_at),
+    verifiedAt: maybeIso(row.verifiedAt ?? row.verified_at),
+    providerName: nullableString(row.providerName ?? row.provider_name),
+    failureReason: nullableString(row.failureReason ?? row.failure_reason),
+  };
+}
+
 function normalizeClaimItem(row: any) {
   return {
     claimRequestId: asNumber(row.claimRequestId ?? row.claim_request_id),
@@ -100,8 +136,18 @@ function normalizeClaimDetail(raw: any) {
     verificationStatusName: raw.verificationStatusName ?? raw.verification_status_name ?? null,
     verificationStatusCode: raw.verificationStatusCode ?? raw.verification_status_code ?? null,
     verificationLevel: raw.verificationLevel ?? raw.verification_level ?? null,
-    publicContacts: Array.isArray(raw.publicContacts) ? raw.publicContacts : [],
-    whatsappVerifications: Array.isArray(raw.whatsappVerifications) ? raw.whatsappVerifications : [],
+    publicContacts: Array.isArray(raw.publicContacts)
+      ? raw.publicContacts.map(normalizeClaimPublicContact)
+      : Array.isArray(raw.public_contacts)
+        ? raw.public_contacts.map(normalizeClaimPublicContact)
+        : [],
+    whatsappVerifications: Array.isArray(raw.whatsappVerifications)
+      ? raw.whatsappVerifications.map(normalizeClaimWhatsappVerification)
+      : Array.isArray(raw.whatsapp)
+        ? raw.whatsapp.map(normalizeClaimWhatsappVerification)
+        : Array.isArray(raw.whatsapp_verifications)
+          ? raw.whatsapp_verifications.map(normalizeClaimWhatsappVerification)
+          : [],
   };
 }
 
