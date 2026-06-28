@@ -112,10 +112,20 @@ export async function decideVerificationRequest(
 ): Promise<VerificationDecisionResult> {
   const payload = verificationDecisionInputSchema.parse(input);
   const path = payload.decision === "approved" ? "approve" : "reject";
+
+  const body =
+    payload.decision === "approved"
+      ? {
+          notes: payload.approvalNotes ?? undefined,
+        }
+      : {
+          reason: payload.rejectionReason ?? "Rechazado desde backoffice.",
+        };
+
   const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/verifications/${requestId}/${path}`, {
     method: "PATCH",
     actorUserId: reviewerUserId,
-    body: payload,
+    body,
   });
   return raw as VerificationDecisionResult;
 }
