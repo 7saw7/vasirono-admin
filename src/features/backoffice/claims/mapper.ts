@@ -220,6 +220,7 @@ export function mapClaimDetailRow(
     verificationStatusName: row.verification_status_name,
     verificationStatusCode: row.verification_status_code,
     verificationLevel: row.verification_level,
+    professionalFlowMetadata: row.professional_flow_metadata ?? null,
     publicContacts: relations.publicContacts.map(mapClaimPublicContactRow),
     whatsappVerifications: relations.whatsappVerifications.map(
       mapClaimWhatsappVerificationRow

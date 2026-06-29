@@ -83,6 +83,37 @@ function normalizeClaimList(raw: any, page: number, pageSize: number) {
   };
 }
 
+function normalizePublicContact(row: any) {
+  return {
+    publicContactVerificationId: asNumber(row.publicContactVerificationId ?? row.public_contact_verification_id),
+    contactSource: String(row.contactSource ?? row.contact_source ?? "manual"),
+    contactLabel: row.contactLabel ?? row.contact_label ?? null,
+    contactValue: String(row.contactValue ?? row.contact_value ?? ""),
+    normalizedContactValue: row.normalizedContactValue ?? row.normalized_contact_value ?? null,
+    matchedWithBranchContact: Boolean(row.matchedWithBranchContact ?? row.matched_with_branch_contact ?? false),
+    evidenceUrl: row.evidenceUrl ?? row.evidence_url ?? null,
+    verifiedAt: maybeIso(row.verifiedAt ?? row.verified_at),
+    verifiedByName: row.verifiedByName ?? row.verified_by_name ?? null,
+    createdAt: asIso(row.createdAt ?? row.created_at),
+  };
+}
+
+function normalizeWhatsappVerification(row: any) {
+  return {
+    whatsappVerificationId: asNumber(row.whatsappVerificationId ?? row.whatsapp_verification_id),
+    publicPhone: String(row.publicPhone ?? row.public_phone ?? ""),
+    normalizedPhone: String(row.normalizedPhone ?? row.normalized_phone ?? ""),
+    attemptsCount: asNumber(row.attemptsCount ?? row.attempts_count),
+    maxAttempts: asNumber(row.maxAttempts ?? row.max_attempts ?? 5),
+    status: String(row.status ?? "pending"),
+    sentAt: maybeIso(row.sentAt ?? row.sent_at),
+    expiresAt: maybeIso(row.expiresAt ?? row.expires_at),
+    verifiedAt: maybeIso(row.verifiedAt ?? row.verified_at),
+    providerName: row.providerName ?? row.provider_name ?? null,
+    failureReason: row.failureReason ?? row.failure_reason ?? null,
+  };
+}
+
 function normalizeClaimDetail(raw: any) {
   if (!raw) return null;
   const base = normalizeClaimItem(raw);
@@ -101,8 +132,16 @@ function normalizeClaimDetail(raw: any) {
     verificationStatusName: raw.verificationStatusName ?? raw.verification_status_name ?? null,
     verificationStatusCode: raw.verificationStatusCode ?? raw.verification_status_code ?? null,
     verificationLevel: raw.verificationLevel ?? raw.verification_level ?? null,
-    publicContacts: Array.isArray(raw.publicContacts) ? raw.publicContacts : [],
-    whatsappVerifications: Array.isArray(raw.whatsappVerifications) ? raw.whatsappVerifications : [],
+    publicContacts: Array.isArray(raw.publicContacts)
+      ? raw.publicContacts.map(normalizePublicContact)
+      : Array.isArray(raw.public_contacts)
+        ? raw.public_contacts.map(normalizePublicContact)
+        : [],
+    whatsappVerifications: Array.isArray(raw.whatsappVerifications)
+      ? raw.whatsappVerifications.map(normalizeWhatsappVerification)
+      : Array.isArray(raw.whatsapp_verifications)
+        ? raw.whatsapp_verifications.map(normalizeWhatsappVerification)
+        : [],
     professionalFlowMetadata: raw.professionalFlowMetadata ?? raw.professional_flow_metadata ?? base.professionalFlowMetadata ?? null,
   };
 }

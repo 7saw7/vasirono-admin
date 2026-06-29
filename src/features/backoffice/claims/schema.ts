@@ -183,7 +183,7 @@ export const claimDetailSchema = z.object({
   verificationLevel: z.string().nullable(),
   publicContacts: z.array(claimPublicContactSchema),
   whatsappVerifications: z.array(claimWhatsappVerificationSchema),
-  professionalFlowMetadata: z.record(z.string(), z.unknown()).nullable().optional(),
+  professionalFlowMetadata: z.record(z.string(), z.unknown()).nullable(),
 });
 
 export const claimDecisionResultSchema = z.object({
