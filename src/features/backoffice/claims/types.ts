@@ -32,6 +32,7 @@ export type ClaimListItem = {
   notes: string | null;
   evidenceUrl: string | null;
   hasVerificationRequest: boolean;
+  professionalFlowMetadata?: Record<string, unknown> | null;
 };
 
 export type ClaimListResult = PaginatedResult<ClaimListItem>;
@@ -154,6 +155,7 @@ export type ClaimDetail = {
   verificationLevel: string | null;
   publicContacts: ClaimPublicContact[];
   whatsappVerifications: ClaimWhatsappVerification[];
+  professionalFlowMetadata: Record<string, unknown> | null;
 };
 
 export type ClaimDecisionResult = {

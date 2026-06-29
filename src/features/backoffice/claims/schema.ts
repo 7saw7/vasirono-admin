@@ -59,6 +59,7 @@ export const claimListItemSchema = z.object({
   notes: z.string().nullable(),
   evidenceUrl: z.string().nullable(),
   hasVerificationRequest: z.boolean(),
+  professionalFlowMetadata: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
 export const claimListResultSchema = z.object({
@@ -182,6 +183,7 @@ export const claimDetailSchema = z.object({
   verificationLevel: z.string().nullable(),
   publicContacts: z.array(claimPublicContactSchema),
   whatsappVerifications: z.array(claimWhatsappVerificationSchema),
+  professionalFlowMetadata: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
 export const claimDecisionResultSchema = z.object({

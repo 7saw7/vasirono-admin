@@ -30,6 +30,7 @@ export type ClaimListRow = {
   notes: string | null;
   evidence_url: string | null;
   has_verification_request: boolean | null;
+  professional_flow_metadata?: Record<string, unknown> | null;
 };
 
 export type ClaimDetailRow = ClaimListRow & {
@@ -137,6 +138,7 @@ export function mapClaimListRow(row: ClaimListRow): ClaimListItem {
     notes: row.notes,
     evidenceUrl: row.evidence_url,
     hasVerificationRequest: Boolean(row.has_verification_request),
+    professionalFlowMetadata: row.professional_flow_metadata ?? null,
   };
 }
 

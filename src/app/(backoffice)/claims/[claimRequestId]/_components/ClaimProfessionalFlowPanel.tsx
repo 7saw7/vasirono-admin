@@ -65,6 +65,13 @@ export function ClaimProfessionalFlowPanel({ claim }: ClaimProfessionalFlowPanel
     return channelValue.trim().length >= 3 && (channelType === "email" || channelType === "whatsapp");
   }, [channelType, channelValue]);
 
+  const flowMetadata = claim.professionalFlowMetadata ?? {};
+  const resendRequested = flowMetadata.officialChannelResendRequested === true;
+  const resendRequestedAt =
+    typeof flowMetadata.officialChannelResendRequestedAt === "string"
+      ? flowMetadata.officialChannelResendRequestedAt
+      : null;
+
   async function post<T>(path: string, body: unknown, label: string) {
     setIsSubmitting(label);
     setError("");
@@ -182,6 +189,12 @@ export function ClaimProfessionalFlowPanel({ claim }: ClaimProfessionalFlowPanel
           <p className="mt-1 text-sm text-neutral-500">
             Envía un código solo al canal encontrado en fuente pública. Para WhatsApp se generará un link manual wa.me.
           </p>
+          {resendRequested ? (
+            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              El solicitante pidió un nuevo código porque el anterior expiró
+              {resendRequestedAt ? ` (${new Date(resendRequestedAt).toLocaleString()})` : ""}. Genera un nuevo código y envíalo al mismo canal oficial revisado.
+            </div>
+          ) : null}
 
           <div className="mt-4 grid gap-3">
             <Select
@@ -214,7 +227,7 @@ export function ClaimProfessionalFlowPanel({ claim }: ClaimProfessionalFlowPanel
               disabled={!hasOfficialChannel}
               onClick={() => void handleSendOfficialCode()}
             >
-              Enviar código / preparar WhatsApp
+              {resendRequested ? "Generar nuevo código" : "Enviar código / preparar WhatsApp"}
             </Button>
           </div>
 
