@@ -13,15 +13,11 @@ type BackofficeShellProps = {
   children: ReactNode;
 };
 
-export function BackofficeShell({
-  user,
-  navItems,
-  children,
-}: BackofficeShellProps) {
+export function BackofficeShell({ user, navItems, children }: BackofficeShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-950">
+    <div className="bo-theme min-h-screen bg-[#f6f7fb] text-slate-950 transition-colors dark:bg-[#080b12] dark:text-slate-100">
       <div className="flex min-h-screen">
         <BackofficeSidebar
           items={navItems}
@@ -29,14 +25,16 @@ export function BackofficeShell({
           onMobileClose={() => setIsSidebarOpen(false)}
         />
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col lg:pl-[264px]">
           <BackofficeHeader
             user={user}
+            items={navItems}
             onMenuClick={() => setIsSidebarOpen(true)}
           />
 
-          <main className="flex-1 px-4 py-5 sm:px-5 md:px-6 lg:px-8">
-            {children}
+          <main className="relative flex-1 overflow-hidden px-4 py-5 sm:px-6 sm:py-6 xl:px-8 xl:py-7">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(circle_at_20%_0%,rgba(124,58,237,0.09),transparent_42%),radial-gradient(circle_at_85%_5%,rgba(34,211,238,0.07),transparent_35%)] dark:bg-[radial-gradient(circle_at_20%_0%,rgba(124,58,237,0.14),transparent_42%),radial-gradient(circle_at_85%_5%,rgba(34,211,238,0.08),transparent_35%)]" />
+            <div className="relative mx-auto w-full max-w-[1680px]">{children}</div>
           </main>
         </div>
       </div>

@@ -2,74 +2,40 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { siteConfig } from "@/config/site";
+import { ROUTES } from "@/lib/constants/routes";
 
 const backofficePrefixes = [
-  "/dashboard",
-  "/empresas",
-  "/sucursales",
-  "/claims",
-  "/verificaciones",
-  "/resenas",
-  "/reseñas",
-  "/reportes-resenas",
-  "/reportes-reseñas",
-  "/usuarios",
-  "/analytics",
-  "/taxonomias",
-  "/planes",
-  "/suscripciones",
-  "/pagos",
-  "/promociones",
-  "/notificaciones",
-  "/configuracion",
+  "/dashboard", "/empresas", "/sucursales", "/claims", "/verificaciones",
+  "/resenas", "/reseñas", "/reportes-resenas", "/reportes-reseñas", "/usuarios",
+  "/analytics", "/taxonomias", "/planes", "/suscripciones", "/pagos",
+  "/promociones", "/notificaciones", "/configuracion",
 ];
 
 function isBackofficePath(pathname: string) {
-  return backofficePrefixes.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
+  return backofficePrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 export function Footer() {
   const pathname = usePathname();
   const year = new Date().getFullYear();
-
-  if (isBackofficePath(pathname)) {
-    return null;
-  }
+  if (isBackofficePath(pathname)) return null;
 
   return (
-    <footer className="border-t border-white/10 bg-neutral-950">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <div>
-          <p className="text-sm font-medium text-white">{siteConfig.name}</p>
-          <p className="mt-1 text-sm text-neutral-400">
-            Panel interno para operación, moderación y supervisión de la
-            plataforma.
+    <footer className="border-t border-slate-200/70 bg-white dark:border-white/[0.07] dark:bg-[#080b12]">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-5 px-5 py-7 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+        <div className="flex items-center gap-4">
+          <BrandMark />
+          <span className="hidden h-8 w-px bg-slate-200 dark:bg-white/10 sm:block" />
+          <p className="max-w-md text-xs leading-5 text-slate-500 dark:text-slate-400">
+            Centro de control interno para operar, moderar y supervisar el ecosistema Vasirono.
           </p>
         </div>
-
-        <div className="flex flex-col gap-2 text-sm text-neutral-400 lg:items-end">
-          <p>© {year} {siteConfig.creator}. Todos los derechos reservados.</p>
-
-          <div className="flex items-center gap-4">
-            <Link
-              href="/login"
-              className="transition hover:text-white"
-            >
-              Iniciar sesión
-            </Link>
-
-            <a
-              href={siteConfig.links.github}
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:text-white"
-            >
-              GitHub
-            </a>
-          </div>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <span>© {year} {siteConfig.creator}</span>
+          <Link href={ROUTES.LOGIN} className="transition hover:text-indigo-600 dark:hover:text-indigo-300">Acceder</Link>
+          <Link href={ROUTES.RECOVER_PASSWORD} className="transition hover:text-indigo-600 dark:hover:text-indigo-300">Soporte de acceso</Link>
         </div>
       </div>
     </footer>

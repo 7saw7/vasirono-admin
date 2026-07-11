@@ -1,288 +1,157 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-/* Tokens base */
 :root {
   --background: #ffffff;
-  --foreground: #000000;
-  --color-azul-oscuro: #0a3d62;
-  --color-verde: #1abc9c;
+  --foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-muted: #f6f7fb;
+  --border: #e2e8f0;
+  --brand: #5b5cf0;
+  --brand-strong: #4f46e5;
+  --accent: #22d3ee;
+}
+
+.dark {
+  --background: #080b12;
+  --foreground: #f8fafc;
+  --surface: #101620;
+  --surface-muted: #0b0f17;
+  --border: rgba(255,255,255,0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020817;
-    --foreground: #e5e7eb;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--background);
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
-/* Blocks reutilizables */
-.block-base {
-  border: 2px solid black;
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.5s ease, transform 0.3s ease;
-  cursor: pointer;
-  transform: translateZ(0);
-}
-.block-base:hover {
-  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
-  transform: translateY(-0.5rem);
-}
-.block-light {
-  background-color: var(--background);
-  color: var(--foreground);
-}
-.block-dark {
-  background-color: var(--foreground);
-  color: var(--background);
-  border-color: var(--background);
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ========== NAVBAR MATRIX EFFECT ========== */
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+button,
+a {
+  outline-offset: 3px;
 }
 
-/* Blocks reutilizables */
-.block-base {
-  border: 2px solid black;
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.5s ease, transform 0.3s ease;
-  cursor: pointer;
-  transform: translateZ(0);
-}
-.block-base:hover {
-  box-shadow: 0 20px 30px rgba(0, 0, 0, 0.2);
-  transform: translateY(-0.5rem);
-}
-.block-light {
-  background-color: var(--background);
-  color: var(--foreground);
-}
-.block-dark {
-  background-color: var(--foreground);
-  color: var(--background);
-  border-color: var(--background);
+::selection {
+  background: rgba(99, 102, 241, 0.22);
+  color: inherit;
 }
 
-/* Para las tarjetas 3D de servicios */
-@layer utilities {
-  .preserve-3d {
-    transform-style: preserve-3d;
-  }
-  .perspective {
-    perspective: 1000px;
-  }
-  .backface-hidden {
-    backface-visibility: hidden;
-  }
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.35) transparent;
 }
 
-
-@keyframes shimmer {
-  0% { text-shadow: 0 0 4px rgba(45, 212, 191, 0.3); }
-  50% { text-shadow: 0 0 16px rgba(45, 212, 191, 0.8); }
-  100% { text-shadow: 0 0 4px rgba(45, 212, 191, 0.3); }
-}
-
-.text-shimmer {
-  animation: shimmer 3s infinite linear;
-}
-
-/* globals.css */
-
-/* Animación de fondo para el gradiente */
-@keyframes background-pan {
-  from {
-    background-position: 0% center;
-  }
-  to {
-    background-position: -200% center;
-  }
-}
-
-/* Estilo para el fondo del hero section */
-.hero-gradient-background {
-  background: linear-gradient(
-    to right,
-    #0d0d0d, /* Negro muy oscuro */
-    #1a1a1a, /* Gris oscuro */
-    #0d0d0d  /* Negro muy oscuro */
-  );
-  background-size: 200% auto; /* Permite que el gradiente sea más largo que la pantalla */
-  animation: background-pan 10s linear infinite; /* Animación lenta */
-  opacity: 0.9; /* Un poco de opacidad para que no sea un negro absoluto */
-}
-
-/* === GLASS SCROLLBAR PREMIUM (Opción 1) === */
-
-.no-scrollbar::-webkit-scrollbar {
+*::-webkit-scrollbar {
+  width: 8px;
   height: 8px;
 }
 
-.no-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.04); /* vidrio muy tenue */
-  border-radius: 9999px;
-  backdrop-filter: blur(6px); /* efecto glass */
+*::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.no-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    to right,
-    rgba(16, 185, 129, 0.45),  /* esmeralda */
-    rgba(56, 189, 248, 0.45)   /* cyan */
-  );
-  border-radius: 9999px;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); /* glow azul/esmeralda */
-  backdrop-filter: blur(4px);
-  transition: all 0.25s ease;
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.32);
+  background-clip: padding-box;
 }
 
-.no-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    to right,
-    rgba(16, 185, 129, 0.8),
-    rgba(56, 189, 248, 0.8)
-  );
-  box-shadow: 0 0 18px rgba(56, 189, 248, 0.6);
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.48);
+  background-clip: padding-box;
 }
 
-/* Firefox */
-.no-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(56,189,248,0.5) rgba(255,255,255,0.06);
+/* Shared animation language */
+@keyframes vasirono-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Service card aurora */
-@keyframes aurora {
-  0% {
-    transform: translateX(-20%) translateY(-10%) scale(1);
-  }
-  50% {
-    transform: translateX(15%) translateY(10%) scale(1.15);
-  }
-  100% {
-    transform: translateX(-20%) translateY(-10%) scale(1);
-  }
+@keyframes vasirono-pulse {
+  0%, 100% { opacity: .5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
 }
 
-.animate-aurora > div {
-  animation: aurora 14s ease-in-out infinite alternate;
+.bo-theme > div,
+.bo-theme main > div {
+  animation: vasirono-fade-up .35s ease-out both;
 }
 
-/* AboutSection */
+/* Dark-mode compatibility for pre-existing backoffice views that still use neutral utilities. */
+.dark .bo-theme .bg-white:not([class*="dark:bg-"]) { background-color: #101620 !important; }
+.dark .bo-theme .bg-neutral-50:not([class*="dark:bg-"]),
+.dark .bo-theme .bg-neutral-50\/60:not([class*="dark:bg-"]) { background-color: rgba(255,255,255,0.025) !important; }
+.dark .bo-theme .bg-neutral-100:not([class*="dark:bg-"]) { background-color: rgba(255,255,255,0.055) !important; }
+.dark .bo-theme .bg-neutral-200:not([class*="dark:bg-"]) { background-color: rgba(255,255,255,0.09) !important; }
+.dark .bo-theme .bg-neutral-950:not([class*="dark:bg-"]) { background-color: #f8fafc !important; }
+.dark .bo-theme .text-neutral-950:not([class*="dark:text-"]),
+.dark .bo-theme .text-neutral-900:not([class*="dark:text-"]),
+.dark .bo-theme .text-neutral-800:not([class*="dark:text-"]) { color: #f8fafc !important; }
+.dark .bo-theme .text-neutral-700:not([class*="dark:text-"]),
+.dark .bo-theme .text-neutral-600:not([class*="dark:text-"]) { color: #cbd5e1 !important; }
+.dark .bo-theme .text-neutral-500:not([class*="dark:text-"]) { color: #94a3b8 !important; }
+.dark .bo-theme .text-neutral-400:not([class*="dark:text-"]) { color: #64748b !important; }
+.dark .bo-theme .border-neutral-100:not([class*="dark:border-"]),
+.dark .bo-theme .border-neutral-200:not([class*="dark:border-"]),
+.dark .bo-theme .border-neutral-300:not([class*="dark:border-"]) { border-color: rgba(255,255,255,0.08) !important; }
+.dark .bo-theme .divide-neutral-100 > :not([hidden]) ~ :not([hidden]),
+.dark .bo-theme .divide-neutral-200 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(255,255,255,0.08) !important; }
+.dark .bo-theme .hover\:bg-neutral-50:hover,
+.dark .bo-theme .hover\:bg-neutral-100:hover { background-color: rgba(255,255,255,0.055) !important; }
+.dark .bo-theme input,
+.dark .bo-theme select,
+.dark .bo-theme textarea { color-scheme: dark; }
 
-@keyframes hero-shimmer {
-  0% {
-    transform: translate3d(-10%, 0, 0) rotate(0deg);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translate3d(10%, 0, 0) rotate(2deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translate3d(-10%, 0, 0) rotate(0deg);
-    opacity: 0.6;
-  }
+/* Makes data-heavy cards feel denser and more premium without changing their structure. */
+.bo-theme section,
+.bo-theme table,
+.bo-theme form {
+  min-width: 0;
 }
 
-.animate-hero-shimmer {
-  animation: hero-shimmer 14s ease-in-out infinite;
+.bo-theme table tbody tr {
+  transition: background-color .18s ease;
 }
 
-/* flotación suave de chips */
-@keyframes float-slow {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
+.bo-theme table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.035);
 }
 
-.animate-float-slow {
-  animation: float-slow 7s ease-in-out infinite;
-}
-
-.animate-float-slow-delayed {
-  animation: float-slow 8s ease-in-out infinite;
-  animation-delay: 1.2s;
-}
-
-@keyframes aurora-3d {
-  0% {
-    transform: rotate(0deg) scale(1) translate3d(-10%, -10%, 0);
-  }
-  50% {
-    transform: rotate(8deg) scale(1.25) translate3d(10%, 10%, 0);
-  }
-  100% {
-    transform: rotate(0deg) scale(1) translate3d(-10%, -10%, 0);
-  }
-}
-
-.animate-aurora-3d {
-  animation: aurora-3d 22s ease-in-out infinite alternate;
-}
-
-@keyframes lightflow {
-  0% {
-    transform: translateX(-40%) translateY(-20%);
-  }
-  50% {
-    transform: translateX(40%) translateY(20%);
-  }
-  100% {
-    transform: translateX(-40%) translateY(-20%);
-  }
-}
-
-.animate-lightflow {
-  animation: lightflow 18s ease-in-out infinite;
+.dark .bo-theme table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.075);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-aurora-3d,
-  .animate-lightflow,
-  .animate-hero-shimmer,
-  .animate-float-slow,
-  .animate-float-slow-delayed {
-    animation: none !important;
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
   }
-}
-
-@media (max-width: 768px) {
-  .animate-aurora-3d,
-  .animate-lightflow {
-    animation: none;
-    opacity: 0.18; /* dejarlas estáticas y ligeras */
-  }
-}
-
-/*animacion btn wsp*/
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
 }
