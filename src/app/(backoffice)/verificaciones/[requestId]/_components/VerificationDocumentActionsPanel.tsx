@@ -32,6 +32,14 @@ type VerificationDocumentActionsPanelProps = {
   documents: VerificationDocument[];
 };
 
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const ALLOWED_MIME_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
 const DOCUMENT_TYPES = [
   { code: "ruc", label: "RUC / ficha tributaria" },
   { code: "business_license", label: "Licencia municipal" },
@@ -107,6 +115,16 @@ export function VerificationDocumentActionsPanel({
       return;
     }
 
+    if (!ALLOWED_MIME_TYPES.has(file.type)) {
+      setError("Formato no permitido. Usa PDF, JPG, PNG o WEBP.");
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setError("El archivo supera el límite de 10 MB.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -127,7 +145,11 @@ export function VerificationDocumentActionsPanel({
       const uploadResponse = await fetch(upload.uploadUrl, {
         method: upload.method,
         headers: {
-          "content-type": upload.mimeType,
+          ...upload.headers,
+          "content-type":
+            upload.headers["content-type"] ??
+            upload.headers["Content-Type"] ??
+            upload.mimeType,
         },
         body: file,
       });

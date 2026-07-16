@@ -6,6 +6,7 @@ import { formatDateTime } from "@/lib/utils/dates";
 import { ClaimEvidencePreview } from "../../_components/ClaimEvidencePreview";
 import type { ClaimDetail } from "@/features/backoffice/claims/types";
 import { ClaimProfessionalFlowPanel } from "./ClaimProfessionalFlowPanel";
+import { ClaimDecisionForm } from "../../_components/ClaimDecisionForm";
 
 type ClaimDetailViewProps = {
   data: ClaimDetail;
@@ -21,7 +22,20 @@ function mapTone(statusCode: string) {
   return "neutral" as const;
 }
 
+const TERMINAL_CLAIM_STATUSES = new Set([
+  "approved",
+  "accepted",
+  "aprobado",
+  "aceptado",
+  "rejected",
+  "denied",
+  "rechazado",
+  "denegado",
+  "cancelled",
+]);
+
 export function ClaimDetailView({ data, canReview }: ClaimDetailViewProps) {
+  const isTerminal = TERMINAL_CLAIM_STATUSES.has(data.statusCode.toLowerCase());
   return (
     <div className="space-y-6">
       <div>
@@ -75,6 +89,18 @@ export function ClaimDetailView({ data, canReview }: ClaimDetailViewProps) {
               }
             />
             <Field label="Nivel" value={data.verificationLevel ?? "—"} />
+            <Field
+              label="Invitación"
+              value={
+                data.invitationId
+                  ? `#${data.invitationId} · ${data.invitationStatus ?? "sin estado"}`
+                  : "No generada"
+              }
+            />
+            <Field
+              label="Vencimiento invitación"
+              value={formatDateTime(data.invitationExpiresAt ?? null)}
+            />
           </div>
 
           {data.notes ? (
@@ -104,8 +130,19 @@ export function ClaimDetailView({ data, canReview }: ClaimDetailViewProps) {
         </SectionCard>
       </div>
 
-      {canReview ? (
-        <ClaimProfessionalFlowPanel claim={data} />
+      {isTerminal ? (
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
+          Este reclamo ya tiene una decisión final. Las acciones quedaron
+          bloqueadas para evitar decisiones duplicadas.
+        </div>
+      ) : canReview ? (
+        <>
+          <ClaimProfessionalFlowPanel claim={data} />
+          <ClaimDecisionForm
+            claimId={data.claimRequestId}
+            showReject={false}
+          />
+        </>
       ) : (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Tienes acceso de consulta. Las decisiones y cambios del reclamo requieren el permiso de revisión.

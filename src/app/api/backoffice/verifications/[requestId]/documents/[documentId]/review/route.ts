@@ -18,7 +18,7 @@ function getStatus(error: unknown) {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
-    await getBackofficeContext("verifications.review");
+    await getBackofficeContext("verifications.documents.review");
     const params = await context.params;
     const requestId = Number(params.requestId);
     const documentId = Number(params.documentId);

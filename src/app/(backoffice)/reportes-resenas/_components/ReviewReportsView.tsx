@@ -61,7 +61,14 @@ export function ReviewReportsView({ data, canResolve }: ReviewReportsViewProps) 
                 </div>
               </div>
 
-              {canResolve ? (
+              {["resolved", "dismissed", "closed"].includes(
+                selected.statusCode.toLowerCase()
+              ) ? (
+                <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 text-sm text-neutral-700">
+                  Este reporte ya fue procesado y no admite una segunda
+                  resolución.
+                </div>
+              ) : canResolve ? (
                 <ReviewReportDecisionForm reportId={selected.reportId} />
               ) : (
                 <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">

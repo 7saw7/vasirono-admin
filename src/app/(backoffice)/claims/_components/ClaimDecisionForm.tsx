@@ -8,11 +8,13 @@ import { Textarea } from "@/components/ui/Textarea";
 type ClaimDecisionFormProps = {
   claimId: number;
   onSuccess?: () => void;
+  showReject?: boolean;
 };
 
 export function ClaimDecisionForm({
   claimId,
   onSuccess,
+  showReject = true,
 }: ClaimDecisionFormProps) {
   const router = useRouter();
   const [notes, setNotes] = useState("");
@@ -40,13 +42,13 @@ export function ClaimDecisionForm({
         }),
       });
 
-      const payload = (await response.json()) as {
+      const payload = (await response.json().catch(() => null)) as {
         ok: boolean;
         error?: string;
-      };
+      } | null;
 
-      if (!response.ok || !payload.ok) {
-        setError(payload.error ?? "No se pudo procesar la decisión.");
+      if (!response.ok || !payload?.ok) {
+        setError(payload?.error ?? "No se pudo procesar la decisión.");
         return;
       }
 
@@ -85,14 +87,17 @@ export function ClaimDecisionForm({
         >
           Aprobar
         </Button>
-        <Button
-          type="button"
-          variant="danger"
-          loading={isSubmitting}
-          onClick={() => void handleAction("reject")}
-        >
-          Rechazar
-        </Button>
+        {showReject ? (
+          <Button
+            type="button"
+            variant="danger"
+            loading={isSubmitting}
+            disabled={notes.trim().length < 3}
+            onClick={() => void handleAction("reject")}
+          >
+            Rechazar
+          </Button>
+        ) : null}
       </div>
     </div>
   );

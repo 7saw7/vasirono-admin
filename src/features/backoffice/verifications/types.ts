@@ -90,6 +90,7 @@ export type VerificationPublicContact = {
   evidenceUrl: string | null;
   createdAt: string;
   verifiedAt: string | null;
+  verifiedByName?: string | null;
 };
 
 export type VerificationWhatsappItem = {

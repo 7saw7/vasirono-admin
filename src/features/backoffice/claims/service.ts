@@ -31,8 +31,11 @@ function nullableNumber(value: unknown): number | null {
 }
 
 function asIso(value: unknown): string {
-  if (typeof value === "string" && value) return new Date(value).toISOString();
-  return new Date(0).toISOString();
+  if (!value) return new Date(0).toISOString();
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime())
+    ? new Date(0).toISOString()
+    : date.toISOString();
 }
 
 function maybeIso(value: unknown): string | null {
@@ -67,6 +70,8 @@ function normalizeClaimItem(row: any) {
     evidenceUrl: row.evidenceUrl ?? row.evidence_url ?? null,
     hasVerificationRequest: Boolean(row.hasVerificationRequest ?? row.has_verification_request ?? row.verificationRequestId ?? row.verification_request_id),
     professionalFlowMetadata: row.professionalFlowMetadata ?? row.professional_flow_metadata ?? null,
+    invitationId: nullableNumber(row.invitationId ?? row.invitation_id),
+    invitationStatus: row.invitationStatus ?? row.invitation_status ?? null,
   };
 }
 
@@ -143,6 +148,10 @@ function normalizeClaimDetail(raw: any) {
         ? raw.whatsapp_verifications.map(normalizeWhatsappVerification)
         : [],
     professionalFlowMetadata: raw.professionalFlowMetadata ?? raw.professional_flow_metadata ?? base.professionalFlowMetadata ?? null,
+    invitationId: nullableNumber(raw.invitationId ?? raw.invitation_id ?? base.invitationId),
+    invitationStatus: raw.invitationStatus ?? raw.invitation_status ?? base.invitationStatus ?? null,
+    invitationExpiresAt: maybeIso(raw.invitationExpiresAt ?? raw.invitation_expires_at),
+    invitationAcceptedAt: maybeIso(raw.invitationAcceptedAt ?? raw.invitation_accepted_at),
   };
 }
 

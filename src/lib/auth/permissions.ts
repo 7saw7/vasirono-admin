@@ -12,6 +12,9 @@ export type BackofficePermission =
   | "claims.review"
   | "verifications.read"
   | "verifications.review"
+  | "verifications.assign"
+  | "verifications.documents.review"
+  | "verifications.decide"
   | "reviews.read"
   | "reviews.moderate"
   | "reviewReports.read"
@@ -46,6 +49,9 @@ const ALL_PERMISSIONS: readonly BackofficePermission[] = [
   "claims.review",
   "verifications.read",
   "verifications.review",
+  "verifications.assign",
+  "verifications.documents.review",
+  "verifications.decide",
   "reviews.read",
   "reviews.moderate",
   "reviewReports.read",
@@ -87,7 +93,9 @@ const ROLE_PERMISSIONS: Record<AppRole, readonly BackofficePermission[]> = {
     "claims.read",
     "claims.review",
     "verifications.read",
-    "verifications.review",
+    "verifications.assign",
+    "verifications.documents.review",
+    "verifications.decide",
     "reviews.read",
     "reviews.moderate",
     "reviewReports.read",
@@ -169,10 +177,14 @@ const BACKEND_PERMISSIONS_BY_UI_PERMISSION: Record<
     "verifications.admin.list",
     "verifications.admin.read",
   ],
+  // Compatibilidad con consumidores anteriores del Web Admin.
   "verifications.review": [
     "verifications.admin.assign",
     "verifications.admin.decide",
   ],
+  "verifications.assign": ["verifications.admin.assign"],
+  "verifications.documents.review": ["verifications.admin.decide"],
+  "verifications.decide": ["verifications.admin.decide"],
 
   "reviews.read": ["reviews.admin.read"],
   "reviews.moderate": ["reviews.admin.moderate"],

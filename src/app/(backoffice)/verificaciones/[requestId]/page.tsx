@@ -31,7 +31,12 @@ export default async function VerificationDetailPage({
   return (
     <VerificationRequestDetailView
       data={data}
-      canReview={context.hasPermission("verifications.review")}
+      currentUserId={context.user.id}
+      canAssign={context.hasPermission("verifications.assign")}
+      canReviewDocuments={context.hasPermission(
+        "verifications.documents.review"
+      )}
+      canDecide={context.hasPermission("verifications.decide")}
     />
   );
 }

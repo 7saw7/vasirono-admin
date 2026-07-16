@@ -94,6 +94,7 @@ export const verificationPublicContactSchema = z.object({
   evidenceUrl: z.string().nullable(),
   createdAt: z.string(),
   verifiedAt: z.string().nullable(),
+  verifiedByName: z.string().nullable().optional(),
 });
 
 export const verificationWhatsappSchema = z.object({
@@ -162,7 +163,16 @@ export const verificationDecisionSchema = z.object({
 
 export const verificationDecisionResultSchema = z.object({
   verificationRequestId: z.number().int(),
+  companyId: z.number().int(),
+  statusId: z.number().int().nullable().optional(),
+  statusCode: z.string(),
   statusName: z.string(),
+  requestStatusCode: z.string(),
+  requestStatusName: z.string(),
+  companyVerificationStatusId: z.number().int().nullable(),
+  profileUpdated: z.boolean(),
+  reviewedAt: z.string().nullable(),
+  completedAt: z.string().nullable(),
 });
 
 export const verificationAssignSchema = z.object({

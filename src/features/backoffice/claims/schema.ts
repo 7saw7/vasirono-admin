@@ -60,6 +60,8 @@ export const claimListItemSchema = z.object({
   evidenceUrl: z.string().nullable(),
   hasVerificationRequest: z.boolean(),
   professionalFlowMetadata: z.record(z.string(), z.unknown()).nullable().optional(),
+  invitationId: z.number().int().nullable().optional(),
+  invitationStatus: z.string().nullable().optional(),
 });
 
 export const claimListResultSchema = z.object({
@@ -184,6 +186,10 @@ export const claimDetailSchema = z.object({
   publicContacts: z.array(claimPublicContactSchema),
   whatsappVerifications: z.array(claimWhatsappVerificationSchema),
   professionalFlowMetadata: z.record(z.string(), z.unknown()).nullable(),
+  invitationId: z.number().int().nullable().optional(),
+  invitationStatus: z.string().nullable().optional(),
+  invitationExpiresAt: z.string().nullable().optional(),
+  invitationAcceptedAt: z.string().nullable().optional(),
 });
 
 export const claimDecisionResultSchema = z.object({

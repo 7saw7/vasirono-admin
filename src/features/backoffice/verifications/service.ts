@@ -5,6 +5,7 @@ import {
   verificationListFiltersSchema,
   verificationListResultSchema,
   verificationDecisionInputSchema,
+  verificationDecisionResultSchema,
   verificationDocumentConfirmInputSchema,
   verificationDocumentConfirmResultSchema,
   verificationDocumentReviewInputSchema,
@@ -122,12 +123,17 @@ export async function decideVerificationRequest(
           reason: payload.rejectionReason ?? "Rechazado desde backoffice.",
         };
 
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/verifications/${requestId}/${path}`, {
-    method: "PATCH",
-    actorUserId: reviewerUserId,
-    body,
-  });
-  return raw as VerificationDecisionResult;
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/verifications/admin/verifications/${requestId}/${path}`,
+    {
+      method: "PATCH",
+      actorUserId: reviewerUserId,
+      body,
+    }
+  );
+
+  return verificationDecisionResultSchema.parse(raw);
 }
 
 

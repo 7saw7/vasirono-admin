@@ -13,7 +13,7 @@ type RouteContext = {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    await getBackofficeContext("verifications.review");
+    await getBackofficeContext("verifications.assign");
 
     const params = await context.params;
     const requestId = Number(params.requestId);

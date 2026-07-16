@@ -23,7 +23,7 @@ function getStatus(error: unknown) {
 
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
-    const session = await getBackofficeContext("verifications.review");
+    const session = await getBackofficeContext("verifications.decide");
     const params = verificationRequestIdParamSchema.parse(await context.params);
     const body = await request.json();
 
