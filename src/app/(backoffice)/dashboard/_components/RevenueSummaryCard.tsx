@@ -7,6 +7,21 @@ import type { RevenueSummary } from "@/features/backoffice/dashboard/types";
 type RevenueSummaryCardProps = { data: RevenueSummary };
 
 export function RevenueSummaryCard({ data }: RevenueSummaryCardProps) {
+  if (!data.available) {
+    return (
+      <SectionCard
+        title="Rendimiento de pagos"
+        description="Estado agregado de transacciones registradas."
+        action={<span className="grid h-8 w-8 place-items-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-300"><AppIcon name="wallet" className="h-4 w-4" /></span>}
+      >
+        <div className="rounded-2xl border border-dashed border-slate-300 p-5 dark:border-white/[0.12]">
+          <p className="text-sm font-bold text-slate-900 dark:text-white">Datos de Billing no disponibles</p>
+          <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">{data.unavailableReason ?? "No se pudo consultar el resumen de pagos."}</p>
+        </div>
+      </SectionCard>
+    );
+  }
+
   const total = Math.max(1, data.paidCount + data.pendingCount + data.failedCount);
   const paidWidth = Math.round((data.paidCount / total) * 100);
   const pendingWidth = Math.round((data.pendingCount / total) * 100);

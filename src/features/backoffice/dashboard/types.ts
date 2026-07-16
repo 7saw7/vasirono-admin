@@ -1,7 +1,8 @@
 export type DashboardKpi = {
   label: string;
-  value: number;
+  value: number | null;
   subtitle?: string;
+  available: boolean;
 };
 
 export type PlatformHealthStatus = "healthy" | "warning" | "critical";
@@ -19,6 +20,8 @@ export type QueueMetric = {
   inReview: number;
   approved?: number;
   rejected?: number;
+  available: boolean;
+  unavailableReason?: string;
 };
 
 export type RevenueSummary = {
@@ -26,6 +29,8 @@ export type RevenueSummary = {
   paidCount: number;
   pendingCount: number;
   failedCount: number;
+  available: boolean;
+  unavailableReason?: string;
 };
 
 export type RecentActivityItem = {

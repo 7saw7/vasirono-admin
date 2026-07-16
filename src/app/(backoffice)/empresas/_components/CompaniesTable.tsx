@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { DataTable } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { formatDateTime } from "@/lib/utils/dates";
 import type { CompanyListItem, CompanyListResult } from "@/features/backoffice/companies/types";
 import { CompanyStatusBadge } from "./CompanyStatusBadge";
-import { CompanyBulkActions } from "./CompanyBulkActions";
 
 type CompaniesTableProps = {
   data: CompanyListResult;
@@ -16,32 +15,8 @@ type CompaniesTableProps = {
 };
 
 export function CompaniesTable({ data, canUpdate }: CompaniesTableProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
-
-  const selectedCount = selectedIds.length;
-
   const columns = useMemo(
     () => [
-      {
-        key: "select",
-        title: "",
-        headerClassName: "w-12",
-        className: "w-12",
-        render: (row: CompanyListItem) => (
-          <input
-            type="checkbox"
-            checked={canUpdate && selectedIds.includes(row.companyId)}
-            disabled={!canUpdate}
-            onChange={(event) => {
-              setSelectedIds((current) =>
-                event.target.checked
-                  ? [...current, row.companyId]
-                  : current.filter((id) => id !== row.companyId)
-              );
-            }}
-          />
-        ),
-      },
       {
         key: "name",
         title: "Empresa",
@@ -120,17 +95,17 @@ export function CompaniesTable({ data, canUpdate }: CompaniesTableProps) {
         ),
       },
     ],
-    [canUpdate, selectedIds]
+    []
   );
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        {canUpdate ? (
-          <CompanyBulkActions selectedCount={selectedCount} />
-        ) : (
-          <p className="text-sm text-neutral-500">Modo consulta</p>
-        )}
+        <p className="text-sm text-neutral-500">
+          {canUpdate
+            ? "Edición individual disponible desde el detalle de cada empresa."
+            : "Modo consulta"}
+        </p>
         <p className="text-sm text-neutral-500">
           Total: {data.total} empresa{data.total === 1 ? "" : "s"}
         </p>

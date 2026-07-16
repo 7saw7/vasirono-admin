@@ -80,6 +80,8 @@ export function mapQueueMetric(
       "rejected_count" in (row ?? {})
         ? toNumber((row as DashboardVerificationRow | DashboardClaimsRow | DashboardModerationRow).rejected_count)
         : undefined,
+    available: Boolean(row),
+    unavailableReason: row ? undefined : "Datos no disponibles.",
   };
 }
 
@@ -91,6 +93,8 @@ export function mapRevenueSummary(
     paidCount: toNumber(row?.paid_count),
     pendingCount: toNumber(row?.pending_count),
     failedCount: toNumber(row?.failed_count),
+    available: Boolean(row),
+    unavailableReason: row ? undefined : "Datos no disponibles.",
   };
 }
 
@@ -194,21 +198,25 @@ export function mapDashboardData(input: {
         label: "Empresas",
         value: companies,
         subtitle: "Empresas registradas en la plataforma",
+        available: Boolean(input.counts),
       },
       branches: {
         label: "Sucursales activas",
         value: branches,
         subtitle: "Locales activos publicados",
+        available: Boolean(input.counts),
       },
       users: {
         label: "Usuarios",
         value: users,
         subtitle: "Cuentas registradas",
+        available: Boolean(input.counts),
       },
       events7d: {
         label: "Eventos 7d",
         value: events7d,
         subtitle: "Actividad reciente del ecosistema",
+        available: Boolean(input.counts),
       },
     },
     platformHealth: buildPlatformHealth({

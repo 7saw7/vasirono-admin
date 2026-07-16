@@ -116,6 +116,20 @@ export const companyDetailAuditItemSchema = z.object({
   createdAt: z.string(),
 });
 
+
+export const companyBusinessTypeSchema = z.object({
+  typeId: z.number().int().positive(),
+  name: z.string().nullable(),
+});
+
+export const companySubcategorySchema = z.object({
+  subcategoryId: z.number().int().positive(),
+  categoryId: z.number().int().positive(),
+  categoryName: z.string(),
+  name: z.string(),
+  priceId: z.number().int().positive().nullable(),
+});
+
 export const companyDetailSchema = z.object({
   companyId: z.number().int(),
   name: z.string(),
@@ -126,9 +140,13 @@ export const companyDetailSchema = z.object({
   website: z.string().nullable(),
   lat: z.number().nullable(),
   lon: z.number().nullable(),
+  isActive: z.boolean(),
+  priceId: z.number().int().positive().nullable(),
   verificationStatus: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  businessTypes: z.array(companyBusinessTypeSchema),
+  subcategories: z.array(companySubcategorySchema),
   branches: z.array(companyDetailBranchSchema),
   media: z.array(companyDetailMediaItemSchema),
   verification: companyDetailVerificationSchema,
@@ -136,4 +154,33 @@ export const companyDetailSchema = z.object({
   payments: z.array(companyDetailPaymentSchema),
   claims: z.array(companyDetailClaimSchema),
   audit: z.array(companyDetailAuditItemSchema),
+});
+
+const nullableTrimmed = (max: number) =>
+  z.union([z.string().trim().max(max), z.null()]).optional();
+
+export const companyUpdateProfileSchema = z.object({
+  name: z.string().trim().min(2).max(160).optional(),
+  description: nullableTrimmed(1500),
+  address: nullableTrimmed(220),
+  phone: nullableTrimmed(40),
+  email: z.union([z.string().trim().email().max(160), z.null()]).optional(),
+  website: nullableTrimmed(220),
+  lat: z.number().min(-90).max(90).nullable().optional(),
+  lon: z.number().min(-180).max(180).nullable().optional(),
+  priceId: z.number().int().positive().nullable().optional(),
+});
+
+export const companyUpdateTaxonomySchema = z.object({
+  businessTypeIds: z.array(z.number().int().positive()).max(50),
+  subcategories: z.array(
+    z.object({
+      subcategoryId: z.number().int().positive(),
+      priceId: z.number().int().positive().nullable().optional(),
+    })
+  ).max(100),
+});
+
+export const companyUpdateStatusSchema = z.object({
+  isActive: z.boolean(),
 });

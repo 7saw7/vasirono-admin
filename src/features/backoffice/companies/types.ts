@@ -102,6 +102,40 @@ export type CompanyDetailAuditItem = {
   createdAt: string;
 };
 
+
+export type CompanyBusinessType = {
+  typeId: number;
+  name: string | null;
+};
+
+export type CompanySubcategory = {
+  subcategoryId: number;
+  categoryId: number;
+  categoryName: string;
+  name: string;
+  priceId: number | null;
+};
+
+export type CompanyUpdateProfileInput = {
+  name?: string;
+  description?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  lat?: number | null;
+  lon?: number | null;
+  priceId?: number | null;
+};
+
+export type CompanyUpdateTaxonomyInput = {
+  businessTypeIds: number[];
+  subcategories: Array<{
+    subcategoryId: number;
+    priceId?: number | null;
+  }>;
+};
+
 export type CompanyDetail = {
   companyId: number;
   name: string;
@@ -112,9 +146,13 @@ export type CompanyDetail = {
   website: string | null;
   lat: number | null;
   lon: number | null;
+  isActive: boolean;
+  priceId: number | null;
   verificationStatus: string;
   createdAt: string;
   updatedAt: string;
+  businessTypes: CompanyBusinessType[];
+  subcategories: CompanySubcategory[];
   branches: CompanyDetailBranch[];
   media: CompanyDetailMediaItem[];
   verification: CompanyDetailVerification;

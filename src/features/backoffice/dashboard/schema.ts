@@ -2,8 +2,9 @@ import { z } from "zod";
 
 const dashboardKpiSchema = z.object({
   label: z.string(),
-  value: z.number(),
+  value: z.number().nullable(),
   subtitle: z.string().optional(),
+  available: z.boolean(),
 });
 
 const platformHealthItemSchema = z.object({
@@ -19,6 +20,8 @@ const queueMetricSchema = z.object({
   inReview: z.number(),
   approved: z.number().optional(),
   rejected: z.number().optional(),
+  available: z.boolean(),
+  unavailableReason: z.string().optional(),
 });
 
 const revenueSummarySchema = z.object({
@@ -26,6 +29,8 @@ const revenueSummarySchema = z.object({
   paidCount: z.number(),
   pendingCount: z.number(),
   failedCount: z.number(),
+  available: z.boolean(),
+  unavailableReason: z.string().optional(),
 });
 
 const recentActivityItemSchema = z.object({
@@ -51,6 +56,4 @@ export const backofficeDashboardSchema = z.object({
   recentActivity: z.array(recentActivityItemSchema),
 });
 
-export type BackofficeDashboardSchema = z.infer<
-  typeof backofficeDashboardSchema
->;
+export type BackofficeDashboardSchema = z.infer<typeof backofficeDashboardSchema>;

@@ -15,7 +15,7 @@ export function GlobalKpiGrid({ kpis }: GlobalKpiGridProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {items.map((item) => (
-        <StatCard key={item.label} title={item.label} value={formatNumber(item.value)} subtitle={item.subtitle} icon={item.icon} tone={item.tone} />
+        <StatCard key={item.label} title={item.label} value={item.available && item.value !== null ? formatNumber(item.value) : "—"} subtitle={item.subtitle} icon={item.icon} tone={item.tone} />
       ))}
     </div>
   );

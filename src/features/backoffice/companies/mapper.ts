@@ -7,6 +7,8 @@ import type {
   CompanyDetailPayment,
   CompanyDetailSubscription,
   CompanyDetailVerification,
+  CompanyBusinessType,
+  CompanySubcategory,
   CompanyListItem,
 } from "./types";
 
@@ -38,8 +40,24 @@ export type CompanyDetailRow = {
   lat: number | string | null;
   lon: number | string | null;
   verification_status: string | null;
+  is_active?: boolean | null;
+  price_id?: number | string | null;
   created_at: Date | string;
   updated_at: Date | string;
+};
+
+
+export type CompanyBusinessTypeRow = {
+  type_id: number | string;
+  name: string | null;
+};
+
+export type CompanySubcategoryRow = {
+  subcategory_id: number | string;
+  category_id: number | string;
+  category_name: string;
+  name: string;
+  price_id?: number | string | null;
 };
 
 export type CompanyDetailBranchRow = {
@@ -164,6 +182,28 @@ export function mapCompanyListRow(row: CompanyListRow): CompanyListItem {
   };
 }
 
+
+export function mapCompanyBusinessTypeRow(
+  row: CompanyBusinessTypeRow
+): CompanyBusinessType {
+  return {
+    typeId: toNumber(row.type_id),
+    name: row.name,
+  };
+}
+
+export function mapCompanySubcategoryRow(
+  row: CompanySubcategoryRow
+): CompanySubcategory {
+  return {
+    subcategoryId: toNumber(row.subcategory_id),
+    categoryId: toNumber(row.category_id),
+    categoryName: row.category_name,
+    name: row.name,
+    priceId: toNullableNumber(row.price_id),
+  };
+}
+
 export function mapCompanyDetailBranchRow(
   row: CompanyDetailBranchRow
 ): CompanyDetailBranch {
@@ -272,6 +312,8 @@ export function mapCompanyDetailRow(
     payments: CompanyDetailPaymentRow[];
     claims: CompanyDetailClaimRow[];
     audit: CompanyDetailAuditRow[];
+    businessTypes?: CompanyBusinessTypeRow[];
+    subcategories?: CompanySubcategoryRow[];
   }
 ): CompanyDetail {
   return {
@@ -284,9 +326,13 @@ export function mapCompanyDetailRow(
     website: row.website,
     lat: toNullableNumber(row.lat),
     lon: toNullableNumber(row.lon),
+    isActive: row.is_active ?? true,
+    priceId: toNullableNumber(row.price_id),
     verificationStatus: row.verification_status ?? "Sin estado",
     createdAt: toIsoString(row.created_at) ?? new Date(0).toISOString(),
     updatedAt: toIsoString(row.updated_at) ?? new Date(0).toISOString(),
+    businessTypes: (input.businessTypes ?? []).map(mapCompanyBusinessTypeRow),
+    subcategories: (input.subcategories ?? []).map(mapCompanySubcategoryRow),
     branches: input.branches.map(mapCompanyDetailBranchRow),
     media: input.media.map(mapCompanyDetailMediaRow),
     verification: mapCompanyDetailVerificationRow(input.verification),
