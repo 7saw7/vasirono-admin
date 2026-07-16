@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { UsersView } from "./_components/UsersView";
 import { getUsersList } from "@/features/backoffice/users/service";
 
@@ -14,6 +15,7 @@ type UsersPageProps = {
 export const dynamic = "force-dynamic";
 
 export default async function UsersPage({ searchParams }: UsersPageProps) {
+  await requireBackofficePage("users.read");
   const params = (await searchParams) ?? {};
 
   const data = await getUsersList({

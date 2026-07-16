@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { rejectClaim } from "@/features/backoffice/claims/service";
@@ -36,42 +37,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
       data,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "UNKNOWN_ERROR";
-
-    if (message === "CLAIM_NOT_FOUND") {
-      return NextResponse.json(
-        { ok: false, error: "Reclamo no encontrado." },
-        { status: 404 }
-      );
-    }
-
-    if (message === "MISSING_REJECTED_CLAIM_STATUS") {
-      return NextResponse.json(
-        { ok: false, error: "Falta el catálogo base para rechazar el reclamo." },
-        { status: 500 }
-      );
-    }
-
-    const status =
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      typeof (error as { status?: unknown }).status === "number"
-        ? (error as { status: number }).status
-        : 500;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para rechazar reclamos."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo rechazar el reclamo.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (claims claimRequestId reject).");
   }
 }

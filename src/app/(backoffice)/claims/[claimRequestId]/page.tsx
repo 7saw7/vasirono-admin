@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { notFound } from "next/navigation";
 import { ClaimDetailView } from "./_components/ClaimDetailView";
 import { getClaimDetail } from "@/features/backoffice/claims/service";
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function ClaimDetailPage({
   params,
 }: ClaimDetailPageProps) {
+  const context = await requireBackofficePage("claims.read");
   const resolvedParams = await params;
   const claimRequestId = Number(resolvedParams.claimRequestId);
 
@@ -26,5 +28,10 @@ export default async function ClaimDetailPage({
     notFound();
   }
 
-  return <ClaimDetailView data={data} />;
+  return (
+    <ClaimDetailView
+      data={data}
+      canReview={context.hasPermission("claims.review")}
+    />
+  );
 }

@@ -1,5 +1,5 @@
 import { NotificationsView } from "./_components/NotificationsView";
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { getNotificationsDashboard } from "@/features/backoffice/notifications/service";
 
 type NotificationsPageProps = {
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function NotificationsPage({
   searchParams,
 }: NotificationsPageProps) {
-  await getBackofficeContext("notifications.read");
+  await requireBackofficePage("notifications.read");
 
   const params = (await searchParams) ?? {};
 

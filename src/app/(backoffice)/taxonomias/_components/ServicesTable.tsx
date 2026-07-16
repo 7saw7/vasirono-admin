@@ -10,12 +10,14 @@ import type { PaginatedResult } from "@/features/backoffice/shared/types";
 
 type ServicesTableProps = {
   data: PaginatedResult<ServiceListItem>;
+  canManage: boolean;
   onCreate: () => void;
   onEdit: (item: ServiceListItem) => void;
 };
 
 export function ServicesTable({
   data,
+  canManage,
   onCreate,
   onEdit,
 }: ServicesTableProps) {
@@ -29,7 +31,7 @@ export function ServicesTable({
         pageKey="srvPage"
         searchPlaceholder="Buscar servicio..."
         createLabel="Nuevo servicio"
-        onCreate={onCreate}
+        onCreate={canManage ? onCreate : undefined}
         extraFilters={[
           {
             key: "srvActive",
@@ -56,7 +58,7 @@ export function ServicesTable({
                   <HeaderCell>Código</HeaderCell>
                   <HeaderCell>Estado</HeaderCell>
                   <HeaderCell>Sucursales</HeaderCell>
-                  <HeaderCell>Acciones</HeaderCell>
+                  {canManage ? <HeaderCell>Acciones</HeaderCell> : null}
                 </tr>
               </thead>
 
@@ -78,16 +80,18 @@ export function ServicesTable({
                       <ServicesStatusBadge isActive={item.isActive} />
                     </BodyCell>
                     <BodyCell>{item.branchesCount}</BodyCell>
-                    <BodyCell>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onEdit(item)}
-                      >
-                        Editar
-                      </Button>
-                    </BodyCell>
+                    {canManage ? (
+                      <BodyCell>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onEdit(item)}
+                        >
+                          Editar
+                        </Button>
+                      </BodyCell>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

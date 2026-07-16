@@ -1,8 +1,20 @@
 import { requireBackofficeUser } from "./guards";
 import {
-  hasPermission,
+  userHasPermission,
   type BackofficePermission,
 } from "./permissions";
+
+export class BackofficeAccessError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly code: string,
+    public readonly permission?: BackofficePermission
+  ) {
+    super(message);
+    this.name = "BackofficeAccessError";
+  }
+}
 
 export async function getBackofficeContext(
   requiredPermission?: BackofficePermission
@@ -11,17 +23,20 @@ export async function getBackofficeContext(
 
   if (
     requiredPermission &&
-    !hasPermission(session.user.role, requiredPermission)
+    !userHasPermission(session.user, requiredPermission)
   ) {
-    const error = new Error(`Forbidden: missing permission ${requiredPermission}`);
-    Object.assign(error, { status: 403 });
-    throw error;
+    throw new BackofficeAccessError(
+      `Forbidden: missing permission ${requiredPermission}`,
+      403,
+      "BACKOFFICE_PERMISSION_DENIED",
+      requiredPermission
+    );
   }
 
   return {
     user: session.user,
     sessionId: session.sessionId,
     hasPermission: (permission: BackofficePermission) =>
-      hasPermission(session.user.role, permission),
+      userHasPermission(session.user, permission),
   };
 }

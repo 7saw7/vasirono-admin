@@ -11,7 +11,7 @@ type TaxonomyTableToolbarProps = {
   pageKey: string;
   searchPlaceholder: string;
   createLabel: string;
-  onCreate: () => void;
+  onCreate?: () => void;
   extraFilters?: Array<{
     key: string;
     label: string;
@@ -97,16 +97,18 @@ export function TaxonomyTableToolbar({
         ))}
       </div>
 
-      <div className="flex items-end justify-end gap-2">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => onCreate()}
-          disabled={isPending}
-        >
-          {createLabel}
-        </Button>
-      </div>
+      {onCreate ? (
+        <div className="flex items-end justify-end gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={onCreate}
+            disabled={isPending}
+          >
+            {createLabel}
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

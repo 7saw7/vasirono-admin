@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getReviewDetail } from "@/features/backoffice/reviews/service";
@@ -33,17 +34,6 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status =
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      typeof (error as { status?: unknown }).status === "number"
-        ? (error as { status: number }).status
-        : 500;
-
-    return NextResponse.json(
-      { ok: false, error: "No se pudo obtener la reseña." },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (reviews reviewId).");
   }
 }

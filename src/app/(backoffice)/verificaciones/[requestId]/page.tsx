@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { notFound } from "next/navigation";
 import { VerificationRequestDetailView } from "./_components/VerificationRequestDetailView";
 import { getVerificationDetail } from "@/features/backoffice/verifications/service";
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function VerificationDetailPage({
   params,
 }: VerificationDetailPageProps) {
+  const context = await requireBackofficePage("verifications.read");
   const resolvedParams = await params;
   const requestId = Number(resolvedParams.requestId);
 
@@ -26,5 +28,10 @@ export default async function VerificationDetailPage({
     notFound();
   }
 
-  return <VerificationRequestDetailView data={data} />;
+  return (
+    <VerificationRequestDetailView
+      data={data}
+      canReview={context.hasPermission("verifications.review")}
+    />
+  );
 }

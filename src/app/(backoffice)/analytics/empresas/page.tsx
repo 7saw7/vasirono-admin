@@ -1,9 +1,9 @@
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { CompanyAnalyticsView } from "./_components/CompanyAnalyticsView";
 
 export const dynamic = "force-dynamic";
 
 export default async function CompanyAnalyticsPage() {
-  await getBackofficeContext("analytics.read");
+  await requireBackofficePage("analytics.read");
   return <CompanyAnalyticsView />;
 }

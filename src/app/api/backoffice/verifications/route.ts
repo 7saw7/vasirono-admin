@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getVerificationRequestsList } from "@/features/backoffice/verifications/service";
@@ -25,25 +26,6 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
-    const status =
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      typeof (error as { status?: unknown }).status === "number"
-        ? (error as { status: number }).status
-        : 500;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para ver verificaciones."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo obtener el listado de verificaciones.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (verifications).");
   }
 }

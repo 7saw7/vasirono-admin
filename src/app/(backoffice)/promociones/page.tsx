@@ -1,5 +1,5 @@
 import { PromotionsView } from "./_components/PromotionsView";
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import {
   getPromotionBranchOptions,
   getPromotionsDashboard,
@@ -20,7 +20,7 @@ export const dynamic = "force-dynamic";
 export default async function PromotionsPage({
   searchParams,
 }: PromotionsPageProps) {
-  const context = await getBackofficeContext("promotions.read");
+  const context = await requireBackofficePage("promotions.read");
   const params = (await searchParams) ?? {};
 
   const [data, branchOptions] = await Promise.all([

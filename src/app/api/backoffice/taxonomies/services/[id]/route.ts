@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { taxonomyIdParamSchema } from "@/features/backoffice/taxonomies/schema";
@@ -29,23 +30,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 409
-            ? "Ya existe un servicio con ese nombre o código."
-            : status === 404
-            ? "El servicio no existe."
-            : status === 403
-            ? "No tienes permisos para editar servicios."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo actualizar el servicio.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (taxonomies services id).");
   }
 }

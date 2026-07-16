@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getUserDetail } from "@/features/backoffice/users/service";
@@ -23,10 +24,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     }
 
     return NextResponse.json({ ok: true, data: data.notifications });
-  } catch {
-    return NextResponse.json(
-      { ok: false, error: "No se pudieron obtener las notificaciones." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (users userId notifications).");
   }
 }

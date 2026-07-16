@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getBranchesList } from "@/features/backoffice/branches/service";
@@ -24,25 +25,6 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
-    const status =
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      typeof (error as { status?: unknown }).status === "number"
-        ? (error as { status: number }).status
-        : 500;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para ver sucursales."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo obtener el listado de sucursales.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (branches).");
   }
 }

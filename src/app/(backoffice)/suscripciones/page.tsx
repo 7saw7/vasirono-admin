@@ -1,5 +1,5 @@
 import { SubscriptionsView } from "./_components/SubscriptionsView";
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { getSubscriptionsDashboard } from "@/features/backoffice/billing/subscriptions.service";
 
 type SubscriptionsPageProps = {
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function SubscriptionsPage({
   searchParams,
 }: SubscriptionsPageProps) {
-  await getBackofficeContext("subscriptions.read");
+  await requireBackofficePage("subscriptions.read");
 
   const params = (await searchParams) ?? {};
 

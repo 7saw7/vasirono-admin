@@ -3,9 +3,10 @@ import type { TaxonomiesDashboardData } from "@/features/backoffice/taxonomies/t
 
 type TaxonomiesViewProps = {
   data: TaxonomiesDashboardData;
+  canManage: boolean;
 };
 
-export function TaxonomiesView({ data }: TaxonomiesViewProps) {
+export function TaxonomiesView({ data, canManage }: TaxonomiesViewProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -37,7 +38,7 @@ export function TaxonomiesView({ data }: TaxonomiesViewProps) {
         />
       </div>
 
-      <TaxonomyManager data={data} />
+      <TaxonomyManager data={data} canManage={canManage} />
     </div>
   );
 }

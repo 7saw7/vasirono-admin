@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getReviewReportsList } from "@/features/backoffice/review-reports/service";
@@ -19,10 +20,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({ ok: true, data });
-  } catch {
-    return NextResponse.json(
-      { ok: false, error: "No se pudo obtener la lista de reportes." },
-      { status: 500 }
-    );
+  } catch (error) {
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (review-reports).");
   }
 }

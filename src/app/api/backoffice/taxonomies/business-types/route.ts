@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import {
@@ -31,20 +32,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para consultar tipos de negocio."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudieron obtener los tipos de negocio.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (taxonomies business-types).");
   }
 }
 
@@ -57,23 +45,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true, data }, { status: 201 });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 409
-            ? "Ya existe un tipo de negocio con ese nombre."
-            : status === 403
-            ? "No tienes permisos para crear tipos de negocio."
-            : status === 401
-            ? "No autenticado."
-            : status === 404
-            ? "Recurso relacionado no encontrado."
-            : "No se pudo crear el tipo de negocio.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (taxonomies business-types).");
   }
 }

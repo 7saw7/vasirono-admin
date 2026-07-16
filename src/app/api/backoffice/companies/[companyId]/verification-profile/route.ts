@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getCompanyDetail } from "@/features/backoffice/companies/service";
@@ -53,19 +54,6 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       data: company.verification,
     });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para ver el perfil de verificación."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo obtener el perfil de verificación.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (companies companyId verification-profile).");
   }
 }

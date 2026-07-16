@@ -9,6 +9,7 @@ import { ClaimReviewDrawer } from "./ClaimReviewDrawer";
 
 type ClaimRequestsTableProps = {
   data: ClaimListResult;
+  canReview: boolean;
 };
 
 function mapTone(statusCode: string) {
@@ -20,7 +21,7 @@ function mapTone(statusCode: string) {
   return "neutral" as const;
 }
 
-export function ClaimRequestsTable({ data }: ClaimRequestsTableProps) {
+export function ClaimRequestsTable({ data, canReview }: ClaimRequestsTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
@@ -114,7 +115,7 @@ export function ClaimRequestsTable({ data }: ClaimRequestsTableProps) {
           {
             key: "actions",
             title: "Acciones",
-            render: (row: ClaimListItem) => <ClaimReviewDrawer claim={row} />,
+            render: (row: ClaimListItem) => <ClaimReviewDrawer claim={row} canReview={canReview} />,
           },
         ]}
         rows={data.items}

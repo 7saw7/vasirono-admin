@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { notFound } from "next/navigation";
 import { UserDetailView } from "./_components/UserDetailView";
 import { getUserDetail } from "@/features/backoffice/users/service";
@@ -11,6 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function UserDetailPage({
   params,
 }: UserDetailPageProps) {
+  await requireBackofficePage("users.read");
   const { userId } = await params;
   const data = await getUserDetail(userId);
 

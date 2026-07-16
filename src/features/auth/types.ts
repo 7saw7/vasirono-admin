@@ -6,6 +6,7 @@ export type AuthUser = {
   email: string;
   role: AppRole;
   verified: boolean;
+  permissions: string[];
 };
 
 export type AuthSession = {

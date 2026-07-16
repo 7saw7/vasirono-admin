@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { AnalyticsView } from "./_components/AnalyticsView";
 import { getBackofficeAnalytics } from "@/features/backoffice/analytics/service";
 
@@ -15,6 +16,7 @@ export const dynamic = "force-dynamic";
 export default async function AnalyticsPage({
   searchParams,
 }: AnalyticsPageProps) {
+  await requireBackofficePage("analytics.read");
   const params = (await searchParams) ?? {};
 
   const data = await getBackofficeAnalytics({

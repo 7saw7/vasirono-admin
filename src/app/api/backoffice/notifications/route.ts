@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getNotificationsDashboard } from "@/features/backoffice/notifications/service";
@@ -21,25 +22,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status =
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      typeof (error as { status?: unknown }).status === "number"
-        ? (error as { status: number }).status
-        : 500;
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para ver notificaciones."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudieron obtener las notificaciones.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (notifications).");
   }
 }

@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { TaxonomiesView } from "./_components/TaxonomiesView";
 import { getTaxonomiesDashboard } from "@/features/backoffice/taxonomies/service";
 
@@ -12,6 +13,7 @@ function getFirst(value: string | string[] | undefined) {
 export default async function TaxonomiesPage({
   searchParams,
 }: TaxonomiesPageProps) {
+  const context = await requireBackofficePage("taxonomies.read");
   const params = (await searchParams) ?? {};
 
   const data = await getTaxonomiesDashboard({
@@ -39,5 +41,10 @@ export default async function TaxonomiesPage({
     },
   });
 
-  return <TaxonomiesView data={data} />;
+  return (
+    <TaxonomiesView
+      data={data}
+      canManage={context.hasPermission("taxonomies.manage")}
+    />
+  );
 }

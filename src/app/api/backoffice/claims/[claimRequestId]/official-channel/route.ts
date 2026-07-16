@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { sendOfficialChannelCode } from "@/features/backoffice/claims/service";
@@ -37,38 +38,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";
-    const status = getStatus(error);
-
-    if (message === "CLAIM_NOT_FOUND") {
-      return NextResponse.json({ ok: false, error: "Reclamo no encontrado." }, { status: 404 });
-    }
-
-    if (message.startsWith("MISSING_") || message === "CHECK_CREATION_FAILED") {
-      return NextResponse.json(
-        { ok: false, error: "Faltan catálogos o migraciones base para el flujo profesional." },
-        { status: 500 }
-      );
-    }
-
-    if (message === "NOTIFICATIONS_SERVICE_URL_NOT_CONFIGURED") {
-      return NextResponse.json(
-        { ok: false, error: "Falta configurar NOTIFICATIONS_SERVICE_URL para enviar correo oficial." },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para revisar reclamos."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo preparar la validación del canal oficial.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (claims claimRequestId official-channel).");
   }
 }

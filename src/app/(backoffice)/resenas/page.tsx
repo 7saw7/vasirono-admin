@@ -1,5 +1,5 @@
 import { ReviewsView } from "./_components/ReviewsView";
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { getReviewsList } from "@/features/backoffice/reviews/service";
 
 type ReviewsPageProps = {
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 export default async function ReviewsPage({
   searchParams,
 }: ReviewsPageProps) {
-  const context = await getBackofficeContext("reviews.read");
+  const context = await requireBackofficePage("reviews.read");
   const params = (await searchParams) ?? {};
 
   const data = await getReviewsList({

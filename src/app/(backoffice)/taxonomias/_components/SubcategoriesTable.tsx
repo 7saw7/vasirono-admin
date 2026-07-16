@@ -12,6 +12,7 @@ import type { PaginatedResult } from "@/features/backoffice/shared/types";
 
 type SubcategoriesTableProps = {
   data: PaginatedResult<SubcategoryListItem>;
+  canManage: boolean;
   categories: PaginatedResult<CategoryListItem>;
   onCreate: () => void;
   onEdit: (item: SubcategoryListItem) => void;
@@ -19,6 +20,7 @@ type SubcategoriesTableProps = {
 
 export function SubcategoriesTable({
   data,
+  canManage,
   categories,
   onCreate,
   onEdit,
@@ -33,7 +35,7 @@ export function SubcategoriesTable({
         pageKey="subPage"
         searchPlaceholder="Buscar subcategoría..."
         createLabel="Nueva subcategoría"
-        onCreate={onCreate}
+        onCreate={canManage ? onCreate : undefined}
         extraFilters={[
           {
             key: "subCategoryId",
@@ -61,7 +63,7 @@ export function SubcategoriesTable({
                   <HeaderCell>Subcategoría</HeaderCell>
                   <HeaderCell>Categoría</HeaderCell>
                   <HeaderCell>Empresas</HeaderCell>
-                  <HeaderCell>Acciones</HeaderCell>
+                  {canManage ? <HeaderCell>Acciones</HeaderCell> : null}
                 </tr>
               </thead>
 
@@ -75,16 +77,18 @@ export function SubcategoriesTable({
                     </BodyCell>
                     <BodyCell>{item.categoryName}</BodyCell>
                     <BodyCell>{item.companiesCount}</BodyCell>
-                    <BodyCell>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onEdit(item)}
-                      >
-                        Editar
-                      </Button>
-                    </BodyCell>
+                    {canManage ? (
+                      <BodyCell>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onEdit(item)}
+                        >
+                          Editar
+                        </Button>
+                      </BodyCell>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

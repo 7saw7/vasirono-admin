@@ -9,6 +9,7 @@ import { ClaimProfessionalFlowPanel } from "./ClaimProfessionalFlowPanel";
 
 type ClaimDetailViewProps = {
   data: ClaimDetail;
+  canReview: boolean;
 };
 
 function mapTone(statusCode: string) {
@@ -20,7 +21,7 @@ function mapTone(statusCode: string) {
   return "neutral" as const;
 }
 
-export function ClaimDetailView({ data }: ClaimDetailViewProps) {
+export function ClaimDetailView({ data, canReview }: ClaimDetailViewProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -103,7 +104,13 @@ export function ClaimDetailView({ data }: ClaimDetailViewProps) {
         </SectionCard>
       </div>
 
-      <ClaimProfessionalFlowPanel claim={data} />
+      {canReview ? (
+        <ClaimProfessionalFlowPanel claim={data} />
+      ) : (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          Tienes acceso de consulta. Las decisiones y cambios del reclamo requieren el permiso de revisión.
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-2">
         <SectionCard

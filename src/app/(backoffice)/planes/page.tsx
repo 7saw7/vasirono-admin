@@ -1,5 +1,5 @@
 import { PlansView } from "./_components/PlansView";
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { getPlansDashboard } from "@/features/backoffice/billing/plans.service";
 
 type PlansPageProps = {
@@ -13,7 +13,7 @@ type PlansPageProps = {
 export const dynamic = "force-dynamic";
 
 export default async function PlansPage({ searchParams }: PlansPageProps) {
-  await getBackofficeContext("plans.read");
+  await requireBackofficePage("plans.read");
 
   const params = (await searchParams) ?? {};
 

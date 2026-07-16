@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getCompanyDetail } from "@/features/backoffice/companies/service";
@@ -60,19 +61,6 @@ export async function GET(_request: NextRequest, context: RouteContext) {
       },
     });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para ver el estado de la empresa."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo obtener el estado de la empresa.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (companies companyId status).");
   }
 }

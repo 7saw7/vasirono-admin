@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { notFound } from "next/navigation";
 import { BranchDetailView } from "./_components/BranchDetailView";
 import { getBranchDetail } from "@/features/backoffice/branches/service";
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function BranchDetailPage({
   params,
 }: BranchDetailPageProps) {
+  await requireBackofficePage("branches.read");
   const resolvedParams = await params;
   const branchId = Number(resolvedParams.branchId);
 

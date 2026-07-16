@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { BranchesView } from "./_components/BranchesView";
 import { getBranchesList } from "@/features/backoffice/branches/service";
 
@@ -17,6 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function BranchesPage({
   searchParams,
 }: BranchesPageProps) {
+  await requireBackofficePage("branches.read");
   const params = (await searchParams) ?? {};
 
   const data = await getBranchesList({

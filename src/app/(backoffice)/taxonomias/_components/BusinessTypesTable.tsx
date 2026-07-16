@@ -9,12 +9,14 @@ import type { PaginatedResult } from "@/features/backoffice/shared/types";
 
 type BusinessTypesTableProps = {
   data: PaginatedResult<BusinessTypeListItem>;
+  canManage: boolean;
   onCreate: () => void;
   onEdit: (item: BusinessTypeListItem) => void;
 };
 
 export function BusinessTypesTable({
   data,
+  canManage,
   onCreate,
   onEdit,
 }: BusinessTypesTableProps) {
@@ -28,7 +30,7 @@ export function BusinessTypesTable({
         pageKey="btPage"
         searchPlaceholder="Buscar tipo de negocio..."
         createLabel="Nuevo tipo"
-        onCreate={onCreate}
+        onCreate={canManage ? onCreate : undefined}
       />
 
       {data.items.length === 0 ? (
@@ -41,7 +43,7 @@ export function BusinessTypesTable({
                 <tr>
                   <HeaderCell>Nombre</HeaderCell>
                   <HeaderCell>Empresas asociadas</HeaderCell>
-                  <HeaderCell>Acciones</HeaderCell>
+                  {canManage ? <HeaderCell>Acciones</HeaderCell> : null}
                 </tr>
               </thead>
 
@@ -54,16 +56,18 @@ export function BusinessTypesTable({
                       </span>
                     </BodyCell>
                     <BodyCell>{item.companiesCount}</BodyCell>
-                    <BodyCell>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onEdit(item)}
-                      >
-                        Editar
-                      </Button>
-                    </BodyCell>
+                    {canManage ? (
+                      <BodyCell>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onEdit(item)}
+                        >
+                          Editar
+                        </Button>
+                      </BodyCell>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

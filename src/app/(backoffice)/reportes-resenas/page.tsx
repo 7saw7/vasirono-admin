@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { ReviewReportsView } from "./_components/ReviewReportsView";
 import { getReviewReportsList } from "@/features/backoffice/review-reports/service";
 
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function ReviewReportsPage({
   searchParams,
 }: ReviewReportsPageProps) {
+  const context = await requireBackofficePage("reviewReports.read");
   const params = (await searchParams) ?? {};
 
   const data = await getReviewReportsList({
@@ -26,5 +28,10 @@ export default async function ReviewReportsPage({
     pageSize: params.pageSize,
   });
 
-  return <ReviewReportsView data={data} />;
+  return (
+    <ReviewReportsView
+      data={data}
+      canResolve={context.hasPermission("reviewReports.resolve")}
+    />
+  );
 }

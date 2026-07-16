@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { taxonomyIdParamSchema } from "@/features/backoffice/taxonomies/schema";
@@ -29,23 +30,6 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 409
-            ? "Ya existe una categoría con ese nombre."
-            : status === 404
-            ? "La categoría no existe."
-            : status === 403
-            ? "No tienes permisos para editar categorías."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo actualizar la categoría.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (taxonomies categories id).");
   }
 }

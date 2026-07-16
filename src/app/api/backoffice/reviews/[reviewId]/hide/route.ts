@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { reviewIdParamSchema } from "@/features/backoffice/reviews/schema";
@@ -34,23 +35,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 404
-            ? "La reseña no existe."
-            : status === 400
-            ? "La reseña no puede ocultarse con el estado actual."
-            : status === 403
-            ? "No tienes permisos para moderar reseñas."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo ocultar la reseña.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (reviews reviewId hide).");
   }
 }

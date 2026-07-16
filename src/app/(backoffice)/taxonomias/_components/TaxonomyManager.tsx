@@ -19,6 +19,7 @@ import type {
 
 type TaxonomyManagerProps = {
   data: TaxonomiesDashboardData;
+  canManage: boolean;
 };
 
 type EditableTaxonomyItem =
@@ -28,7 +29,7 @@ type EditableTaxonomyItem =
   | ServiceListItem
   | null;
 
-export function TaxonomyManager({ data }: TaxonomyManagerProps) {
+export function TaxonomyManager({ data, canManage }: TaxonomyManagerProps) {
   const router = useRouter();
 
   const [entity, setEntity] = useState<TaxonomyEntity>("business-types");
@@ -124,37 +125,46 @@ export function TaxonomyManager({ data }: TaxonomyManagerProps) {
     <div className="space-y-6">
       <TaxonomiesFilters />
 
-      <TaxonomyForms
-        entity={entity}
-        mode={mode}
-        editingItem={editingItem}
-        categoryOptions={categoryOptions}
-        isSubmitting={isSubmitting}
-        feedback={feedback}
-        onEntityChange={(value) => {
-          setEntity(value);
-          setMode("create");
-          setEditingItem(null);
-          setFeedback(null);
-        }}
-        onCancelEdit={() => startCreate(entity)}
-        onStartCreate={startCreate}
-        onSubmit={handleSubmit}
-      />
+      {canManage ? (
+        <TaxonomyForms
+          entity={entity}
+          mode={mode}
+          editingItem={editingItem}
+          categoryOptions={categoryOptions}
+          isSubmitting={isSubmitting}
+          feedback={feedback}
+          onEntityChange={(value) => {
+            setEntity(value);
+            setMode("create");
+            setEditingItem(null);
+            setFeedback(null);
+          }}
+          onCancelEdit={() => startCreate(entity)}
+          onStartCreate={startCreate}
+          onSubmit={handleSubmit}
+        />
+      ) : (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          Tu rol tiene acceso de consulta. Crear o editar taxonomías requiere el permiso de gestión.
+        </div>
+      )}
 
       <BusinessTypesTable
+        canManage={canManage}
         data={data.businessTypes}
         onCreate={() => startCreate("business-types")}
         onEdit={(item) => startEdit("business-types", item)}
       />
 
       <CategoriesTable
+        canManage={canManage}
         data={data.categories}
         onCreate={() => startCreate("categories")}
         onEdit={(item) => startEdit("categories", item)}
       />
 
       <SubcategoriesTable
+        canManage={canManage}
         data={data.subcategories}
         categories={data.categories}
         onCreate={() => startCreate("subcategories")}
@@ -162,6 +172,7 @@ export function TaxonomyManager({ data }: TaxonomyManagerProps) {
       />
 
       <ServicesTable
+        canManage={canManage}
         data={data.services}
         onCreate={() => startCreate("services")}
         onEdit={(item) => startEdit("services", item)}

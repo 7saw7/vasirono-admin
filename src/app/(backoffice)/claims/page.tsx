@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { ClaimRequestsView } from "./_components/ClaimRequestsView";
 import { getClaimsList } from "@/features/backoffice/claims/service";
 
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function ClaimsPage({
   searchParams,
 }: ClaimsPageProps) {
+  const context = await requireBackofficePage("claims.read");
   const params = (await searchParams) ?? {};
 
   const data = await getClaimsList({
@@ -26,5 +28,10 @@ export default async function ClaimsPage({
     pageSize: params.pageSize,
   });
 
-  return <ClaimRequestsView data={data} />;
+  return (
+    <ClaimRequestsView
+      data={data}
+      canReview={context.hasPermission("claims.review")}
+    />
+  );
 }

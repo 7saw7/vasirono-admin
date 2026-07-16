@@ -12,9 +12,10 @@ import { CompanyBulkActions } from "./CompanyBulkActions";
 
 type CompaniesTableProps = {
   data: CompanyListResult;
+  canUpdate: boolean;
 };
 
-export function CompaniesTable({ data }: CompaniesTableProps) {
+export function CompaniesTable({ data, canUpdate }: CompaniesTableProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const selectedCount = selectedIds.length;
@@ -29,7 +30,8 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
         render: (row: CompanyListItem) => (
           <input
             type="checkbox"
-            checked={selectedIds.includes(row.companyId)}
+            checked={canUpdate && selectedIds.includes(row.companyId)}
+            disabled={!canUpdate}
             onChange={(event) => {
               setSelectedIds((current) =>
                 event.target.checked
@@ -118,13 +120,17 @@ export function CompaniesTable({ data }: CompaniesTableProps) {
         ),
       },
     ],
-    [selectedIds]
+    [canUpdate, selectedIds]
   );
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
-        <CompanyBulkActions selectedCount={selectedCount} />
+        {canUpdate ? (
+          <CompanyBulkActions selectedCount={selectedCount} />
+        ) : (
+          <p className="text-sm text-neutral-500">Modo consulta</p>
+        )}
         <p className="text-sm text-neutral-500">
           Total: {data.total} empresa{data.total === 1 ? "" : "s"}
         </p>

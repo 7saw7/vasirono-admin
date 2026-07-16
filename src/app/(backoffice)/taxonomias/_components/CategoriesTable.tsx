@@ -9,12 +9,14 @@ import type { PaginatedResult } from "@/features/backoffice/shared/types";
 
 type CategoriesTableProps = {
   data: PaginatedResult<CategoryListItem>;
+  canManage: boolean;
   onCreate: () => void;
   onEdit: (item: CategoryListItem) => void;
 };
 
 export function CategoriesTable({
   data,
+  canManage,
   onCreate,
   onEdit,
 }: CategoriesTableProps) {
@@ -28,7 +30,7 @@ export function CategoriesTable({
         pageKey="catPage"
         searchPlaceholder="Buscar categoría..."
         createLabel="Nueva categoría"
-        onCreate={onCreate}
+        onCreate={canManage ? onCreate : undefined}
       />
 
       {data.items.length === 0 ? (
@@ -42,7 +44,7 @@ export function CategoriesTable({
                   <HeaderCell>Nombre</HeaderCell>
                   <HeaderCell>Subcategorías</HeaderCell>
                   <HeaderCell>Empresas</HeaderCell>
-                  <HeaderCell>Acciones</HeaderCell>
+                  {canManage ? <HeaderCell>Acciones</HeaderCell> : null}
                 </tr>
               </thead>
 
@@ -56,16 +58,18 @@ export function CategoriesTable({
                     </BodyCell>
                     <BodyCell>{item.subcategoriesCount}</BodyCell>
                     <BodyCell>{item.companiesCount}</BodyCell>
-                    <BodyCell>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => onEdit(item)}
-                      >
-                        Editar
-                      </Button>
-                    </BodyCell>
+                    {canManage ? (
+                      <BodyCell>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onEdit(item)}
+                        >
+                          Editar
+                        </Button>
+                      </BodyCell>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

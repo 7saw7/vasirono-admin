@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { confirmVerificationDocumentUpload } from "@/features/backoffice/verifications/service";
@@ -30,18 +31,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status = getStatus(error);
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para confirmar documentos de verificación."
-            : status === 401
-              ? "No autenticado."
-              : "No se pudo confirmar la subida del documento.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (verifications requestId documents confirm).");
   }
 }

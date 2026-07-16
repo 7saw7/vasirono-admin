@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { notFound } from "next/navigation";
 import { CompanyDetailView } from "./_components/CompanyDetailView";
 import { getCompanyDetail } from "@/features/backoffice/companies/service";
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function CompanyDetailPage({
   params,
 }: CompanyDetailPageProps) {
+  await requireBackofficePage("companies.read");
   const resolvedParams = await params;
   const companyId = Number(resolvedParams.companyId);
 

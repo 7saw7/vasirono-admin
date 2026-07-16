@@ -1,9 +1,9 @@
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { BranchAnalyticsView } from "./_components/BranchAnalyticsView";
 
 export const dynamic = "force-dynamic";
 
 export default async function BranchAnalyticsPage() {
-  await getBackofficeContext("analytics.read");
+  await requireBackofficePage("analytics.read");
   return <BranchAnalyticsView />;
 }

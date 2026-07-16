@@ -29,7 +29,19 @@ export default async function BackofficeLayout({
         {children}
       </BackofficeShell>
     );
-  } catch {
-    redirect(ROUTES.LOGIN);
+  } catch (error) {
+    const status =
+      error &&
+      typeof error === "object" &&
+      "status" in error &&
+      typeof (error as { status?: unknown }).status === "number"
+        ? (error as { status: number }).status
+        : undefined;
+
+    if (status === 401 || status === 403) {
+      redirect(ROUTES.LOGIN);
+    }
+
+    throw error;
   }
 }

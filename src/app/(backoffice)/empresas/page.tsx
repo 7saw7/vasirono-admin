@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { CompaniesView } from "./_components/CompaniesView";
 import { getCompaniesList } from "@/features/backoffice/companies/service";
 
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 export default async function CompaniesPage({
   searchParams,
 }: CompaniesPageProps) {
+  const context = await requireBackofficePage("companies.read");
   const params = (await searchParams) ?? {};
 
   const data = await getCompaniesList({
@@ -26,5 +28,10 @@ export default async function CompaniesPage({
     pageSize: params.pageSize,
   });
 
-  return <CompaniesView data={data} />;
+  return (
+    <CompaniesView
+      data={data}
+      canUpdate={context.hasPermission("companies.update")}
+    />
+  );
 }

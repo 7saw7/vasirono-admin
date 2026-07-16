@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { approveOnsiteVerification } from "@/features/backoffice/claims/service";
@@ -24,10 +25,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const data = await approveOnsiteVerification(claimRequestId, auth.user.id, body);
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";
-    if (message === "CLAIM_NOT_FOUND") return NextResponse.json({ ok: false, error: "Reclamo no encontrado." }, { status: 404 });
-    if (message.startsWith("MISSING_")) return NextResponse.json({ ok: false, error: "Faltan catálogos base para aprobar visita presencial." }, { status: 500 });
-    const status = getStatus(error);
-    return NextResponse.json({ ok: false, error: status === 403 ? "No tienes permisos para revisar reclamos." : status === 401 ? "No autenticado." : "No se pudo aprobar la verificación presencial." }, { status });
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (claims claimRequestId onsite-approve).");
   }
 }

@@ -1,3 +1,4 @@
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { VerificationRequestsView } from "./_components/VerificationRequestsView";
 import { getVerificationRequestsList } from "@/features/backoffice/verifications/service";
 
@@ -18,6 +19,7 @@ export const dynamic = "force-dynamic";
 export default async function VerificationsPage({
   searchParams,
 }: VerificationsPageProps) {
+  await requireBackofficePage("verifications.read");
   const params = (await searchParams) ?? {};
 
   const data = await getVerificationRequestsList({

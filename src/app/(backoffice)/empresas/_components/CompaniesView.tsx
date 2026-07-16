@@ -4,9 +4,10 @@ import type { CompanyListResult } from "@/features/backoffice/companies/types";
 
 type CompaniesViewProps = {
   data: CompanyListResult;
+  canUpdate: boolean;
 };
 
-export function CompaniesView({ data }: CompaniesViewProps) {
+export function CompaniesView({ data, canUpdate }: CompaniesViewProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -22,7 +23,7 @@ export function CompaniesView({ data }: CompaniesViewProps) {
 
       <CompanyFilters />
 
-      <CompaniesTable data={data} />
+      <CompaniesTable data={data} canUpdate={canUpdate} />
     </div>
   );
 }

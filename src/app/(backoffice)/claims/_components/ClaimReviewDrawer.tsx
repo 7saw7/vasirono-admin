@@ -9,15 +9,16 @@ import { ClaimEvidencePreview } from "./ClaimEvidencePreview";
 
 type ClaimReviewDrawerProps = {
   claim: ClaimListItem;
+  canReview: boolean;
 };
 
-export function ClaimReviewDrawer({ claim }: ClaimReviewDrawerProps) {
+export function ClaimReviewDrawer({ claim, canReview }: ClaimReviewDrawerProps) {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(true)}>
-        Revisar
+        {canReview ? "Revisar" : "Ver"}
       </Button>
 
       {open ? (

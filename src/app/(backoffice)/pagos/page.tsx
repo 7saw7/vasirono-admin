@@ -1,6 +1,6 @@
 import { PaymentsView } from "./_components/PaymentsView";
 import { getPaymentsDashboard } from "@/features/backoffice/billing/payments.service";
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 
 type PaymentsPageProps = {
   searchParams?: Promise<{
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
 export default async function PaymentsPage({
   searchParams,
 }: PaymentsPageProps) {
-  await getBackofficeContext("payments.read");
+  await requireBackofficePage("payments.read");
 
   const params = (await searchParams) ?? {};
 

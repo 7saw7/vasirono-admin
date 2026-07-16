@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { getVerificationDocumentViewUrl } from "@/features/backoffice/verifications/service";
@@ -29,18 +30,6 @@ export async function GET(_request: Request, context: RouteContext) {
     const data = await getVerificationDocumentViewUrl(requestId, documentId);
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status = getStatus(error);
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para ver este documento."
-            : status === 401
-              ? "No autenticado."
-              : "No se pudo generar la URL de visualización.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (verifications requestId documents documentId view-url).");
   }
 }

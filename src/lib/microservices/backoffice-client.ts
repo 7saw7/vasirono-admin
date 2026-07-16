@@ -1,5 +1,4 @@
 import { getRawSessionTokenFromCookie, getCurrentSessionUser } from "@/lib/auth/session";
-import { getBackendRolePermissions } from "@/lib/auth/permissions";
 
 export type BackofficeServiceName =
   | "analytics"
@@ -116,13 +115,16 @@ export async function callBackofficeService<T>(
     if (actorUserId) headers["x-user-id"] = actorUserId;
 
     if (user) {
-      const permissions = Array.from(getBackendRolePermissions(user.role));
+      // Auth Service is the source of truth. Never reconstruct privileges here:
+      // an intentionally empty permission set must remain empty.
+      const permissions = [...new Set(user.permissions)];
 
       headers["x-user-role"] = user.role;
       headers["x-role-name"] = user.role;
       headers["x-user-email"] = user.email;
       headers["x-portal"] = "backoffice";
       headers["x-user-permissions"] = permissions.join(",");
+      headers["x-user-scopes"] = permissions.join(",");
       headers["x-user-claims"] = toBase64Json({
         userId: actorUserId,
         portal: "backoffice",

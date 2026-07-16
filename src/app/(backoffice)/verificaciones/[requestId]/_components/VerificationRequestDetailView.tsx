@@ -12,10 +12,12 @@ import type { VerificationDetail } from "@/features/backoffice/verifications/typ
 
 type VerificationRequestDetailViewProps = {
   data: VerificationDetail;
+  canReview: boolean;
 };
 
 export function VerificationRequestDetailView({
   data,
+  canReview,
 }: VerificationRequestDetailViewProps) {
   return (
     <div className="space-y-6">
@@ -26,10 +28,12 @@ export function VerificationRequestDetailView({
         <VerificationChecksTable checks={data.checks} />
       </div>
 
-      <VerificationDocumentActionsPanel
-        requestId={data.verificationRequestId}
-        documents={data.documents}
-      />
+      {canReview ? (
+        <VerificationDocumentActionsPanel
+          requestId={data.verificationRequestId}
+          documents={data.documents}
+        />
+      ) : null}
 
       <VerificationDocumentReviewPanel documents={data.documents} />
 
@@ -40,7 +44,13 @@ export function VerificationRequestDetailView({
 
       <VerificationAddressMatchesPanel items={data.addressMatches} />
       <VerificationTimeline timeline={data.timeline} />
-      <VerificationDecisionForm requestId={data.verificationRequestId} />
+      {canReview ? (
+        <VerificationDecisionForm requestId={data.verificationRequestId} />
+      ) : (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          Tienes acceso de consulta. La asignación, revisión documental y decisión final requieren permisos de revisión.
+        </div>
+      )}
     </div>
   );
 }

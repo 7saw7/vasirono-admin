@@ -4,9 +4,10 @@ import type { ClaimListResult } from "@/features/backoffice/claims/types";
 
 type ClaimRequestsViewProps = {
   data: ClaimListResult;
+  canReview: boolean;
 };
 
-export function ClaimRequestsView({ data }: ClaimRequestsViewProps) {
+export function ClaimRequestsView({ data, canReview }: ClaimRequestsViewProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -22,7 +23,7 @@ export function ClaimRequestsView({ data }: ClaimRequestsViewProps) {
 
       <ClaimFilters />
 
-      <ClaimRequestsTable data={data} />
+      <ClaimRequestsTable data={data} canReview={canReview} />
     </div>
   );
 }

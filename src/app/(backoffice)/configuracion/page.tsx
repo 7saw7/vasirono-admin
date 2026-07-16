@@ -1,5 +1,5 @@
 import { SettingsView } from "./_components/SettingsView";
-import { getBackofficeContext } from "@/lib/auth/backoffice-context";
+import { requireBackofficePage } from "@/lib/auth/page-guard";
 import { getSettingsDashboard } from "@/features/backoffice/settings/service";
 
 type SettingsPageProps = {
@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage({
   searchParams,
 }: SettingsPageProps) {
-  await getBackofficeContext("settings.read");
+  await requireBackofficePage("settings.read");
 
   const params = (await searchParams) ?? {};
 

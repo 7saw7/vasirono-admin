@@ -1,5 +1,6 @@
 import type { AuthUser } from "./types";
 import { normalizeRoleName } from "@/lib/constants/roles";
+import { getBackendRolePermissions } from "@/lib/auth/permissions";
 
 export type AuthRow = {
   id: string;
@@ -22,5 +23,6 @@ export function mapAuthRowToUser(row: AuthRow): AuthUser {
     email: row.email,
     role: normalizedRole,
     verified: Boolean(row.verified),
+    permissions: Array.from(getBackendRolePermissions(normalizedRole)),
   };
 }

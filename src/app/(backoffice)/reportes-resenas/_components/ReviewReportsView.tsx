@@ -13,9 +13,10 @@ import type {
 
 type ReviewReportsViewProps = {
   data: ReviewReportListResult;
+  canResolve: boolean;
 };
 
-export function ReviewReportsView({ data }: ReviewReportsViewProps) {
+export function ReviewReportsView({ data, canResolve }: ReviewReportsViewProps) {
   const [selected, setSelected] = useState<ReviewReportListItem | null>(null);
 
   return (
@@ -60,7 +61,13 @@ export function ReviewReportsView({ data }: ReviewReportsViewProps) {
                 </div>
               </div>
 
-              <ReviewReportDecisionForm reportId={selected.reportId} />
+              {canResolve ? (
+                <ReviewReportDecisionForm reportId={selected.reportId} />
+              ) : (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                  Tu rol permite consultar el reporte, pero no resolverlo.
+                </div>
+              )}
             </div>
           )}
         </SectionCard>

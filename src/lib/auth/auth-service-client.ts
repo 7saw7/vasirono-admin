@@ -1,5 +1,6 @@
 import type { AuthUser } from "@/features/auth/types";
 import { normalizeRoleName } from "@/lib/constants/roles";
+import { getBackendRolePermissions } from "@/lib/auth/permissions";
 
 const AUTH_SERVICE_URL =
   process.env.AUTH_SERVICE_URL?.trim() ||
@@ -34,6 +35,7 @@ type AuthServicePrincipal = {
   activeCompanyId: number | null;
   memberships?: unknown[];
   branchScopes?: unknown[];
+  permissions?: string[];
 };
 
 type AuthServiceLoginData = {
@@ -141,12 +143,17 @@ function mapPrincipalToAuthUser(principal: AuthServicePrincipal): AuthUser {
     throw new Error("FORBIDDEN");
   }
 
+  const permissions = Array.isArray(principal.permissions)
+    ? [...new Set(principal.permissions.map((item) => item.trim()).filter(Boolean))]
+    : Array.from(getBackendRolePermissions(role));
+
   return {
     id: principal.user.id,
     name: principal.user.name,
     email: principal.user.email,
     role,
     verified: Boolean(principal.user.verified),
+    permissions,
   };
 }
 

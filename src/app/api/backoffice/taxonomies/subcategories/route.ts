@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import {
@@ -32,20 +33,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 403
-            ? "No tienes permisos para consultar subcategorías."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudieron obtener las subcategorías.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (taxonomies subcategories).");
   }
 }
 
@@ -58,23 +46,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ ok: true, data }, { status: 201 });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 409
-            ? "Ya existe una subcategoría con ese nombre dentro de la categoría seleccionada."
-            : status === 404
-            ? "La categoría indicada no existe."
-            : status === 403
-            ? "No tienes permisos para crear subcategorías."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo crear la subcategoría.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (taxonomies subcategories).");
   }
 }

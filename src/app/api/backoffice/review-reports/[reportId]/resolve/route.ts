@@ -1,3 +1,4 @@
+import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
 import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
 import { reviewReportIdParamSchema } from "@/features/backoffice/reviews/schema";
@@ -33,21 +34,6 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    const status = getStatus(error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error:
-          status === 404
-            ? "El reporte no existe."
-            : status === 403
-            ? "No tienes permisos para resolver reportes."
-            : status === 401
-            ? "No autenticado."
-            : "No se pudo resolver el reporte.",
-      },
-      { status }
-    );
+    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (review-reports reportId resolve).");
   }
 }
