@@ -63,6 +63,18 @@ type AuthServiceRequestOptions = {
   headers?: Record<string, string>;
 };
 
+function buildPublicRequestHeaders(source?: Headers): Record<string, string> {
+  if (!source) return {};
+  const headers: Record<string, string> = {};
+  const forwardedFor = source.get("x-forwarded-for");
+  const realIp = source.get("x-real-ip");
+  const userAgent = source.get("user-agent");
+  if (forwardedFor) headers["x-forwarded-for"] = forwardedFor;
+  if (realIp) headers["x-real-ip"] = realIp;
+  if (userAgent) headers["user-agent"] = userAgent;
+  return headers;
+}
+
 function getAuthServiceBaseUrl(): string {
   if (!AUTH_SERVICE_URL) {
     throw new Error("Missing AUTH_SERVICE_URL environment variable.");
@@ -240,4 +252,48 @@ export async function logoutBackofficeFromAuthService(
   }).catch(() => {
     // El panel siempre debe limpiar su cookie local aunque el token ya no exista.
   });
+}
+
+export async function requestBackofficePasswordReset(email: string, requestHeaders?: Headers): Promise<void> {
+  await authServiceFetch("/api/auth/forgot-password", {
+    method: "POST",
+    body: { email, clientId: "admin" },
+    headers: buildPublicRequestHeaders(requestHeaders),
+  });
+}
+
+export async function verifyBackofficePasswordResetToken(token: string, requestHeaders?: Headers): Promise<{
+  valid: true;
+  clientId: "admin";
+  expiresAt: string;
+}> {
+  const payload = await authServiceFetch<{
+    valid: true;
+    clientId: "admin";
+    expiresAt: string;
+  }>("/api/auth/verify-reset-token", {
+    method: "POST",
+    body: { token, clientId: "admin" },
+    headers: buildPublicRequestHeaders(requestHeaders),
+  });
+
+  if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
+  return payload.data;
+}
+
+export async function confirmBackofficePasswordReset(input: {
+  token: string;
+  newPassword: string;
+}, requestHeaders?: Headers): Promise<{ reset: boolean; revokedSessions: boolean }> {
+  const payload = await authServiceFetch<{
+    reset: boolean;
+    revokedSessions: boolean;
+  }>("/api/auth/reset-password", {
+    method: "POST",
+    body: { ...input, clientId: "admin" },
+    headers: buildPublicRequestHeaders(requestHeaders),
+  });
+
+  if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
+  return payload.data;
 }
