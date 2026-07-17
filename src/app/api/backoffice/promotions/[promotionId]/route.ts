@@ -1,35 +1,19 @@
+import { NextResponse } from "next/server";
 import { toBackofficeErrorResponse } from "@/lib/errors/backoffice-api-error";
-import { NextRequest, NextResponse } from "next/server";
 import { getBackofficeContext } from "@/lib/auth/backoffice-context";
-import { promotionIdParamSchema } from "@/features/backoffice/billing/schema";
-import { updatePromotion } from "@/features/backoffice/billing/promotions.service";
+import { promotionIdParamSchema } from "@/features/backoffice/promotions/schema";
+import { getAdminPromotionDetail } from "@/features/backoffice/promotions/service";
 
 export const runtime = "nodejs";
+type RouteContext = { params: Promise<{ promotionId: string }> };
 
-type RouteContext = {
-  params: Promise<{ promotionId: string }>;
-};
-
-function getStatus(error: unknown) {
-  return typeof error === "object" &&
-    error !== null &&
-    "status" in error &&
-    typeof (error as { status?: unknown }).status === "number"
-    ? (error as { status: number }).status
-    : 500;
-}
-
-export async function PATCH(request: NextRequest, context: RouteContext) {
+export async function GET(_request: Request, context: RouteContext) {
   try {
-    await getBackofficeContext("promotions.manage");
-
+    await getBackofficeContext("promotions.read");
     const params = promotionIdParamSchema.parse(await context.params);
-    const body = await request.json();
-
-    const data = await updatePromotion(params.promotionId, body);
-
+    const data = await getAdminPromotionDetail(params.promotionId);
     return NextResponse.json({ ok: true, data });
   } catch (error) {
-    return toBackofficeErrorResponse(error, "No se pudo completar la operación de backoffice (promotions promotionId).");
+    return toBackofficeErrorResponse(error, "No se pudo consultar la promoción.");
   }
 }

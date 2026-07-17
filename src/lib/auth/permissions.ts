@@ -33,6 +33,8 @@ export type BackofficePermission =
   | "subscriptions.read"
   | "payments.read"
   | "promotions.read"
+  | "promotions.updateStatus"
+  | "promotions.moderate"
   | "promotions.manage"
   | "notifications.read"
   | "notifications.manage"
@@ -70,6 +72,8 @@ const ALL_PERMISSIONS: readonly BackofficePermission[] = [
   "subscriptions.read",
   "payments.read",
   "promotions.read",
+  "promotions.updateStatus",
+  "promotions.moderate",
   "promotions.manage",
   "notifications.read",
   "notifications.manage",
@@ -104,6 +108,8 @@ const ROLE_PERMISSIONS: Record<AppRole, readonly BackofficePermission[]> = {
     "taxonomies.read",
     "plans.read",
     "promotions.read",
+    "promotions.updateStatus",
+    "promotions.moderate",
     "promotions.manage",
     "notifications.read",
     "settings.read",
@@ -213,11 +219,9 @@ const BACKEND_PERMISSIONS_BY_UI_PERMISSION: Record<
   "subscriptions.read": ["billing.admin.subscriptions.read"],
   "payments.read": ["billing.admin.payments.read"],
 
-  // La lista actual usa Billing y el flujo de moderación usa Promotions.
-  "promotions.read": [
-    "billing.admin.promotions.read",
-    "promotions:admin:read",
-  ],
+  "promotions.read": ["promotions:admin:read"],
+  "promotions.updateStatus": ["promotions:admin:update-status"],
+  "promotions.moderate": ["promotions:admin:moderate"],
   "promotions.manage": [
     "promotions:admin:update-status",
     "promotions:admin:moderate",

@@ -1,25 +1,22 @@
 import { PromotionsManagementClient } from "./PromotionsManagementClient";
-import type {
-  PromotionBranchOption,
-  PromotionsDashboardData,
-} from "@/features/backoffice/billing/types";
+import type { PromotionsDashboardData } from "@/features/backoffice/promotions/types";
 
 type PromotionsViewProps = {
   data: PromotionsDashboardData;
-  canManage: boolean;
-  branchOptions: PromotionBranchOption[];
+  canModerate: boolean;
+  canUpdateStatus: boolean;
 };
 
 export function PromotionsView({
   data,
-  canManage,
-  branchOptions,
+  canModerate,
+  canUpdateStatus,
 }: PromotionsViewProps) {
   return (
     <PromotionsManagementClient
       data={data}
-      canManage={canManage}
-      branchOptions={branchOptions}
+      canModerate={canModerate}
+      canUpdateStatus={canUpdateStatus}
     />
   );
 }

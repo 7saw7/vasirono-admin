@@ -1,254 +1,50 @@
-"use client";
-
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
-import { PromotionForm } from "./PromotionForm";
 import { PromotionsFilters } from "./PromotionsFilters";
 import { PromotionsTable } from "./PromotionsTable";
-import type {
-  PromotionBranchOption,
-  PromotionListItem,
-  PromotionsDashboardData,
-} from "@/features/backoffice/billing/types";
+import { PromotionsPagination } from "./PromotionsPagination";
+import type { PromotionsDashboardData } from "@/features/backoffice/promotions/types";
 
 type PromotionsManagementClientProps = {
   data: PromotionsDashboardData;
-  canManage: boolean;
-  branchOptions: PromotionBranchOption[];
+  canModerate: boolean;
+  canUpdateStatus: boolean;
 };
-
-type Feedback =
-  | {
-      type: "success" | "error";
-      message: string;
-    }
-  | null;
 
 export function PromotionsManagementClient({
   data,
-  canManage,
-  branchOptions,
+  canModerate,
+  canUpdateStatus,
 }: PromotionsManagementClientProps) {
-  const router = useRouter();
-  const [editingItem, setEditingItem] = useState<PromotionListItem | null>(null);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback>(null);
-
-  const initialValues = useMemo(() => {
-    if (!editingItem) return undefined;
-
-    return {
-      title: editingItem.title,
-      description: editingItem.description ?? "",
-      discountPercent:
-        editingItem.discountPercent !== null
-          ? String(editingItem.discountPercent)
-          : "",
-      branchId: String(editingItem.branchId),
-      active: editingItem.active ? "true" : "false",
-      startDate: editingItem.startDate
-        ? editingItem.startDate.slice(0, 10)
-        : "",
-      endDate: editingItem.endDate ? editingItem.endDate.slice(0, 10) : "",
-    };
-  }, [editingItem]);
-
-  async function handleCreate(values: {
-    title: string;
-    description: string | null;
-    discountPercent: number | null;
-    branchId: number;
-    active: boolean;
-    startDate: string | null;
-    endDate: string | null;
-  }) {
-    setIsSubmitting(true);
-    setFeedback(null);
-
-    try {
-      const response = await fetch("/api/backoffice/promotions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values),
-      });
-
-      const payload = (await response.json()) as {
-        ok: boolean;
-        error?: string;
-      };
-
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error ?? "No se pudo crear la promoción.");
-      }
-
-      setFeedback({
-        type: "success",
-        message: "Promoción creada correctamente.",
-      });
-      setShowCreateForm(false);
-      router.refresh();
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "No se pudo crear la promoción.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function handleUpdate(values: {
-    title: string;
-    description: string | null;
-    discountPercent: number | null;
-    branchId: number;
-    active: boolean;
-    startDate: string | null;
-    endDate: string | null;
-  }) {
-    if (!editingItem) return;
-
-    setIsSubmitting(true);
-    setFeedback(null);
-
-    try {
-      const response = await fetch(
-        `/api/backoffice/promotions/${editingItem.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        }
-      );
-
-      const payload = (await response.json()) as {
-        ok: boolean;
-        error?: string;
-      };
-
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error ?? "No se pudo actualizar la promoción.");
-      }
-
-      setFeedback({
-        type: "success",
-        message: "Promoción actualizada correctamente.",
-      });
-      setEditingItem(null);
-      router.refresh();
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "No se pudo actualizar la promoción.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  const canAct = canModerate || canUpdateStatus;
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-neutral-500">Backoffice</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-neutral-950">
+        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Backoffice</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-slate-950 dark:text-white">
           Promociones
         </h1>
-        <p className="mt-2 text-sm text-neutral-500">
-          Gestión y seguimiento de promociones por empresa y sucursal.
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Moderación, estado operativo y trazabilidad de promociones creadas por las empresas.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          label="Total promociones"
-          value={String(data.summary.totalPromotions)}
-        />
-        <SummaryCard
-          label="Activas"
-          value={String(data.summary.activePromotions)}
-        />
-        <SummaryCard
-          label="Usuarios asignados"
-          value={String(data.summary.assignedUsers)}
-        />
-        <SummaryCard
-          label="Usuarios redimidos"
-          value={String(data.summary.redeemedUsers)}
-        />
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <SummaryCard label="Total" value={data.summary.totalPromotions} />
+        <SummaryCard label="Pendientes de revisión" value={data.summary.pendingReviewPromotions} />
+        <SummaryCard label="Aprobadas" value={data.summary.approvedPromotions} />
+        <SummaryCard label="Pausadas" value={data.summary.pausedPromotions} />
+        <SummaryCard label="Rechazadas" value={data.summary.rejectedPromotions} />
+        <SummaryCard label="Canjes emitidos" value={data.summary.issuedRedemptions} />
+        <SummaryCard label="Canjes redimidos" value={data.summary.redeemedRedemptions} />
       </div>
 
-      {canManage ? (
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            onClick={() => {
-              setFeedback(null);
-              setEditingItem(null);
-              setShowCreateForm((current) => !current);
-            }}
-          >
-            {showCreateForm ? "Cerrar formulario" : "Nueva promoción"}
-          </Button>
-
-          {editingItem ? (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setEditingItem(null);
-                setFeedback(null);
-              }}
-            >
-              Cancelar edición
-            </Button>
-          ) : null}
-        </div>
-      ) : null}
-
-      {canManage && showCreateForm && !editingItem ? (
-        <PromotionForm
-          mode="create"
-          branchOptions={branchOptions}
-          isSubmitting={isSubmitting}
-          feedback={feedback}
-          onSubmit={handleCreate}
-          onCancel={() => {
-            setShowCreateForm(false);
-            setFeedback(null);
-          }}
-        />
-      ) : null}
-
-      {canManage && editingItem ? (
-        <PromotionForm
-          mode="edit"
-          branchOptions={branchOptions}
-          initialValues={initialValues}
-          isSubmitting={isSubmitting}
-          feedback={feedback}
-          onSubmit={handleUpdate}
-          onCancel={() => {
-            setEditingItem(null);
-            setFeedback(null);
-          }}
-        />
-      ) : null}
+      <div className="rounded-2xl border border-indigo-200/70 bg-indigo-50/70 px-4 py-3 text-sm text-indigo-900 dark:border-indigo-400/15 dark:bg-indigo-400/[0.07] dark:text-indigo-200">
+        Las promociones se crean y editan desde el Panel Empresas. El Web Admin únicamente revisa, aprueba, rechaza, solicita cambios, pausa o reactiva.
+      </div>
 
       <PromotionsFilters />
 
-      <div className="flex items-center justify-between text-sm text-neutral-500">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500 dark:text-slate-400">
         <span>
           Mostrando {data.promotions.items.length} de {data.promotions.total} promociones
         </span>
@@ -257,24 +53,21 @@ export function PromotionsManagementClient({
         </span>
       </div>
 
-      <PromotionsTable
-        data={data.promotions}
-        canManage={canManage}
-        onEdit={(item) => {
-          setShowCreateForm(false);
-          setFeedback(null);
-          setEditingItem(item);
-        }}
+      <PromotionsTable data={data.promotions} showActions={canAct} />
+      <PromotionsPagination
+        page={data.promotions.page}
+        pageSize={data.promotions.pageSize}
+        total={data.promotions.total}
       />
     </div>
   );
 }
 
-function SummaryCard({ label, value }: { label: string; value: string }) {
+function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <p className="text-sm text-neutral-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-neutral-950">{value}</p>
+    <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm dark:border-white/[0.075] dark:bg-[#101620]">
+      <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-2 text-2xl font-semibold text-slate-950 dark:text-white">{value}</p>
     </div>
   );
 }
