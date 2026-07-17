@@ -1,93 +1,14 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
 import { PaymentStatusBadge } from "./PaymentStatusBadge";
-import type { BillingListResult } from "@/features/backoffice/billing/types";
+import type { BillingListResult, PaymentFilterOption } from "@/features/backoffice/billing/types";
 
-type PaymentsTableProps = {
-  data: BillingListResult;
-};
-
-function formatAmount(value: number) {
-  return new Intl.NumberFormat("es-PE", {
-    style: "currency",
-    currency: "PEN",
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatDate(value: string) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Fecha inválida";
-  }
-
-  return new Intl.DateTimeFormat("es-PE", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-export function PaymentsTable({ data }: PaymentsTableProps) {
-  if (data.items.length === 0) {
-    return (
-      <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">
-        No se encontraron pagos con los filtros aplicados.
-      </div>
-    );
-  }
-
-  return (
-    <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-neutral-200">
-          <thead className="bg-neutral-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Pago
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Empresa
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Monto
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Método
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Estado
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Fecha
-              </th>
-            </tr>
-          </thead>
-
-          <tbody className="divide-y divide-neutral-100 bg-white">
-            {data.items.map((item) => (
-              <tr key={item.id} className="hover:bg-neutral-50">
-                <td className="px-4 py-4 text-sm font-medium text-neutral-900">
-                  #{item.id}
-                </td>
-                <td className="px-4 py-4 text-sm text-neutral-700">
-                  {item.companyName}
-                </td>
-                <td className="px-4 py-4 text-sm font-medium text-neutral-900">
-                  {formatAmount(item.amount)}
-                </td>
-                <td className="px-4 py-4 text-sm text-neutral-700">
-                  {item.paymentMethodName}
-                </td>
-                <td className="px-4 py-4 text-sm text-neutral-700">
-                  <PaymentStatusBadge statusName={item.statusName} />
-                </td>
-                <td className="px-4 py-4 text-sm text-neutral-700">
-                  {formatDate(item.createdAt)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+type Props = { data: BillingListResult; canManage: boolean; statuses: PaymentFilterOption[] };
+function money(v:number){return new Intl.NumberFormat("es-PE",{style:"currency",currency:"PEN",maximumFractionDigits:2}).format(v)}
+function date(v:string){const d=new Date(v);return Number.isNaN(d.getTime())?"Fecha inválida":new Intl.DateTimeFormat("es-PE",{dateStyle:"medium",timeStyle:"short"}).format(d)}
+async function patch(id:number,statusId:number){const r=await fetch(`/api/backoffice/payments/${id}/status`,{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify({statusId,changedAt:new Date().toISOString()})});const p=await r.json().catch(()=>null);if(!r.ok||p?.ok===false)throw new Error(String(p?.error?.message??p?.error??p?.message??"No se pudo actualizar el pago."))}
+export function PaymentsTable({data,canManage,statuses}:Props){const router=useRouter();const [busy,setBusy]=useState<number|null>(null);const [message,setMessage]=useState<string|null>(null);if(!data.items.length)return <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-8 text-center text-sm text-neutral-500">No se encontraron pagos con los filtros aplicados.</div>;
+async function change(id:number,statusId:number){if(!statusId)return;if(!window.confirm("Este ajuste manual queda registrado. En producción la pasarela y sus webhooks deben ser la fuente principal del estado. ¿Continuar?"))return;setBusy(id);setMessage(null);try{await patch(id,statusId);setMessage("Estado del pago actualizado.");router.refresh()}catch(e){setMessage(e instanceof Error?e.message:"No se pudo actualizar.")}finally{setBusy(null)}}
+return <div className="space-y-3">{message?<p className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">{message}</p>:null}<div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm"><div className="overflow-x-auto"><table className="min-w-full divide-y divide-neutral-200"><thead className="bg-neutral-50"><tr>{["Pago","Empresa","Monto","Método","Estado","Fecha",...(canManage?["Ajuste controlado"]:[])].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">{h}</th>)}</tr></thead><tbody className="divide-y divide-neutral-100 bg-white">{data.items.map(item=><tr key={item.id} className="hover:bg-neutral-50"><td className="px-4 py-4 text-sm font-medium text-neutral-900">#{item.id}</td><td className="px-4 py-4 text-sm text-neutral-700">{item.companyName}</td><td className="px-4 py-4 text-sm font-medium text-neutral-900">{money(item.amount)}</td><td className="px-4 py-4 text-sm text-neutral-700">{item.paymentMethodName}</td><td className="px-4 py-4"><PaymentStatusBadge statusName={item.statusName}/></td><td className="px-4 py-4 text-sm text-neutral-700">{date(item.createdAt)}</td>{canManage?<td className="px-4 py-3"><div className="flex min-w-[230px] gap-2"><select defaultValue="" disabled={busy===item.id} onChange={e=>{const v=Number(e.target.value);e.currentTarget.value="";void change(item.id,v)}} className="h-9 flex-1 rounded-xl border border-slate-200 bg-white px-2 text-xs"><option value="">Seleccionar estado…</option>{statuses.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select><Button type="button" variant="secondary" size="sm" disabled>Auditado</Button></div></td>:null}</tr>)}</tbody></table></div></div></div>}

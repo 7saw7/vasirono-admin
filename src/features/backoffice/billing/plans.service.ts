@@ -3,7 +3,7 @@ import {
   plansDashboardDataSchema,
   plansListResultSchema,
 } from "./schema";
-import type { BillingListFilters, PlanListItem, PlanSummary } from "./types";
+import type { BillingListFilters, PlanListItem, PlanSummary, UpsertPlanInput } from "./types";
 import { callBilling, filtersQuery, paginatedPayload, unwrapPayload } from "./service-helpers";
 
 function mapPlanItem(raw: unknown): PlanListItem {
@@ -70,4 +70,16 @@ export async function getPlansDashboard(input: BillingListFilters = {}) {
   });
   const summary = mapPlanSummary(summaryRaw, plans.items, plans.total);
   return plansDashboardDataSchema.parse({ plans, summary });
+}
+
+
+export async function createPlan(input: UpsertPlanInput) {
+  return callBilling<unknown>("/plans", { method: "POST", body: input });
+}
+
+export async function updatePlan(planId: number, input: UpsertPlanInput) {
+  return callBilling<unknown>(`/plans/${planId}`, {
+    method: "PATCH",
+    body: input,
+  });
 }

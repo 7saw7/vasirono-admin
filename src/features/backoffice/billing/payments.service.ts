@@ -3,7 +3,7 @@ import {
   billingListResultSchema,
   paymentsDashboardDataSchema,
 } from "./schema";
-import type { BillingListFilters, PaymentFilterOption, PaymentListItem, PaymentSummary } from "./types";
+import type { BillingListFilters, PaymentFilterOption, PaymentListItem, PaymentSummary, UpdatePaymentStatusInput } from "./types";
 import { callBilling, filtersQuery, optionFromName, paginatedPayload, unwrapPayload } from "./service-helpers";
 
 function mapPaymentItem(raw: unknown): PaymentListItem {
@@ -13,7 +13,9 @@ function mapPaymentItem(raw: unknown): PaymentListItem {
     companyId: Number(item.companyId ?? item.company_id ?? 0),
     companyName: String(item.companyName ?? item.company_name ?? "Sin empresa"),
     amount: Number(item.amount ?? 0),
+    paymentMethodId: Number(item.paymentMethodId ?? item.payment_method_id ?? 0),
     paymentMethodName: String(item.paymentMethodName ?? item.payment_method_name ?? "Sin método"),
+    statusId: item.statusId === undefined && item.status_id === undefined ? null : item.statusId === null || item.status_id === null ? null : Number(item.statusId ?? item.status_id),
     statusName: item.statusName === undefined && item.status_name === undefined ? null : item.statusName === null || item.status_name === null ? null : String(item.statusName ?? item.status_name),
     createdAt: String(item.createdAt ?? item.created_at ?? new Date(0).toISOString()),
   };
@@ -75,4 +77,15 @@ export async function getPaymentsDashboard(input: BillingListFilters = {}) {
   };
   const summary = mapPaymentSummary(summaryRaw, payments.items, payments.total);
   return paymentsDashboardDataSchema.parse({ payments, meta, summary });
+}
+
+
+export async function updatePaymentStatus(
+  paymentId: number,
+  input: UpdatePaymentStatusInput,
+) {
+  return callBilling<unknown>(`/payments/${paymentId}/status`, {
+    method: "PATCH",
+    body: input,
+  });
 }

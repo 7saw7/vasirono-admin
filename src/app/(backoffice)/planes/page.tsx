@@ -13,15 +13,13 @@ type PlansPageProps = {
 export const dynamic = "force-dynamic";
 
 export default async function PlansPage({ searchParams }: PlansPageProps) {
-  await requireBackofficePage("plans.read");
-
+  const context = await requireBackofficePage("plans.read");
   const params = (await searchParams) ?? {};
-
   const data = await getPlansDashboard({
     search: params.search,
     page: params.page,
     pageSize: params.pageSize,
   });
 
-  return <PlansView data={data} />;
+  return <PlansView data={data} canManage={context.hasPermission("plans.manage")} />;
 }

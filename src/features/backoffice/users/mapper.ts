@@ -14,8 +14,10 @@ export type UserListRow = {
   name: string;
   email: string;
   phone: string | null;
+  role_id: number | string;
   role_name: string;
   verified: boolean | null;
+  is_active: boolean | null;
   reviews_count: number | string | null;
   sessions_count: number | string | null;
   last_session_at: Date | string | null;
@@ -27,8 +29,10 @@ export type UserDetailRow = {
   name: string;
   email: string;
   phone: string | null;
+  role_id: number | string;
   role_name: string;
   verified: boolean | null;
+  is_active: boolean | null;
   created_at: Date | string;
   updated_at: Date | string;
 };
@@ -99,8 +103,10 @@ export function mapUserListRow(row: UserListRow): UserListItem {
     name: row.name,
     email: row.email,
     phone: row.phone,
+    roleId: toNumber(row.role_id),
     roleName: row.role_name,
     verified: Boolean(row.verified),
+    isActive: row.is_active !== false,
     reviewsCount: toNumber(row.reviews_count),
     sessionsCount: toNumber(row.sessions_count),
     lastSessionAt: toIsoString(row.last_session_at),
@@ -185,8 +191,10 @@ export function mapUserDetailRow(
     name: row.name,
     email: row.email,
     phone: row.phone,
+    roleId: toNumber(row.role_id),
     roleName: row.role_name,
     verified: Boolean(row.verified),
+    isActive: row.is_active !== false,
     createdAt: toIsoString(row.created_at) ?? new Date(0).toISOString(),
     updatedAt: toIsoString(row.updated_at) ?? new Date(0).toISOString(),
     sessions: input.sessions.map(mapUserSessionRow),

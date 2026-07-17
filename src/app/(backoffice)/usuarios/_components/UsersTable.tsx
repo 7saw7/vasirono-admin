@@ -32,7 +32,7 @@ export function UsersTable({ data }: UsersTableProps) {
           {
             key: "verified",
             title: "Estado",
-            render: (row) => <UserStatusBadge verified={row.verified} />,
+            render: (row) => <UserStatusBadge verified={row.verified} isActive={row.isActive} />,
           },
           {
             key: "reviewsCount",

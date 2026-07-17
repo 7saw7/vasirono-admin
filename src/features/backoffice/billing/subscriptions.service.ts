@@ -3,7 +3,7 @@ import {
   subscriptionsDashboardDataSchema,
   subscriptionsListResultSchema,
 } from "./schema";
-import type { BillingListFilters, SubscriptionFilterOption, SubscriptionListItem, SubscriptionSummary } from "./types";
+import type { BillingListFilters, SubscriptionFilterOption, SubscriptionListItem, SubscriptionSummary, CreateSubscriptionInput, ChangeSubscriptionPlanInput, UpdateSubscriptionStatusInput, CancelSubscriptionInput } from "./types";
 import { callBilling, filtersQuery, optionFromName, paginatedPayload, unwrapPayload } from "./service-helpers";
 
 function mapSubscriptionItem(raw: unknown): SubscriptionListItem {
@@ -76,4 +76,39 @@ export async function getSubscriptionsDashboard(input: BillingListFilters = {}) 
   };
   const summary = mapSubscriptionSummary(summaryRaw, subscriptions.items, subscriptions.total);
   return subscriptionsDashboardDataSchema.parse({ subscriptions, meta, summary });
+}
+
+
+export async function createSubscription(input: CreateSubscriptionInput) {
+  return callBilling<unknown>("/subscriptions", { method: "POST", body: input });
+}
+
+export async function changeSubscriptionPlan(
+  subscriptionId: number,
+  input: ChangeSubscriptionPlanInput,
+) {
+  return callBilling<unknown>(`/subscriptions/${subscriptionId}/plan`, {
+    method: "PATCH",
+    body: input,
+  });
+}
+
+export async function updateSubscriptionStatus(
+  subscriptionId: number,
+  input: UpdateSubscriptionStatusInput,
+) {
+  return callBilling<unknown>(`/subscriptions/${subscriptionId}/status`, {
+    method: "PATCH",
+    body: input,
+  });
+}
+
+export async function cancelSubscription(
+  subscriptionId: number,
+  input: CancelSubscriptionInput,
+) {
+  return callBilling<unknown>(`/subscriptions/${subscriptionId}/cancel`, {
+    method: "POST",
+    body: input,
+  });
 }

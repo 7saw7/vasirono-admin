@@ -24,8 +24,10 @@ export const userListItemSchema = z.object({
   name: z.string(),
   email: z.string(),
   phone: z.string().nullable(),
+  roleId: z.number().int(),
   roleName: z.string(),
   verified: z.boolean(),
+  isActive: z.boolean(),
   reviewsCount: z.number().int(),
   sessionsCount: z.number().int(),
   lastSessionAt: z.string().nullable(),
@@ -89,8 +91,10 @@ export const userDetailSchema = z.object({
   name: z.string(),
   email: z.string(),
   phone: z.string().nullable(),
+  roleId: z.number().int(),
   roleName: z.string(),
   verified: z.boolean(),
+  isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
   sessions: z.array(userSessionSchema),
@@ -99,4 +103,20 @@ export const userDetailSchema = z.object({
   recentViews: z.array(userRecentViewSchema),
   badges: z.array(userBadgeSchema),
   reviews: z.array(userReviewSchema),
+});
+
+export const userIdParamSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+export const updateAdminUserRoleSchema = z.object({
+  roleId: z.coerce.number().int().positive(),
+});
+
+export const updateAdminUserVerificationSchema = z.object({
+  verified: z.boolean(),
+});
+
+export const updateAdminUserActiveSchema = z.object({
+  active: z.boolean(),
 });

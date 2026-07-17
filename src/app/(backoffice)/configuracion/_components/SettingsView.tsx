@@ -14,8 +14,12 @@ export function SettingsView({ data }: SettingsViewProps) {
           Configuración
         </h1>
         <p className="mt-2 text-sm text-neutral-500">
-          Catálogos operativos y estados base del sistema.
+          Catálogos operativos y estados base del sistema en modo de consulta segura.
         </p>
+      </div>
+
+      <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800">
+        <strong>Configuración de solo lectura:</strong> cada catálogo se administra desde su microservicio propietario. No se expone una escritura genérica sobre tablas compartidas.
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

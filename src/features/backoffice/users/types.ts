@@ -13,8 +13,10 @@ export type UserListItem = {
   name: string;
   email: string;
   phone: string | null;
+  roleId: number;
   roleName: string;
   verified: boolean;
+  isActive: boolean;
   reviewsCount: number;
   sessionsCount: number;
   lastSessionAt: string | null;
@@ -73,8 +75,10 @@ export type UserDetail = {
   name: string;
   email: string;
   phone: string | null;
+  roleId: number;
   roleName: string;
   verified: boolean;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
   sessions: UserSessionItem[];
@@ -84,3 +88,7 @@ export type UserDetail = {
   badges: UserBadgeItem[];
   reviews: UserReviewItem[];
 };
+
+export type UpdateAdminUserRoleInput = { roleId: number };
+export type UpdateAdminUserVerificationInput = { verified: boolean };
+export type UpdateAdminUserActiveInput = { active: boolean };

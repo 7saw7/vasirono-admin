@@ -16,7 +16,9 @@ export type PaymentListItem = {
   companyId: number;
   companyName: string;
   amount: number;
+  paymentMethodId: number;
   paymentMethodName: string;
+  statusId: number | null;
   statusName: string | null;
   createdAt: string;
 };
@@ -152,3 +154,37 @@ export type CreatePromotionInput = {
 };
 
 export type UpdatePromotionInput = Partial<CreatePromotionInput>;
+
+export type UpsertPlanInput = {
+  name: string;
+};
+
+export type CreateSubscriptionInput = {
+  companyId: number;
+  planId: number;
+  statusId?: number;
+  startDate?: string;
+  endDate?: string;
+  replaceActive?: boolean;
+  idempotencyKey?: string;
+};
+
+export type ChangeSubscriptionPlanInput = {
+  planId: number;
+  changedAt?: string;
+};
+
+export type UpdateSubscriptionStatusInput = {
+  statusId: number;
+  endDate?: string;
+};
+
+export type CancelSubscriptionInput = {
+  statusId?: number;
+  endDate?: string;
+};
+
+export type UpdatePaymentStatusInput = {
+  statusId: number;
+  changedAt?: string;
+};

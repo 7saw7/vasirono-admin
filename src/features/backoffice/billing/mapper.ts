@@ -12,7 +12,9 @@ export type PaymentListRow = {
   company_id: number | string;
   company_name: string;
   amount: number | string;
+  payment_method_id: number | string;
   payment_method_name: string;
+  status_id: number | string | null;
   status_name: string | null;
   created_at: Date | string;
 };
@@ -92,7 +94,9 @@ export function mapPaymentListRow(row: PaymentListRow): PaymentListItem {
     companyId: toNumber(row.company_id),
     companyName: row.company_name,
     amount: toNumber(row.amount),
+    paymentMethodId: toNumber(row.payment_method_id),
     paymentMethodName: row.payment_method_name,
+    statusId: toNullableNumber(row.status_id),
     statusName: row.status_name,
     createdAt: toIsoString(row.created_at) ?? new Date(0).toISOString(),
   };

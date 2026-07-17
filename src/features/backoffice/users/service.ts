@@ -3,7 +3,12 @@ import {
   usersListFiltersSchema,
   usersListResultSchema,
 } from "./schema";
-import type { UsersListFilters } from "./types";
+import type {
+  UsersListFilters,
+  UpdateAdminUserRoleInput,
+  UpdateAdminUserVerificationInput,
+  UpdateAdminUserActiveInput,
+} from "./types";
 import {
   BackofficeServiceError,
   callBackofficeService,
@@ -76,8 +81,10 @@ function normalizeUserListItem(value: unknown) {
     name: toStringValue(item.name, "Sin nombre"),
     email: toStringValue(item.email),
     phone: toNullableString(item.phone),
+    roleId: toNumber(item.roleId ?? item.role_id),
     roleName: toStringValue(item.roleName ?? item.role_name, "user"),
     verified: toBoolean(item.verified),
+    isActive: toBoolean(item.isActive ?? item.is_active, true),
     reviewsCount: toNumber(item.reviewsCount ?? item.reviews_count),
     sessionsCount: toNumber(item.sessionsCount ?? item.sessions_count),
     lastSessionAt:
@@ -189,8 +196,10 @@ function normalizeUserDetail(value: unknown) {
     name: toStringValue(user.name, "Sin nombre"),
     email: toStringValue(user.email),
     phone: toNullableString(user.phone),
+    roleId: toNumber(user.roleId ?? user.role_id),
     roleName: toStringValue(user.roleName ?? user.role_name, "user"),
     verified: toBoolean(user.verified),
+    isActive: toBoolean(user.isActive ?? user.is_active, true),
     createdAt,
     updatedAt: toIsoString(user.updatedAt ?? user.updated_at, createdAt),
     sessions: normalizeArray(payload.sessions).map(normalizeSession),
@@ -226,4 +235,38 @@ export async function getUserDetail(userId: string) {
 
     throw error;
   }
+}
+
+
+export async function updateAdminUserRole(
+  userId: string,
+  input: UpdateAdminUserRoleInput,
+) {
+  return callBackofficeService<unknown>(
+    "users",
+    `${ADMIN_USERS_PATH}/${encodeURIComponent(userId)}/role`,
+    { method: "PATCH", body: input },
+  );
+}
+
+export async function updateAdminUserVerification(
+  userId: string,
+  input: UpdateAdminUserVerificationInput,
+) {
+  return callBackofficeService<unknown>(
+    "users",
+    `${ADMIN_USERS_PATH}/${encodeURIComponent(userId)}/verification`,
+    { method: "PATCH", body: input },
+  );
+}
+
+export async function updateAdminUserActive(
+  userId: string,
+  input: UpdateAdminUserActiveInput,
+) {
+  return callBackofficeService<unknown>(
+    "users",
+    `${ADMIN_USERS_PATH}/${encodeURIComponent(userId)}/active`,
+    { method: "PATCH", body: input },
+  );
 }

@@ -152,3 +152,12 @@ export async function getNotificationsDashboard(
     summary: normalizeSummary(summaryRaw),
   });
 }
+
+
+export async function markAdminNotificationRead(notificationId: number) {
+  return callBackofficeService<unknown>(
+    "notifications",
+    `${NOTIFICATIONS_ADMIN_PATH}/${notificationId}/read`,
+    { method: "PATCH" },
+  );
+}

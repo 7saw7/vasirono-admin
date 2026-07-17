@@ -18,7 +18,9 @@ export const paymentListItemSchema = z.object({
   companyId: z.number().int(),
   companyName: z.string(),
   amount: z.number(),
+  paymentMethodId: z.number().int(),
   paymentMethodName: z.string(),
+  statusId: z.number().int().nullable(),
   statusName: z.string().nullable(),
   createdAt: z.string(),
 });
@@ -208,4 +210,47 @@ export const updatePromotionSchema = promotionBaseSchema
 
 export const promotionIdParamSchema = z.object({
   promotionId: z.coerce.number().int().positive(),
+});
+
+export const upsertPlanSchema = z.object({
+  name: z.enum(["Free", "Pro", "Premium"]),
+});
+
+export const billingEntityIdParamSchema = z.object({
+  id: z.coerce.number().int().positive(),
+});
+
+export const createSubscriptionSchema = z
+  .object({
+    companyId: z.coerce.number().int().positive(),
+    planId: z.coerce.number().int().positive(),
+    statusId: z.coerce.number().int().positive().optional(),
+    startDate: z.string().date().optional(),
+    endDate: z.string().date().optional(),
+    replaceActive: z.boolean().default(true),
+    idempotencyKey: z.string().trim().min(8).max(200).optional(),
+  })
+  .refine(
+    (value) => !value.startDate || !value.endDate || value.endDate >= value.startDate,
+    { path: ["endDate"], message: "La fecha final no puede ser anterior a la inicial." },
+  );
+
+export const changeSubscriptionPlanSchema = z.object({
+  planId: z.coerce.number().int().positive(),
+  changedAt: z.string().date().optional(),
+});
+
+export const updateSubscriptionStatusSchema = z.object({
+  statusId: z.coerce.number().int().positive(),
+  endDate: z.string().date().optional(),
+});
+
+export const cancelSubscriptionSchema = z.object({
+  statusId: z.coerce.number().int().positive().optional(),
+  endDate: z.string().date().optional(),
+});
+
+export const updatePaymentStatusSchema = z.object({
+  statusId: z.coerce.number().int().positive(),
+  changedAt: z.string().datetime().optional(),
 });

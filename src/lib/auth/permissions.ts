@@ -31,15 +31,15 @@ export type BackofficePermission =
   | "plans.read"
   | "plans.manage"
   | "subscriptions.read"
+  | "subscriptions.manage"
   | "payments.read"
+  | "payments.manage"
   | "promotions.read"
   | "promotions.updateStatus"
   | "promotions.moderate"
   | "promotions.manage"
   | "notifications.read"
-  | "notifications.manage"
-  | "settings.read"
-  | "settings.manage";
+  | "settings.read";
 
 const ALL_PERMISSIONS: readonly BackofficePermission[] = [
   "dashboard.read",
@@ -70,15 +70,15 @@ const ALL_PERMISSIONS: readonly BackofficePermission[] = [
   "plans.read",
   "plans.manage",
   "subscriptions.read",
+  "subscriptions.manage",
   "payments.read",
+  "payments.manage",
   "promotions.read",
   "promotions.updateStatus",
   "promotions.moderate",
   "promotions.manage",
   "notifications.read",
-  "notifications.manage",
   "settings.read",
-  "settings.manage",
 ];
 
 /**
@@ -217,7 +217,9 @@ const BACKEND_PERMISSIONS_BY_UI_PERMISSION: Record<
   "plans.read": ["billing.admin.plans.read"],
   "plans.manage": ["billing.admin.plans.write"],
   "subscriptions.read": ["billing.admin.subscriptions.read"],
+  "subscriptions.manage": ["billing.admin.subscriptions.write"],
   "payments.read": ["billing.admin.payments.read"],
+  "payments.manage": ["billing.admin.payments.write"],
 
   "promotions.read": ["promotions:admin:read"],
   "promotions.updateStatus": ["promotions:admin:update-status"],
@@ -228,12 +230,11 @@ const BACKEND_PERMISSIONS_BY_UI_PERMISSION: Record<
   ],
 
   "notifications.read": ["notifications:read:all"],
-  // El módulo actual es de lectura; el permiso manage queda preparado para el
-  // Grupo 5 y no concede una escritura backend que aún no existe.
-  "notifications.manage": ["notifications:read:all"],
 
+  // Configuración se cierra como catálogo de consulta. Cada catálogo se
+  // administra en su microservicio propietario para evitar una escritura
+  // genérica sobre tablas compartidas.
   "settings.read": ["admin:settings:read"],
-  "settings.manage": ["admin:settings:manage"],
 };
 
 const EXTRA_BACKEND_PERMISSIONS_BY_ROLE: Partial<

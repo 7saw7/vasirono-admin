@@ -1,72 +1,7 @@
 import { PaymentFilters } from "./PaymentFilters";
 import { PaymentsTable } from "./PaymentsTable";
-import type { PaymentsDashboardData } from "@/features/backoffice/billing/types";
-
-type PaymentsViewProps = {
-  data: PaymentsDashboardData;
-};
-
-function formatAmount(value: number) {
-  return new Intl.NumberFormat("es-PE", {
-    style: "currency",
-    currency: "PEN",
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-export function PaymentsView({ data }: PaymentsViewProps) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium text-neutral-500">Backoffice</p>
-        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-neutral-950">
-          Pagos
-        </h1>
-        <p className="mt-2 text-sm text-neutral-500">
-          Seguimiento de pagos registrados por empresa, método y estado.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard
-          label="Total pagos"
-          value={String(data.summary.totalPayments)}
-        />
-        <SummaryCard
-          label="Monto total"
-          value={formatAmount(data.summary.totalAmount)}
-        />
-        <SummaryCard
-          label="Pendientes"
-          value={String(data.summary.pendingPayments)}
-        />
-        <SummaryCard
-          label="Completados"
-          value={String(data.summary.completedPayments)}
-        />
-      </div>
-
-      <PaymentFilters meta={data.meta} />
-
-      <div className="flex items-center justify-between text-sm text-neutral-500">
-        <span>
-          Mostrando {data.payments.items.length} de {data.payments.total} pagos
-        </span>
-        <span>
-          Página {data.payments.page} · {data.payments.pageSize} por página
-        </span>
-      </div>
-
-      <PaymentsTable data={data.payments} />
-    </div>
-  );
-}
-
-function SummaryCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <p className="text-sm text-neutral-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-neutral-950">{value}</p>
-    </div>
-  );
-}
+import type { PaymentFilterOption, PaymentsDashboardData } from "@/features/backoffice/billing/types";
+type Props={data:PaymentsDashboardData;canManage:boolean;statuses:PaymentFilterOption[]};
+function amount(v:number){return new Intl.NumberFormat("es-PE",{style:"currency",currency:"PEN",maximumFractionDigits:2}).format(v)}
+export function PaymentsView({data,canManage,statuses}:Props){return <div className="space-y-6"><div><p className="text-sm font-medium text-neutral-500">Backoffice</p><h1 className="mt-1 text-3xl font-semibold tracking-tight text-neutral-950">Pagos</h1><p className="mt-2 text-sm text-neutral-500">Seguimiento de pagos por empresa, método y estado.</p></div><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"><Card label="Total pagos" value={String(data.summary.totalPayments)}/><Card label="Monto total" value={amount(data.summary.totalAmount)}/><Card label="Pendientes" value={String(data.summary.pendingPayments)}/><Card label="Completados" value={String(data.summary.completedPayments)}/></div>{canManage?<div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800"><strong>Ajuste excepcional:</strong> el cambio manual de estado está habilitado para soporte operativo y modo mock. Con una pasarela productiva, el webhook firmado debe ser la fuente principal.</div>:null}<PaymentFilters meta={{...data.meta,statuses}}/><div className="flex items-center justify-between text-sm text-neutral-500"><span>Mostrando {data.payments.items.length} de {data.payments.total} pagos</span><span>Página {data.payments.page} · {data.payments.pageSize} por página</span></div><PaymentsTable data={data.payments} canManage={canManage} statuses={statuses}/></div>}
+function Card({label,value}:{label:string;value:string}){return <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"><p className="text-sm text-neutral-500">{label}</p><p className="mt-2 text-2xl font-semibold text-neutral-950">{value}</p></div>}
