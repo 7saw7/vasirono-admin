@@ -34,21 +34,27 @@ function nullableNumber(value: unknown): number | null {
 
 function mapPromotion(raw: unknown): PromotionListItem {
   const item = record(raw);
-  const status = String(item.status ?? item.statusCode ?? "draft") as PromotionListItem["status"];
+  const status = String(
+    item.status ?? item.statusCode ?? "draft",
+  ) as PromotionListItem["status"];
 
   return {
     id: Number(item.promotionId ?? item.id ?? 0),
     title: String(item.title ?? "Sin título"),
     description: nullableString(item.description),
     terms: nullableString(item.terms),
-    discountPercent: nullableNumber(item.discountPercent ?? item.discount_percent),
+    discountPercent: nullableNumber(
+      item.discountPercent ?? item.discount_percent,
+    ),
     startDate: nullableString(item.startDate ?? item.start_date),
     endDate: nullableString(item.endDate ?? item.end_date),
     active: Boolean(item.active ?? status === "approved"),
     status,
     statusName: nullableString(item.statusName ?? item.status_name),
     isPubliclyAvailable: Boolean(
-      item.isPubliclyAvailable ?? item.is_publicly_available ?? status === "approved",
+      item.isPubliclyAvailable ??
+      item.is_publicly_available ??
+      status === "approved",
     ),
     requiresStaffValidation: Boolean(
       item.requiresStaffValidation ?? item.requires_staff_validation ?? true,
@@ -81,7 +87,9 @@ function mapSummary(raw: unknown): PromotionSummary {
     approvedPromotions: Number(
       item.approvedPromotions ?? item.approved_promotions ?? 0,
     ),
-    pausedPromotions: Number(item.pausedPromotions ?? item.paused_promotions ?? 0),
+    pausedPromotions: Number(
+      item.pausedPromotions ?? item.paused_promotions ?? 0,
+    ),
     rejectedPromotions: Number(
       item.rejectedPromotions ?? item.rejected_promotions ?? 0,
     ),
@@ -114,7 +122,9 @@ function mapRedemption(raw: unknown): PromotionRedemption {
   };
 }
 
-function queryFromFilters(filters: PromotionListFilters): Record<string, unknown> {
+function queryFromFilters(
+  filters: PromotionListFilters,
+): Record<string, unknown> {
   return {
     search: filters.search,
     companyId: filters.companyId,
@@ -134,12 +144,16 @@ export async function getAdminPromotionsDashboard(
   const query = queryFromFilters(filters);
 
   const [listRaw, summaryRaw] = await Promise.all([
-    callBackofficeService<unknown>("promotions", "/api/admin/promotions", {
+    callBackofficeService<unknown>("promotions", "/api/backoffice/promotions", {
       query,
     }),
-    callBackofficeService<unknown>("promotions", "/api/admin/promotions/dashboard", {
-      query,
-    }),
+    callBackofficeService<unknown>(
+      "promotions",
+      "/api/backoffice/promotions/dashboard",
+      {
+        query,
+      },
+    ),
   ]);
 
   const page = paginatedPayload(listRaw);
@@ -159,7 +173,7 @@ export async function getAdminPromotionDetail(
 ): Promise<PromotionDetail> {
   const raw = await callBackofficeService<unknown>(
     "promotions",
-    `/api/admin/promotions/${promotionId}`,
+    `/api/backoffice/promotions/${promotionId}`,
   );
   const payload = record(raw);
   const redemptions = Array.isArray(payload.redemptions)
@@ -179,7 +193,7 @@ export async function updateAdminPromotionStatus(
   const body = updatePromotionStatusSchema.parse(input);
   return callBackofficeService<unknown>(
     "promotions",
-    `/api/admin/promotions/${promotionId}/status`,
+    `/api/backoffice/promotions/${promotionId}/status`,
     { method: "PATCH", body },
   );
 }
@@ -191,7 +205,7 @@ export async function moderateAdminPromotion(
   const body = moderatePromotionSchema.parse(input);
   return callBackofficeService<unknown>(
     "promotions",
-    `/api/admin/promotions/${promotionId}/moderate`,
+    `/api/backoffice/promotions/${promotionId}/moderate`,
     { method: "PATCH", body },
   );
 }

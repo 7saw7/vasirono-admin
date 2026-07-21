@@ -34,7 +34,7 @@ export async function getCompaniesList(input: CompanyListFilters) {
         page: filters.page,
         pageSize: filters.pageSize,
       },
-    }
+    },
   );
 
   return companyListResultSchema.parse(unwrapData(raw));
@@ -43,13 +43,12 @@ export async function getCompaniesList(input: CompanyListFilters) {
 export async function getCompanyDetail(companyId: number) {
   const raw = await callBackofficeService<unknown>(
     "companies",
-    `/api/backoffice/companies/${companyId}`
+    `/api/backoffice/companies/${companyId}`,
   );
 
   if (!raw) return null;
   return companyDetailSchema.parse(unwrapData(raw));
 }
-
 
 export async function updateCompanyProfile(
   companyId: number,
@@ -77,7 +76,10 @@ export async function updateCompanyTaxonomy(
   return companyDetailSchema.parse(unwrapData(raw));
 }
 
-export async function updateCompanyStatus(companyId: number, isActive: boolean) {
+export async function updateCompanyStatus(
+  companyId: number,
+  isActive: boolean,
+) {
   const payload = companyUpdateStatusSchema.parse({ isActive });
   await callBackofficeService<unknown>(
     "companies",

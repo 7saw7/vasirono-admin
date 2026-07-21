@@ -20,10 +20,14 @@ function getStatusAndMessage(error: unknown) {
       };
     }
 
-    if (error.message === "FORBIDDEN") {
+    if (
+      error.message === "FORBIDDEN" ||
+      error.message === "AUTH_PORTAL_MISMATCH" ||
+      error.message === "AUTH_PERMISSIONS_MISSING"
+    ) {
       return {
         status: 403,
-        message: "Tu usuario no tiene acceso al backoffice.",
+        message: "Tu sesión no tiene un contexto administrativo válido.",
       };
     }
   }

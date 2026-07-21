@@ -10,7 +10,7 @@ export type BaseListFilters = {
 };
 
 export function createDefaultPagination(
-  partial?: Partial<PaginationState>
+  partial?: Partial<PaginationState>,
 ): PaginationState {
   return {
     page: partial?.page ?? 1,
@@ -27,8 +27,10 @@ export function toQueryString(filters: BaseListFilters): string {
   if (filters.dateRange?.from) params.set("from", filters.dateRange.from);
   if (filters.dateRange?.to) params.set("to", filters.dateRange.to);
   if (filters.sort?.field) params.set("sortField", filters.sort.field);
-  if (filters.sort?.direction) params.set("sortDirection", filters.sort.direction);
-  if (typeof filters.page === "number") params.set("page", String(filters.page));
+  if (filters.sort?.direction)
+    params.set("sortDirection", filters.sort.direction);
+  if (typeof filters.page === "number")
+    params.set("page", String(filters.page));
   if (typeof filters.pageSize === "number") {
     params.set("pageSize", String(filters.pageSize));
   }

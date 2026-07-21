@@ -1,7 +1,4 @@
-import type {
-  NotificationFilterOption,
-  NotificationListItem,
-} from "./types";
+import type { NotificationFilterOption, NotificationListItem } from "./types";
 
 export type NotificationListRow = {
   id: number | string;
@@ -32,7 +29,7 @@ function toNumber(value: number | string | null | undefined): number {
 }
 
 function toNullableNumber(
-  value: number | string | null | undefined
+  value: number | string | null | undefined,
 ): number | null {
   if (value === null || value === undefined) return null;
   const parsed = typeof value === "number" ? value : Number(value);
@@ -46,7 +43,7 @@ function toIsoString(value: Date | string | null | undefined): string | null {
 }
 
 export function mapNotificationListRow(
-  row: NotificationListRow
+  row: NotificationListRow,
 ): NotificationListItem {
   return {
     id: toNumber(row.id),
@@ -64,7 +61,7 @@ export function mapNotificationListRow(
 }
 
 export function mapNotificationFilterOptionRow(
-  row: NotificationFilterOptionRow
+  row: NotificationFilterOptionRow,
 ): NotificationFilterOption {
   return {
     label: row.name,

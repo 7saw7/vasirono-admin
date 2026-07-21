@@ -1,6 +1,4 @@
 import type { AuthUser } from "@/features/auth/types";
-import type { AppRole } from "@/lib/constants/roles";
-import { APP_ROLES } from "@/lib/constants/roles";
 
 export type BackofficePermission =
   | "dashboard.read"
@@ -41,123 +39,8 @@ export type BackofficePermission =
   | "notifications.read"
   | "settings.read";
 
-const ALL_PERMISSIONS: readonly BackofficePermission[] = [
-  "dashboard.read",
-  "companies.read",
-  "companies.update",
-  "branches.read",
-  "branches.update",
-  "claims.read",
-  "claims.review",
-  "verifications.read",
-  "verifications.review",
-  "verifications.assign",
-  "verifications.documents.review",
-  "verifications.decide",
-  "reviews.read",
-  "reviews.moderate",
-  "reviewReports.read",
-  "reviewReports.resolve",
-  "users.read",
-  "users.manage",
-  "analytics.read",
-  "taxonomies.read",
-  "taxonomies.manage",
-  "taxonomies.businessTypes.manage",
-  "taxonomies.categories.manage",
-  "taxonomies.subcategories.manage",
-  "taxonomies.services.manage",
-  "plans.read",
-  "plans.manage",
-  "subscriptions.read",
-  "subscriptions.manage",
-  "payments.read",
-  "payments.manage",
-  "promotions.read",
-  "promotions.updateStatus",
-  "promotions.moderate",
-  "promotions.manage",
-  "notifications.read",
-  "settings.read",
-];
-
-/**
- * Matriz funcional del Web Admin. Esta matriz decide qué páginas y acciones
- * puede ver cada rol. La autorización definitiva sigue validándose en los
- * microservicios mediante los permisos backend enviados por Auth Service.
- */
-const ROLE_PERMISSIONS: Record<AppRole, readonly BackofficePermission[]> = {
-  [APP_ROLES.SUPER_ADMIN]: ALL_PERMISSIONS,
-  [APP_ROLES.ADMIN]: ALL_PERMISSIONS,
-
-  [APP_ROLES.MODERATOR]: [
-    "dashboard.read",
-    "companies.read",
-    "branches.read",
-    "claims.read",
-    "claims.review",
-    "verifications.read",
-    "verifications.assign",
-    "verifications.documents.review",
-    "verifications.decide",
-    "reviews.read",
-    "reviews.moderate",
-    "reviewReports.read",
-    "reviewReports.resolve",
-    "users.read",
-    "taxonomies.read",
-    "plans.read",
-    "promotions.read",
-    "promotions.updateStatus",
-    "promotions.moderate",
-    "promotions.manage",
-    "notifications.read",
-    "settings.read",
-  ],
-
-  [APP_ROLES.ANALYST]: [
-    "dashboard.read",
-    "analytics.read",
-    "companies.read",
-    "branches.read",
-    "users.read",
-    "subscriptions.read",
-    "payments.read",
-    "taxonomies.read",
-    "plans.read",
-    "promotions.read",
-    "notifications.read",
-    "settings.read",
-  ],
-
-  [APP_ROLES.SUPPORT]: [
-    "dashboard.read",
-    "companies.read",
-    "branches.read",
-    "claims.read",
-    "verifications.read",
-    "reviews.read",
-    "reviewReports.read",
-    "users.read",
-    "subscriptions.read",
-    "payments.read",
-    "notifications.read",
-    "taxonomies.read",
-    "settings.read",
-  ],
-
-  [APP_ROLES.COMPANY_OWNER]: [],
-  [APP_ROLES.COMPANY_MANAGER]: [],
-  [APP_ROLES.USER]: [],
-};
-
 export type BackendBackofficePermission = string;
 
-/**
- * Relación entre capacidad visible en la interfaz y permisos exigidos por los
- * microservicios. Al comprobar ambos niveles evitamos mostrar una acción que
- * terminaría necesariamente en 403.
- */
 const BACKEND_PERMISSIONS_BY_UI_PERMISSION: Record<
   BackofficePermission,
   readonly BackendBackofficePermission[]
@@ -168,15 +51,10 @@ const BACKEND_PERMISSIONS_BY_UI_PERMISSION: Record<
   "companies.update": ["backoffice.companies.manage"],
 
   "branches.read": ["backoffice.branches.read"],
-  // Branch Service todavía no expone una capacidad backoffice de escritura.
-  // Se mantiene la capacidad funcional para el Grupo 2, sin fabricar un
-  // permiso backend inexistente.
+  // No backend permission exists yet, so this capability stays disabled.
   "branches.update": [],
 
-  "claims.read": [
-    "verifications.claims.list",
-    "verifications.claims.read",
-  ],
+  "claims.read": ["verifications.claims.list", "verifications.claims.read"],
   "claims.review": ["verifications.claims.decide"],
 
   "verifications.read": [
@@ -237,111 +115,38 @@ const BACKEND_PERMISSIONS_BY_UI_PERMISSION: Record<
   "settings.read": ["admin:settings:read"],
 };
 
-const EXTRA_BACKEND_PERMISSIONS_BY_ROLE: Partial<
-  Record<AppRole, readonly BackendBackofficePermission[]>
-> = {
-  [APP_ROLES.SUPER_ADMIN]: [
-    "media:company:read",
-    "media:branch:read",
-    "media:catalog-item:read",
-    "media:review:read",
-    "media:types:read",
-    "media:company:write",
-    "media:branch:write",
-    "media:catalog-item:write",
-    "media:review:write",
-    "media:company:delete",
-    "media:branch:delete",
-    "media:catalog-item:delete",
-    "media:review:delete",
-  ],
-  [APP_ROLES.ADMIN]: [
-    "media:company:read",
-    "media:branch:read",
-    "media:catalog-item:read",
-    "media:review:read",
-    "media:types:read",
-    "media:company:write",
-    "media:branch:write",
-    "media:catalog-item:write",
-    "media:review:write",
-    "media:company:delete",
-    "media:branch:delete",
-    "media:catalog-item:delete",
-    "media:review:delete",
-  ],
-  [APP_ROLES.MODERATOR]: [
-    "media:company:read",
-    "media:branch:read",
-    "media:catalog-item:read",
-    "media:review:read",
-    "media:types:read",
-  ],
-  [APP_ROLES.ANALYST]: [
-    "media:company:read",
-    "media:branch:read",
-    "media:catalog-item:read",
-    "media:review:read",
-    "media:types:read",
-  ],
-  [APP_ROLES.SUPPORT]: [
-    "media:company:read",
-    "media:branch:read",
-    "media:catalog-item:read",
-    "media:review:read",
-    "media:types:read",
-  ],
-};
-
-export function getRolePermissions(role: AppRole): Set<BackofficePermission> {
-  return new Set(ROLE_PERMISSIONS[role] ?? []);
-}
-
 export function getBackendPermissionsForUiPermission(
-  permission: BackofficePermission
+  permission: BackofficePermission,
 ): readonly BackendBackofficePermission[] {
   return BACKEND_PERMISSIONS_BY_UI_PERMISSION[permission];
 }
 
-export function getBackendRolePermissions(
-  role: AppRole
-): Set<BackendBackofficePermission> {
-  const permissions = ROLE_PERMISSIONS[role] ?? [];
-  const backendPermissions = permissions.flatMap(
-    (permission) => BACKEND_PERMISSIONS_BY_UI_PERMISSION[permission]
+/**
+ * The UI never derives privileges from a role. Auth Service must explicitly
+ * deliver every backend permission. Unknown or unmapped capabilities fail closed.
+ */
+export function userHasPermission(
+  user: Pick<AuthUser, "permissions">,
+  permission: BackofficePermission,
+): boolean {
+  if (!Array.isArray(user.permissions)) return false;
+
+  const required = BACKEND_PERMISSIONS_BY_UI_PERMISSION[permission];
+  if (!required || required.length === 0) return false;
+
+  const granted = new Set(
+    user.permissions
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean),
   );
 
-  return new Set([
-    ...backendPermissions,
-    ...(EXTRA_BACKEND_PERMISSIONS_BY_ROLE[role] ?? []),
-  ]);
-}
-
-export function hasPermission(
-  role: AppRole,
-  permission: BackofficePermission
-): boolean {
-  return getRolePermissions(role).has(permission);
-}
-
-export function userHasPermission(
-  user: Pick<AuthUser, "role" | "permissions">,
-  permission: BackofficePermission
-): boolean {
-  if (!hasPermission(user.role, permission)) return false;
-
-  const requiredBackendPermissions =
-    BACKEND_PERMISSIONS_BY_UI_PERMISSION[permission];
-
-  if (requiredBackendPermissions.length === 0) return true;
-
-  const granted = new Set(user.permissions ?? []);
-  return requiredBackendPermissions.every((item) => granted.has(item));
+  return required.every((item) => granted.has(item));
 }
 
 export function assertPermission(
-  user: Pick<AuthUser, "role" | "permissions">,
-  permission: BackofficePermission
+  user: Pick<AuthUser, "permissions">,
+  permission: BackofficePermission,
 ): void {
   if (!userHasPermission(user, permission)) {
     const error = new Error(`Forbidden: missing permission ${permission}`);

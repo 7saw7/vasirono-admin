@@ -18,7 +18,9 @@ import type {
 import { callBackofficeService } from "@/lib/microservices/backoffice-client";
 
 function asRecord(value: unknown): Record<string, any> {
-  return value && typeof value === "object" ? (value as Record<string, any>) : {};
+  return value && typeof value === "object"
+    ? (value as Record<string, any>)
+    : {};
 }
 
 function unwrapData(raw: unknown): unknown {
@@ -38,14 +40,17 @@ function toNumber(value: unknown, fallback = 0): number {
 
 function toBoolean(value: unknown): boolean {
   if (typeof value === "boolean") return value;
-  if (typeof value === "string") return ["true", "1", "yes", "si", "sí"].includes(value.toLowerCase());
+  if (typeof value === "string")
+    return ["true", "1", "yes", "si", "sí"].includes(value.toLowerCase());
   return Boolean(value);
 }
 
 function toIsoString(value: unknown): string {
   if (typeof value === "string") {
     const date = new Date(value);
-    return Number.isNaN(date.getTime()) ? new Date(0).toISOString() : date.toISOString();
+    return Number.isNaN(date.getTime())
+      ? new Date(0).toISOString()
+      : date.toISOString();
   }
   if (value instanceof Date) return value.toISOString();
   return new Date(0).toISOString();
@@ -62,12 +67,36 @@ function normalizeReviewItem(raw: unknown) {
   return {
     reviewId: toNumber(item.reviewId ?? item.review_id ?? item.id),
     userId: String(item.userId ?? item.user_id ?? ""),
-    userName: String(item.userName ?? item.user_name ?? item.user?.name ?? "Usuario"),
-    userEmail: String(item.userEmail ?? item.user_email ?? item.user?.email ?? ""),
-    companyId: toNumber(item.companyId ?? item.company_id ?? item.company?.companyId ?? item.company?.id),
-    companyName: String(item.companyName ?? item.company_name ?? item.company?.name ?? "Sin empresa"),
-    branchId: toNumber(item.branchId ?? item.branch_id ?? item.branch?.branchId ?? item.branch?.id),
-    branchName: String(item.branchName ?? item.branch_name ?? item.branch?.name ?? "Sin sucursal"),
+    userName: String(
+      item.userName ?? item.user_name ?? item.user?.name ?? "Usuario",
+    ),
+    userEmail: String(
+      item.userEmail ?? item.user_email ?? item.user?.email ?? "",
+    ),
+    companyId: toNumber(
+      item.companyId ??
+        item.company_id ??
+        item.company?.companyId ??
+        item.company?.id,
+    ),
+    companyName: String(
+      item.companyName ??
+        item.company_name ??
+        item.company?.name ??
+        "Sin empresa",
+    ),
+    branchId: toNumber(
+      item.branchId ??
+        item.branch_id ??
+        item.branch?.branchId ??
+        item.branch?.id,
+    ),
+    branchName: String(
+      item.branchName ??
+        item.branch_name ??
+        item.branch?.name ??
+        "Sin sucursal",
+    ),
     rating: toNumber(item.rating),
     comment: item.comment ?? null,
     validated: toBoolean(item.validated),
@@ -111,7 +140,9 @@ function normalizeReviewResponse(raw: unknown) {
   return {
     id: toNumber(item.id),
     companyId: toNumber(item.companyId ?? item.company_id),
-    responderUserId: String(item.responderUserId ?? item.responder_user_id ?? ""),
+    responderUserId: String(
+      item.responderUserId ?? item.responder_user_id ?? "",
+    ),
     responderName: item.responderName ?? item.responder_name ?? null,
     statusName: item.statusName ?? item.status_name ?? null,
     responseText: String(item.responseText ?? item.response_text ?? ""),
@@ -142,7 +173,9 @@ function normalizeReviewDetail(raw: unknown) {
   const payload = asRecord(unwrapData(raw));
   return {
     ...normalizeReviewItem(payload.review ?? payload),
-    media: Array.isArray(payload.media) ? payload.media.map(normalizeReviewMedia) : [],
+    media: Array.isArray(payload.media)
+      ? payload.media.map(normalizeReviewMedia)
+      : [],
     response: normalizeReviewResponse(payload.response),
     usefulness: normalizeUsefulness(payload.usefulness),
   };
@@ -156,7 +189,9 @@ function normalizeModerationResult(raw: unknown) {
     hiddenAt: toNullableIsoString(payload.hiddenAt ?? payload.hidden_at),
     hiddenBy: payload.hiddenBy ?? payload.hidden_by ?? null,
     hiddenReason: payload.hiddenReason ?? payload.hidden_reason ?? null,
-    moderationUpdatedAt: toNullableIsoString(payload.moderationUpdatedAt ?? payload.moderation_updated_at),
+    moderationUpdatedAt: toNullableIsoString(
+      payload.moderationUpdatedAt ?? payload.moderation_updated_at,
+    ),
   };
 }
 
@@ -167,23 +202,36 @@ function normalizeReportResolution(raw: unknown) {
     reviewId: toNumber(payload.reviewId ?? payload.review_id),
     statusId: toNumber(payload.statusId ?? payload.status_id),
     statusCode: String(payload.statusCode ?? payload.status_code ?? "resolved"),
-    statusName: String(payload.statusName ?? payload.status_name ?? payload.statusCode ?? "Resolved"),
+    statusName: String(
+      payload.statusName ??
+        payload.status_name ??
+        payload.statusCode ??
+        "Resolved",
+    ),
     reviewedAt: toNullableIsoString(payload.reviewedAt ?? payload.reviewed_at),
     reviewedBy: payload.reviewedBy ?? payload.reviewed_by ?? null,
-    resolutionNotes: payload.resolutionNotes ?? payload.resolution_notes ?? null,
+    resolutionNotes:
+      payload.resolutionNotes ?? payload.resolution_notes ?? null,
   };
 }
 
 export async function getReviewsList(input: ReviewsListFilters) {
   const filters = reviewsListFiltersSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("reviews", "/api/reviews/admin/reviews", {
-    query: filters,
-  });
+  const raw = await callBackofficeService<unknown>(
+    "reviews",
+    "/api/backoffice/reviews",
+    {
+      query: filters,
+    },
+  );
   return reviewsListResultSchema.parse(normalizeReviewsList(raw));
 }
 
 export async function getReviewDetail(reviewId: number) {
-  const raw = await callBackofficeService<unknown>("reviews", `/api/reviews/admin/reviews/${reviewId}`);
+  const raw = await callBackofficeService<unknown>(
+    "reviews",
+    `/api/backoffice/reviews/${reviewId}`,
+  );
   const payload = unwrapData(raw);
   if (!payload) return null;
   return reviewDetailSchema.parse(normalizeReviewDetail(payload));
@@ -192,41 +240,53 @@ export async function getReviewDetail(reviewId: number) {
 export async function hideReview(
   reviewId: number,
   _actorUserId: string,
-  input: HideReviewInput
+  input: HideReviewInput,
 ) {
   const payload = hideReviewInputSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("reviews", `/api/reviews/admin/reviews/${reviewId}/hide`, {
-    method: "POST",
-    body: payload,
-  });
+  const raw = await callBackofficeService<unknown>(
+    "reviews",
+    `/api/backoffice/reviews/${reviewId}/hide`,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
   return hideReviewResultSchema.parse(normalizeModerationResult(raw));
 }
 
 export async function restoreReview(
   reviewId: number,
   _actorUserId: string,
-  input: RestoreReviewInput = {}
+  input: RestoreReviewInput = {},
 ) {
   restoreReviewInputSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("reviews", `/api/reviews/admin/reviews/${reviewId}/restore`, {
-    method: "POST",
-    body: input,
-  });
+  const raw = await callBackofficeService<unknown>(
+    "reviews",
+    `/api/backoffice/reviews/${reviewId}/restore`,
+    {
+      method: "POST",
+      body: input,
+    },
+  );
   return restoreReviewResultSchema.parse(normalizeModerationResult(raw));
 }
 
 export async function resolveReviewReport(
   reportId: number,
   _actorUserId: string,
-  input: ResolveReviewReportInput
+  input: ResolveReviewReportInput,
 ) {
   const payload = resolveReviewReportInputSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("reviewReports", `/api/reviews/admin/review-reports/${reportId}/resolve`, {
-    method: "POST",
-    body: {
-      resolution: payload.resolution,
-      notes: payload.resolutionNotes ?? null,
+  const raw = await callBackofficeService<unknown>(
+    "reviewReports",
+    `/api/backoffice/review-reports/${reportId}/resolve`,
+    {
+      method: "POST",
+      body: {
+        resolution: payload.resolution,
+        notes: payload.resolutionNotes ?? null,
+      },
     },
-  });
+  );
   return resolveReviewReportResultSchema.parse(normalizeReportResolution(raw));
 }

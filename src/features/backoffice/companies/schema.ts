@@ -116,7 +116,6 @@ export const companyDetailAuditItemSchema = z.object({
   createdAt: z.string(),
 });
 
-
 export const companyBusinessTypeSchema = z.object({
   typeId: z.number().int().positive(),
   name: z.string().nullable(),
@@ -173,12 +172,14 @@ export const companyUpdateProfileSchema = z.object({
 
 export const companyUpdateTaxonomySchema = z.object({
   businessTypeIds: z.array(z.number().int().positive()).max(50),
-  subcategories: z.array(
-    z.object({
-      subcategoryId: z.number().int().positive(),
-      priceId: z.number().int().positive().nullable().optional(),
-    })
-  ).max(100),
+  subcategories: z
+    .array(
+      z.object({
+        subcategoryId: z.number().int().positive(),
+        priceId: z.number().int().positive().nullable().optional(),
+      }),
+    )
+    .max(100),
 });
 
 export const companyUpdateStatusSchema = z.object({

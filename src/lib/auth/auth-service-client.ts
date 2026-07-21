@@ -1,15 +1,11 @@
 import type { AuthUser } from "@/features/auth/types";
+import { randomUUID } from "crypto";
+import { headers as nextHeaders } from "next/headers";
 import { normalizeRoleName } from "@/lib/constants/roles";
-import { getBackendRolePermissions } from "@/lib/auth/permissions";
-
-const AUTH_SERVICE_URL =
-  process.env.AUTH_SERVICE_URL?.trim() ||
-  process.env.AUTH_SERVICE_INTERNAL_URL?.trim() ||
-  process.env.NEXT_PUBLIC_AUTH_SERVICE_URL?.trim() ||
-  "";
+const EDGE_API_URL = process.env.EDGE_API_URL?.trim() || "";
 
 const AUTH_SERVICE_TIMEOUT_MS = Number(
-  process.env.AUTH_SERVICE_TIMEOUT_MS ?? 10_000
+  process.env.AUTH_SERVICE_TIMEOUT_MS ?? 10_000,
 );
 
 type AuthServiceEnvelope<T> = {
@@ -66,21 +62,26 @@ type AuthServiceRequestOptions = {
 function buildPublicRequestHeaders(source?: Headers): Record<string, string> {
   if (!source) return {};
   const headers: Record<string, string> = {};
-  const forwardedFor = source.get("x-forwarded-for");
-  const realIp = source.get("x-real-ip");
   const userAgent = source.get("user-agent");
-  if (forwardedFor) headers["x-forwarded-for"] = forwardedFor;
-  if (realIp) headers["x-real-ip"] = realIp;
+  const requestId = source.get("x-request-id");
+  // The Edge Worker is the only component allowed to construct trusted IP
+  // forwarding headers. The Admin BFF forwards only ordinary client metadata.
   if (userAgent) headers["user-agent"] = userAgent;
+  if (requestId) headers["x-request-id"] = requestId;
   return headers;
 }
 
 function getAuthServiceBaseUrl(): string {
-  if (!AUTH_SERVICE_URL) {
-    throw new Error("Missing AUTH_SERVICE_URL environment variable.");
+  if (!EDGE_API_URL) {
+    throw new Error("Missing EDGE_API_URL environment variable.");
   }
 
-  return AUTH_SERVICE_URL.replace(/\/+$/, "");
+  const normalized = EDGE_API_URL.replace(/\/+$/, "");
+  const parsed = new URL(normalized);
+  if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") {
+    throw new Error("EDGE_API_URL must use HTTPS in production.");
+  }
+  return normalized;
 }
 
 function buildAuthServiceUrl(path: string): string {
@@ -96,7 +97,7 @@ function buildAuthServiceUrl(path: string): string {
 
 async function authServiceFetch<T>(
   path: string,
-  options: AuthServiceRequestOptions = {}
+  options: AuthServiceRequestOptions = {},
 ): Promise<AuthServiceEnvelope<T>> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), AUTH_SERVICE_TIMEOUT_MS);
@@ -106,6 +107,18 @@ async function authServiceFetch<T>(
       accept: "application/json",
       ...options.headers,
     };
+
+    if (!headers["x-request-id"]) {
+      try {
+        const incoming = (await nextHeaders()).get("x-request-id")?.trim();
+        headers["x-request-id"] =
+          incoming && /^[A-Za-z0-9._:-]{8,128}$/.test(incoming)
+            ? incoming
+            : randomUUID();
+      } catch {
+        headers["x-request-id"] = randomUUID();
+      }
+    }
 
     let body: string | undefined;
 
@@ -124,6 +137,7 @@ async function authServiceFetch<T>(
       body,
       cache: "no-store",
       signal: controller.signal,
+      redirect: "manual",
     });
 
     const payload = (await response
@@ -132,7 +146,8 @@ async function authServiceFetch<T>(
 
     if (!response.ok || payload.success === false) {
       const code = payload.error?.code;
-      const message = payload.error?.message || payload.message || response.statusText;
+      const message =
+        payload.error?.message || payload.message || response.statusText;
       const error = new Error(code || message || "AUTH_SERVICE_ERROR");
       Object.assign(error, {
         status: response.status,
@@ -149,15 +164,34 @@ async function authServiceFetch<T>(
 }
 
 function mapPrincipalToAuthUser(principal: AuthServicePrincipal): AuthUser {
-  const role = normalizeRoleName(principal.activeRole || principal.user.globalRole);
+  const role = normalizeRoleName(
+    principal.activeRole || principal.user.globalRole,
+  );
 
   if (!role) {
     throw new Error("FORBIDDEN");
   }
 
-  const permissions = Array.isArray(principal.permissions)
-    ? [...new Set(principal.permissions.map((item) => item.trim()).filter(Boolean))]
-    : Array.from(getBackendRolePermissions(role));
+  if (principal.portal !== "backoffice") {
+    const error = new Error("AUTH_PORTAL_MISMATCH");
+    Object.assign(error, { status: 403, code: "AUTH_PORTAL_MISMATCH" });
+    throw error;
+  }
+
+  if (!Array.isArray(principal.permissions)) {
+    const error = new Error("AUTH_PERMISSIONS_MISSING");
+    Object.assign(error, { status: 403, code: "AUTH_PERMISSIONS_MISSING" });
+    throw error;
+  }
+
+  const permissions = [
+    ...new Set(
+      principal.permissions
+        .filter((item): item is string => typeof item === "string")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  ];
 
   return {
     id: principal.user.id,
@@ -180,14 +214,17 @@ export async function loginBackofficeWithAuthService(input: {
     expiresAt: string;
   };
 }> {
-  const payload = await authServiceFetch<AuthServiceLoginData>("/api/auth/login", {
-    method: "POST",
-    body: {
-      email: input.email,
-      password: input.password,
-      portal: "backoffice",
+  const payload = await authServiceFetch<AuthServiceLoginData>(
+    "/api/auth/login",
+    {
+      method: "POST",
+      body: {
+        email: input.email,
+        password: input.password,
+        portal: "backoffice",
+      },
     },
-  });
+  );
 
   const data = payload.data;
 
@@ -206,7 +243,7 @@ export async function loginBackofficeWithAuthService(input: {
 }
 
 export async function getBackofficeSessionFromAuthService(
-  rawToken: string | null
+  rawToken: string | null,
 ): Promise<{
   user: AuthUser | null;
   sessionId: number | null;
@@ -220,7 +257,7 @@ export async function getBackofficeSessionFromAuthService(
     {
       method: "GET",
       rawToken,
-    }
+    },
   ).catch((error) => {
     const status = (error as { status?: number }).status;
 
@@ -242,7 +279,7 @@ export async function getBackofficeSessionFromAuthService(
 }
 
 export async function logoutBackofficeFromAuthService(
-  rawToken: string | null
+  rawToken: string | null,
 ): Promise<void> {
   if (!rawToken) return;
 
@@ -254,7 +291,10 @@ export async function logoutBackofficeFromAuthService(
   });
 }
 
-export async function requestBackofficePasswordReset(email: string, requestHeaders?: Headers): Promise<void> {
+export async function requestBackofficePasswordReset(
+  email: string,
+  requestHeaders?: Headers,
+): Promise<void> {
   await authServiceFetch("/api/auth/forgot-password", {
     method: "POST",
     body: { email, clientId: "admin" },
@@ -262,7 +302,10 @@ export async function requestBackofficePasswordReset(email: string, requestHeade
   });
 }
 
-export async function verifyBackofficePasswordResetToken(token: string, requestHeaders?: Headers): Promise<{
+export async function verifyBackofficePasswordResetToken(
+  token: string,
+  requestHeaders?: Headers,
+): Promise<{
   valid: true;
   clientId: "admin";
   expiresAt: string;
@@ -281,10 +324,13 @@ export async function verifyBackofficePasswordResetToken(token: string, requestH
   return payload.data;
 }
 
-export async function confirmBackofficePasswordReset(input: {
-  token: string;
-  newPassword: string;
-}, requestHeaders?: Headers): Promise<{ reset: boolean; revokedSessions: boolean }> {
+export async function confirmBackofficePasswordReset(
+  input: {
+    token: string;
+    newPassword: string;
+  },
+  requestHeaders?: Headers,
+): Promise<{ reset: boolean; revokedSessions: boolean }> {
   const payload = await authServiceFetch<{
     reset: boolean;
     revokedSessions: boolean;

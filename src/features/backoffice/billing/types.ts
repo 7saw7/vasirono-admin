@@ -1,4 +1,7 @@
-import type { Option, PaginatedResult } from "@/features/backoffice/shared/types";
+import type {
+  Option,
+  PaginatedResult,
+} from "@/features/backoffice/shared/types";
 
 export type BillingListFilters = {
   search?: string;

@@ -45,7 +45,15 @@ export type ClaimDecisionInput = {
 };
 
 export type OfficialChannelInput = {
-  channelType: "email" | "whatsapp" | "phone" | "website" | "instagram" | "facebook" | "tiktok" | "manual";
+  channelType:
+    | "email"
+    | "whatsapp"
+    | "phone"
+    | "website"
+    | "instagram"
+    | "facebook"
+    | "tiktok"
+    | "manual";
   channelValue: string;
   evidenceUrl?: string | null;
   reviewerNotes?: string | null;

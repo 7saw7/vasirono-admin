@@ -111,7 +111,7 @@ export function mapReviewMediaRow(row: ReviewMediaRow): ReviewMediaItem {
 }
 
 export function mapReviewResponseRow(
-  row: ReviewResponseRow | null | undefined
+  row: ReviewResponseRow | null | undefined,
 ): ReviewResponseItem | null {
   if (!row) return null;
 
@@ -127,7 +127,7 @@ export function mapReviewResponseRow(
 }
 
 export function mapReviewUsefulnessRow(
-  row: ReviewUsefulnessRow | null | undefined
+  row: ReviewUsefulnessRow | null | undefined,
 ): ReviewUsefulness | null {
   if (!row) return null;
 
@@ -153,7 +153,7 @@ export function mapReviewDetailRow(
     media: ReviewMediaRow[];
     response: ReviewResponseRow | null | undefined;
     usefulness: ReviewUsefulnessRow | null | undefined;
-  }
+  },
 ): ReviewDetail {
   const base = mapReviewListRow(row);
 
@@ -185,7 +185,7 @@ export type ReviewReportResolutionRow = {
   resolution_notes: string | null;
 };
 export function mapReviewModerationRow(
-  row: ReviewModerationRow
+  row: ReviewModerationRow,
 ): ReviewModerationMeta {
   return {
     isHidden: Boolean(row.is_hidden),
@@ -197,7 +197,7 @@ export function mapReviewModerationRow(
 }
 
 export function mapHideReviewResultRow(
-  row: ReviewModerationRow
+  row: ReviewModerationRow,
 ): HideReviewResult {
   return {
     reviewId: toNumber(row.id),
@@ -206,7 +206,7 @@ export function mapHideReviewResultRow(
 }
 
 export function mapRestoreReviewResultRow(
-  row: ReviewModerationRow
+  row: ReviewModerationRow,
 ): RestoreReviewResult {
   return {
     reviewId: toNumber(row.id),
@@ -215,7 +215,7 @@ export function mapRestoreReviewResultRow(
 }
 
 export function mapResolveReviewReportResultRow(
-  row: ReviewReportResolutionRow
+  row: ReviewReportResolutionRow,
 ): ResolveReviewReportResult {
   return {
     reportId: toNumber(row.report_id),

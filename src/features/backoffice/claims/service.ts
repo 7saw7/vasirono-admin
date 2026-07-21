@@ -53,23 +53,53 @@ function normalizeClaimItem(row: any) {
     branchName: row.branchName ?? row.branch_name ?? null,
     branchAddress: row.branchAddress ?? row.branch_address ?? null,
     userId: row.userId ?? row.user_id ?? null,
-    claimantName: String(row.claimantName ?? row.applicantName ?? row.claimant_name ?? row.applicant_name ?? "Solicitante público"),
-    claimantEmail: String(row.claimantEmail ?? row.applicantEmail ?? row.claimant_email ?? row.applicant_email ?? "Sin correo registrado"),
-    claimantPhone: row.claimantPhone ?? row.applicantPhone ?? row.claimant_phone ?? row.applicant_phone ?? null,
+    claimantName: String(
+      row.claimantName ??
+        row.applicantName ??
+        row.claimant_name ??
+        row.applicant_name ??
+        "Solicitante público",
+    ),
+    claimantEmail: String(
+      row.claimantEmail ??
+        row.applicantEmail ??
+        row.claimant_email ??
+        row.applicant_email ??
+        "Sin correo registrado",
+    ),
+    claimantPhone:
+      row.claimantPhone ??
+      row.applicantPhone ??
+      row.claimant_phone ??
+      row.applicant_phone ??
+      null,
     applicantRole: row.applicantRole ?? row.applicant_role ?? null,
     source: row.source ?? "public_web",
-    declaredChannelType: row.declaredChannelType ?? row.declared_channel_type ?? null,
-    declaredChannelValue: row.declaredChannelValue ?? row.declared_channel_value ?? null,
-    preferredVerificationRoute: row.preferredVerificationRoute ?? row.preferred_verification_route ?? null,
+    declaredChannelType:
+      row.declaredChannelType ?? row.declared_channel_type ?? null,
+    declaredChannelValue:
+      row.declaredChannelValue ?? row.declared_channel_value ?? null,
+    preferredVerificationRoute:
+      row.preferredVerificationRoute ??
+      row.preferred_verification_route ??
+      null,
     statusName: String(row.statusName ?? row.status_name ?? "Sin estado"),
-    statusCode: String(row.statusCode ?? row.status_code ?? "unknown").toLowerCase(),
+    statusCode: String(
+      row.statusCode ?? row.status_code ?? "unknown",
+    ).toLowerCase(),
     submittedAt: asIso(row.submittedAt ?? row.submitted_at),
     reviewedAt: maybeIso(row.reviewedAt ?? row.reviewed_at),
     reviewedByName: row.reviewedByName ?? row.reviewed_by_name ?? null,
     notes: row.notes ?? null,
     evidenceUrl: row.evidenceUrl ?? row.evidence_url ?? null,
-    hasVerificationRequest: Boolean(row.hasVerificationRequest ?? row.has_verification_request ?? row.verificationRequestId ?? row.verification_request_id),
-    professionalFlowMetadata: row.professionalFlowMetadata ?? row.professional_flow_metadata ?? null,
+    hasVerificationRequest: Boolean(
+      row.hasVerificationRequest ??
+      row.has_verification_request ??
+      row.verificationRequestId ??
+      row.verification_request_id,
+    ),
+    professionalFlowMetadata:
+      row.professionalFlowMetadata ?? row.professional_flow_metadata ?? null,
     invitationId: nullableNumber(row.invitationId ?? row.invitation_id),
     invitationStatus: row.invitationStatus ?? row.invitation_status ?? null,
   };
@@ -78,7 +108,9 @@ function normalizeClaimItem(row: any) {
 function normalizeClaimList(raw: any, page: number, pageSize: number) {
   const source = raw?.items ? raw : raw?.data?.items ? raw.data : raw;
   const pagination = source?.pagination ?? {};
-  const items = Array.isArray(source?.items) ? source.items.map(normalizeClaimItem) : [];
+  const items = Array.isArray(source?.items)
+    ? source.items.map(normalizeClaimItem)
+    : [];
 
   return {
     items,
@@ -90,12 +122,17 @@ function normalizeClaimList(raw: any, page: number, pageSize: number) {
 
 function normalizePublicContact(row: any) {
   return {
-    publicContactVerificationId: asNumber(row.publicContactVerificationId ?? row.public_contact_verification_id),
+    publicContactVerificationId: asNumber(
+      row.publicContactVerificationId ?? row.public_contact_verification_id,
+    ),
     contactSource: String(row.contactSource ?? row.contact_source ?? "manual"),
     contactLabel: row.contactLabel ?? row.contact_label ?? null,
     contactValue: String(row.contactValue ?? row.contact_value ?? ""),
-    normalizedContactValue: row.normalizedContactValue ?? row.normalized_contact_value ?? null,
-    matchedWithBranchContact: Boolean(row.matchedWithBranchContact ?? row.matched_with_branch_contact ?? false),
+    normalizedContactValue:
+      row.normalizedContactValue ?? row.normalized_contact_value ?? null,
+    matchedWithBranchContact: Boolean(
+      row.matchedWithBranchContact ?? row.matched_with_branch_contact ?? false,
+    ),
     evidenceUrl: row.evidenceUrl ?? row.evidence_url ?? null,
     verifiedAt: maybeIso(row.verifiedAt ?? row.verified_at),
     verifiedByName: row.verifiedByName ?? row.verified_by_name ?? null,
@@ -105,7 +142,9 @@ function normalizePublicContact(row: any) {
 
 function normalizeWhatsappVerification(row: any) {
   return {
-    whatsappVerificationId: asNumber(row.whatsappVerificationId ?? row.whatsapp_verification_id),
+    whatsappVerificationId: asNumber(
+      row.whatsappVerificationId ?? row.whatsapp_verification_id,
+    ),
     publicPhone: String(row.publicPhone ?? row.public_phone ?? ""),
     normalizedPhone: String(row.normalizedPhone ?? row.normalized_phone ?? ""),
     attemptsCount: asNumber(row.attemptsCount ?? row.attempts_count),
@@ -126,16 +165,24 @@ function normalizeClaimDetail(raw: any) {
     ...base,
     branchPhone: raw.branchPhone ?? raw.branch_phone ?? null,
     branchEmail: raw.branchEmail ?? raw.branch_email ?? null,
-    onsiteVisitScheduledAt: raw.onsiteVisitScheduledAt ?? raw.onsite_visit_scheduled_at ?? null,
-    onsiteVisitAddress: raw.onsiteVisitAddress ?? raw.onsite_visit_address ?? null,
-    onsiteContactPerson: raw.onsiteContactPerson ?? raw.onsite_contact_person ?? null,
-    onsiteContactPhone: raw.onsiteContactPhone ?? raw.onsite_contact_phone ?? null,
+    onsiteVisitScheduledAt:
+      raw.onsiteVisitScheduledAt ?? raw.onsite_visit_scheduled_at ?? null,
+    onsiteVisitAddress:
+      raw.onsiteVisitAddress ?? raw.onsite_visit_address ?? null,
+    onsiteContactPerson:
+      raw.onsiteContactPerson ?? raw.onsite_contact_person ?? null,
+    onsiteContactPhone:
+      raw.onsiteContactPhone ?? raw.onsite_contact_phone ?? null,
     onsiteVisitNotes: raw.onsiteVisitNotes ?? raw.onsite_visit_notes ?? null,
     statusId: nullableNumber(raw.statusId ?? raw.status_id),
     reviewedById: raw.reviewedById ?? raw.reviewed_by_id ?? null,
-    verificationRequestId: nullableNumber(raw.verificationRequestId ?? raw.verification_request_id),
-    verificationStatusName: raw.verificationStatusName ?? raw.verification_status_name ?? null,
-    verificationStatusCode: raw.verificationStatusCode ?? raw.verification_status_code ?? null,
+    verificationRequestId: nullableNumber(
+      raw.verificationRequestId ?? raw.verification_request_id,
+    ),
+    verificationStatusName:
+      raw.verificationStatusName ?? raw.verification_status_name ?? null,
+    verificationStatusCode:
+      raw.verificationStatusCode ?? raw.verification_status_code ?? null,
     verificationLevel: raw.verificationLevel ?? raw.verification_level ?? null,
     publicContacts: Array.isArray(raw.publicContacts)
       ? raw.publicContacts.map(normalizePublicContact)
@@ -147,115 +194,164 @@ function normalizeClaimDetail(raw: any) {
       : Array.isArray(raw.whatsapp_verifications)
         ? raw.whatsapp_verifications.map(normalizeWhatsappVerification)
         : [],
-    professionalFlowMetadata: raw.professionalFlowMetadata ?? raw.professional_flow_metadata ?? base.professionalFlowMetadata ?? null,
-    invitationId: nullableNumber(raw.invitationId ?? raw.invitation_id ?? base.invitationId),
-    invitationStatus: raw.invitationStatus ?? raw.invitation_status ?? base.invitationStatus ?? null,
-    invitationExpiresAt: maybeIso(raw.invitationExpiresAt ?? raw.invitation_expires_at),
-    invitationAcceptedAt: maybeIso(raw.invitationAcceptedAt ?? raw.invitation_accepted_at),
+    professionalFlowMetadata:
+      raw.professionalFlowMetadata ??
+      raw.professional_flow_metadata ??
+      base.professionalFlowMetadata ??
+      null,
+    invitationId: nullableNumber(
+      raw.invitationId ?? raw.invitation_id ?? base.invitationId,
+    ),
+    invitationStatus:
+      raw.invitationStatus ??
+      raw.invitation_status ??
+      base.invitationStatus ??
+      null,
+    invitationExpiresAt: maybeIso(
+      raw.invitationExpiresAt ?? raw.invitation_expires_at,
+    ),
+    invitationAcceptedAt: maybeIso(
+      raw.invitationAcceptedAt ?? raw.invitation_accepted_at,
+    ),
   };
 }
 
 export async function getClaimsList(input: ClaimListFilters) {
   const filters = claimListFiltersSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", "/api/verifications/admin/claims", {
-    query: filters,
-  });
-  return claimListResultSchema.parse(normalizeClaimList(raw, filters.page, filters.pageSize));
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    "/api/backoffice/claims",
+    {
+      query: filters,
+    },
+  );
+  return claimListResultSchema.parse(
+    normalizeClaimList(raw, filters.page, filters.pageSize),
+  );
 }
 
 export async function getClaimDetail(claimRequestId: number) {
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}`);
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/claims/${claimRequestId}`,
+  );
   const normalized = normalizeClaimDetail(raw);
   return normalized ? claimDetailSchema.parse(normalized) : null;
 }
 
 export async function sendOfficialChannelCode(
   claimRequestId: number,
-  reviewerUserId: string,
-  input: OfficialChannelInput
+  _reviewerUserId: string,
+  input: OfficialChannelInput,
 ) {
   const parsed = officialChannelSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/official-channel`, {
-    method: "PATCH",
-    actorUserId: reviewerUserId,
-    body: parsed,
-  });
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/claims/${claimRequestId}/official-channel`,
+    {
+      method: "PATCH",
+      body: parsed,
+    },
+  );
   return officialChannelChallengeResultSchema.parse(raw);
 }
 
 export async function markClaimOnsiteRequired(
   claimRequestId: number,
-  reviewerUserId: string,
-  input: OnsiteRequiredInput
+  _reviewerUserId: string,
+  input: OnsiteRequiredInput,
 ) {
   const parsed = onsiteRequiredSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/onsite-required`, {
-    method: "PATCH",
-    actorUserId: reviewerUserId,
-    body: parsed,
-  });
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/claims/${claimRequestId}/onsite-required`,
+    {
+      method: "PATCH",
+      body: parsed,
+    },
+  );
   return claimFlowActionResultSchema.parse(raw);
 }
 
 export async function approveOnsiteVerification(
   claimRequestId: number,
-  reviewerUserId: string,
-  input: OnsiteApprovalInput
+  _reviewerUserId: string,
+  input: OnsiteApprovalInput,
 ) {
   const parsed = onsiteApprovalSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/onsite-approve`, {
-    method: "PATCH",
-    actorUserId: reviewerUserId,
-    body: parsed,
-  });
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/claims/${claimRequestId}/onsite-approve`,
+    {
+      method: "PATCH",
+      body: parsed,
+    },
+  );
   return claimFlowActionResultSchema.parse(raw);
 }
 
 export async function requestMoreEvidenceClaim(
   claimRequestId: number,
-  reviewerUserId: string,
-  notes?: string | null
+  _reviewerUserId: string,
+  notes?: string | null,
 ) {
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/needs-more-evidence`, {
-    method: "PATCH",
-    actorUserId: reviewerUserId,
-    body: { notes },
-  });
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/claims/${claimRequestId}/needs-more-evidence`,
+    {
+      method: "PATCH",
+      body: { notes },
+    },
+  );
   return claimFlowActionResultSchema.parse(raw);
 }
 
 export async function approveClaim(
   claimRequestId: number,
-  reviewerUserId: string,
-  input: ClaimDecisionInput
+  _reviewerUserId: string,
+  input: ClaimDecisionInput,
 ) {
   const parsed = claimDecisionSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/approve`, {
-    method: "PATCH",
-    actorUserId: reviewerUserId,
-    body: { notes: parsed.notes },
-  });
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/claims/${claimRequestId}/approve`,
+    {
+      method: "PATCH",
+      body: { notes: parsed.notes },
+    },
+  );
   return claimDecisionResultSchema.parse({
     claimRequestId,
-    statusName: (raw as any)?.statusName ?? (raw as any)?.status_name ?? "Aprobado",
-    verificationRequestId: nullableNumber((raw as any)?.verificationRequestId ?? (raw as any)?.verification_request_id),
+    statusName:
+      (raw as any)?.statusName ?? (raw as any)?.status_name ?? "Aprobado",
+    verificationRequestId: nullableNumber(
+      (raw as any)?.verificationRequestId ??
+        (raw as any)?.verification_request_id,
+    ),
   });
 }
 
 export async function rejectClaim(
   claimRequestId: number,
-  reviewerUserId: string,
-  input: ClaimDecisionInput
+  _reviewerUserId: string,
+  input: ClaimDecisionInput,
 ) {
   const parsed = claimDecisionSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/claims/${claimRequestId}/reject`, {
-    method: "PATCH",
-    actorUserId: reviewerUserId,
-    body: { reason: parsed.notes ?? "Rechazado desde backoffice" },
-  });
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/claims/${claimRequestId}/reject`,
+    {
+      method: "PATCH",
+      body: { reason: parsed.notes ?? "Rechazado desde backoffice" },
+    },
+  );
   return claimDecisionResultSchema.parse({
     claimRequestId,
-    statusName: (raw as any)?.statusName ?? (raw as any)?.status_name ?? "Rechazado",
-    verificationRequestId: nullableNumber((raw as any)?.verificationRequestId ?? (raw as any)?.verification_request_id),
+    statusName:
+      (raw as any)?.statusName ?? (raw as any)?.status_name ?? "Rechazado",
+    verificationRequestId: nullableNumber(
+      (raw as any)?.verificationRequestId ??
+        (raw as any)?.verification_request_id,
+    ),
   });
 }

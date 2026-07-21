@@ -135,7 +135,7 @@ function toNumber(value: number | string | null | undefined): number {
 }
 
 function toNullableNumber(
-  value: number | string | null | undefined
+  value: number | string | null | undefined,
 ): number | null {
   if (value === null || value === undefined) return null;
   const parsed = Number(value);
@@ -149,7 +149,7 @@ function toIsoString(value: Date | string | null | undefined): string | null {
 }
 
 export function mapVerificationListRow(
-  row: VerificationListRow
+  row: VerificationListRow,
 ): VerificationListItem {
   return {
     verificationRequestId: toNumber(row.verification_request_id),
@@ -174,7 +174,7 @@ export function mapVerificationListRow(
 }
 
 export function mapVerificationSummaryRow(
-  row: VerificationSummaryRow | undefined
+  row: VerificationSummaryRow | undefined,
 ): VerificationQueueSummary {
   return {
     total: toNumber(row?.total_count),
@@ -186,7 +186,7 @@ export function mapVerificationSummaryRow(
 }
 
 export function mapVerificationDocumentRow(
-  row: VerificationDocumentRow
+  row: VerificationDocumentRow,
 ): VerificationDocument {
   return {
     verificationDocumentId: toNumber(row.verification_document_id),
@@ -205,7 +205,7 @@ export function mapVerificationDocumentRow(
 }
 
 export function mapVerificationCheckRow(
-  row: VerificationCheckRow
+  row: VerificationCheckRow,
 ): VerificationCheck {
   return {
     verificationCheckId: toNumber(row.verification_check_id),
@@ -221,7 +221,7 @@ export function mapVerificationCheckRow(
 }
 
 export function mapVerificationTimelineRow(
-  row: VerificationTimelineRow
+  row: VerificationTimelineRow,
 ): VerificationTimelineItem {
   return {
     auditLogId: toNumber(row.audit_log_id),
@@ -234,7 +234,7 @@ export function mapVerificationTimelineRow(
 }
 
 export function mapVerificationPublicContactRow(
-  row: VerificationPublicContactRow
+  row: VerificationPublicContactRow,
 ): VerificationPublicContact {
   return {
     publicContactVerificationId: toNumber(row.public_contact_verification_id),
@@ -251,7 +251,7 @@ export function mapVerificationPublicContactRow(
 }
 
 export function mapVerificationWhatsappRow(
-  row: VerificationWhatsappRow
+  row: VerificationWhatsappRow,
 ): VerificationWhatsappItem {
   return {
     whatsappVerificationId: toNumber(row.whatsapp_verification_id),
@@ -269,7 +269,7 @@ export function mapVerificationWhatsappRow(
 }
 
 export function mapVerificationAddressMatchRow(
-  row: VerificationAddressMatchRow
+  row: VerificationAddressMatchRow,
 ): VerificationAddressMatch {
   return {
     addressVerificationId: toNumber(row.address_verification_id),
@@ -295,7 +295,7 @@ export function mapVerificationDetailRow(
     publicContacts: VerificationPublicContactRow[];
     whatsappVerifications: VerificationWhatsappRow[];
     addressMatches: VerificationAddressMatchRow[];
-  }
+  },
 ): VerificationDetail {
   const base = mapVerificationListRow(row);
 
@@ -310,7 +310,7 @@ export function mapVerificationDetailRow(
     timeline: input.timeline.map(mapVerificationTimelineRow),
     publicContacts: input.publicContacts.map(mapVerificationPublicContactRow),
     whatsappVerifications: input.whatsappVerifications.map(
-      mapVerificationWhatsappRow
+      mapVerificationWhatsappRow,
     ),
     addressMatches: input.addressMatches.map(mapVerificationAddressMatchRow),
   };
@@ -332,7 +332,7 @@ export function mapVerificationDecisionResult(input: {
     requestStatusCode: (input.requestStatusCode ?? "unknown").toLowerCase(),
     requestStatusName: input.requestStatusName ?? "Sin estado",
     companyVerificationStatusId: toNullableNumber(
-      input.companyVerificationStatusId
+      input.companyVerificationStatusId,
     ),
     profileUpdated: Boolean(input.profileUpdated),
     reviewedAt: toIsoString(input.reviewedAt),

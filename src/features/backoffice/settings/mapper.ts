@@ -54,7 +54,7 @@ export function mapSimpleSettingRow(row: SimpleSettingRow): SimpleSettingItem {
 }
 
 export function mapVerificationLevelRow(
-  row: VerificationLevelRow
+  row: VerificationLevelRow,
 ): VerificationLevelItem {
   return {
     id: toNumber(row.id),
@@ -66,7 +66,7 @@ export function mapVerificationLevelRow(
 }
 
 export function mapVerificationMethodRow(
-  row: VerificationMethodRow
+  row: VerificationMethodRow,
 ): VerificationMethodItem {
   return {
     id: toNumber(row.id),
@@ -80,7 +80,7 @@ export function mapVerificationMethodRow(
 }
 
 export function mapVerificationStatusRow(
-  row: VerificationStatusRow
+  row: VerificationStatusRow,
 ): VerificationStatusItem {
   return {
     id: toNumber(row.id),

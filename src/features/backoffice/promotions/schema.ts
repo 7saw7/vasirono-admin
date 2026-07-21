@@ -39,7 +39,8 @@ export const moderatePromotionSchema = z
   })
   .superRefine((value, ctx) => {
     if (
-      (value.decision === "rejected" || value.decision === "requires_changes") &&
+      (value.decision === "rejected" ||
+        value.decision === "requires_changes") &&
       !value.reason
     ) {
       ctx.addIssue({

@@ -62,7 +62,7 @@ export function mapReviewReportRow(row: ReviewReportRow): ReviewReportListItem {
 }
 
 export function mapReviewReportDetailRow(
-  row: ReviewReportDetailRow
+  row: ReviewReportDetailRow,
 ): ReviewReportDetail {
   const base = mapReviewReportRow(row);
 

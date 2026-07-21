@@ -66,7 +66,7 @@ export function mapQueueMetric(
     | DashboardVerificationRow
     | DashboardClaimsRow
     | DashboardModerationRow
-    | undefined
+    | undefined,
 ): QueueMetric {
   return {
     total: toNumber(row?.total_count),
@@ -74,11 +74,21 @@ export function mapQueueMetric(
     inReview: toNumber(row?.in_review_count),
     approved:
       "approved_count" in (row ?? {})
-        ? toNumber((row as DashboardVerificationRow | DashboardClaimsRow).approved_count)
+        ? toNumber(
+            (row as DashboardVerificationRow | DashboardClaimsRow)
+              .approved_count,
+          )
         : undefined,
     rejected:
       "rejected_count" in (row ?? {})
-        ? toNumber((row as DashboardVerificationRow | DashboardClaimsRow | DashboardModerationRow).rejected_count)
+        ? toNumber(
+            (
+              row as
+                | DashboardVerificationRow
+                | DashboardClaimsRow
+                | DashboardModerationRow
+            ).rejected_count,
+          )
         : undefined,
     available: Boolean(row),
     unavailableReason: row ? undefined : "Datos no disponibles.",
@@ -86,7 +96,7 @@ export function mapQueueMetric(
 }
 
 export function mapRevenueSummary(
-  row: DashboardRevenueRow | undefined
+  row: DashboardRevenueRow | undefined,
 ): RevenueSummary {
   return {
     totalPayments: toNumber(row?.total_amount),
@@ -99,7 +109,7 @@ export function mapRevenueSummary(
 }
 
 export function mapRecentActivity(
-  rows: DashboardActivityRow[]
+  rows: DashboardActivityRow[],
 ): RecentActivityItem[] {
   return rows.map((row) => ({
     id: row.id,
@@ -123,29 +133,29 @@ export function buildPlatformHealth(input: {
     input.verificationsPending > 50
       ? "critical"
       : input.verificationsPending > 15
-      ? "warning"
-      : "healthy";
+        ? "warning"
+        : "healthy";
 
   const moderationStatus =
     input.reviewReportsPending > 50
       ? "critical"
       : input.reviewReportsPending > 15
-      ? "warning"
-      : "healthy";
+        ? "warning"
+        : "healthy";
 
   const claimsStatus =
     input.claimsPending > 25
       ? "critical"
       : input.claimsPending > 10
-      ? "warning"
-      : "healthy";
+        ? "warning"
+        : "healthy";
 
   const trafficStatus =
     input.events7d === 0
       ? "critical"
       : input.events7d < 100
-      ? "warning"
-      : "healthy";
+        ? "warning"
+        : "healthy";
 
   return [
     {

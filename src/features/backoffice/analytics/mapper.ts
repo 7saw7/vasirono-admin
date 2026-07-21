@@ -43,7 +43,7 @@ export function mapAnalyticsKpi(row: AnalyticsSeriesRow): AnalyticsKpi {
 }
 
 export function mapAnalyticsSeriesPoint(
-  row: AnalyticsSeriesRow
+  row: AnalyticsSeriesRow,
 ): AnalyticsSeriesPoint {
   return {
     label: row.label,
@@ -52,7 +52,7 @@ export function mapAnalyticsSeriesPoint(
 }
 
 export function mapAnalyticsTopBranchRow(
-  row: AnalyticsTopBranchRow
+  row: AnalyticsTopBranchRow,
 ): AnalyticsTopBranchItem {
   return {
     branchId: toNumber(row.branch_id),

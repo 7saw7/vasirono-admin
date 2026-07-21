@@ -1,10 +1,7 @@
 import type { PaginatedResult } from "@/features/backoffice/shared/types";
 
 export type TaxonomyEntity =
-  | "business-types"
-  | "categories"
-  | "subcategories"
-  | "services";
+  "business-types" | "categories" | "subcategories" | "services";
 
 export type TaxonomyListFilters = {
   entity?: TaxonomyEntity;

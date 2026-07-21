@@ -66,29 +66,44 @@ function unwrapDetail(raw: any) {
       documents: Array.isArray(source.documents) ? source.documents : [],
       checks: Array.isArray(source.checks) ? source.checks : [],
       timeline: Array.isArray(source.timeline) ? source.timeline : [],
-      publicContacts: Array.isArray(source.publicContacts) ? source.publicContacts : [],
+      publicContacts: Array.isArray(source.publicContacts)
+        ? source.publicContacts
+        : [],
       whatsappVerifications: Array.isArray(source.whatsappVerifications)
         ? source.whatsappVerifications
         : Array.isArray(source.whatsapp)
           ? source.whatsapp
           : [],
-      addressMatches: Array.isArray(source.addressMatches) ? source.addressMatches : [],
+      addressMatches: Array.isArray(source.addressMatches)
+        ? source.addressMatches
+        : [],
     };
   }
 
   return source;
 }
 
-export async function getVerificationRequestsList(input: VerificationListFilters) {
+export async function getVerificationRequestsList(
+  input: VerificationListFilters,
+) {
   const filters = verificationListFiltersSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", "/api/verifications/admin/verifications", {
-    query: filters,
-  });
-  return verificationListResultSchema.parse(normalizeList(raw, filters.page, filters.pageSize));
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    "/api/backoffice/verifications",
+    {
+      query: filters,
+    },
+  );
+  return verificationListResultSchema.parse(
+    normalizeList(raw, filters.page, filters.pageSize),
+  );
 }
 
 export async function getVerificationDetail(requestId: number) {
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/verifications/${requestId}`);
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/verifications/${requestId}`,
+  );
   const payload = unwrapDetail(raw);
   if (!payload) return null;
   return verificationDetailSchema.parse(payload);
@@ -96,20 +111,24 @@ export async function getVerificationDetail(requestId: number) {
 
 export async function assignVerificationReviewer(
   requestId: number,
-  input: VerificationAssignInput
+  input: VerificationAssignInput,
 ) {
   const parsed = verificationAssignSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("verifications", `/api/verifications/admin/verifications/${requestId}/assign`, {
-    method: "PATCH",
-    body: parsed,
-  });
+  const raw = await callBackofficeService<unknown>(
+    "verifications",
+    `/api/backoffice/verifications/${requestId}/assign`,
+    {
+      method: "PATCH",
+      body: parsed,
+    },
+  );
   return verificationAssignResultSchema.parse(raw);
 }
 
 export async function decideVerificationRequest(
   requestId: number,
-  reviewerUserId: string,
-  input: VerificationDecisionInput
+  _reviewerUserId: string,
+  input: VerificationDecisionInput,
 ): Promise<VerificationDecisionResult> {
   const payload = verificationDecisionInputSchema.parse(input);
   const path = payload.decision === "approved" ? "approve" : "reject";
@@ -125,30 +144,28 @@ export async function decideVerificationRequest(
 
   const raw = await callBackofficeService<unknown>(
     "verifications",
-    `/api/verifications/admin/verifications/${requestId}/${path}`,
+    `/api/backoffice/verifications/${requestId}/${path}`,
     {
       method: "PATCH",
-      actorUserId: reviewerUserId,
       body,
-    }
+    },
   );
 
   return verificationDecisionResultSchema.parse(raw);
 }
 
-
 export async function requestVerificationDocumentUploadUrl(
   requestId: number,
-  input: VerificationDocumentUploadUrlInput
+  input: VerificationDocumentUploadUrlInput,
 ) {
   const payload = verificationDocumentUploadUrlInputSchema.parse(input);
   const raw = await callBackofficeService<unknown>(
     "verifications",
-    `/api/verifications/admin/verifications/${requestId}/documents/upload-url`,
+    `/api/backoffice/verifications/${requestId}/documents/upload-url`,
     {
       method: "POST",
       body: payload,
-    }
+    },
   );
 
   return verificationDocumentUploadUrlResultSchema.parse(raw);
@@ -156,16 +173,16 @@ export async function requestVerificationDocumentUploadUrl(
 
 export async function confirmVerificationDocumentUpload(
   requestId: number,
-  input: VerificationDocumentConfirmInput
+  input: VerificationDocumentConfirmInput,
 ) {
   const payload = verificationDocumentConfirmInputSchema.parse(input);
   const raw = await callBackofficeService<unknown>(
     "verifications",
-    `/api/verifications/admin/verifications/${requestId}/documents/confirm`,
+    `/api/backoffice/verifications/${requestId}/documents/confirm`,
     {
       method: "POST",
       body: payload,
-    }
+    },
   );
 
   return verificationDocumentConfirmResultSchema.parse(raw);
@@ -173,11 +190,11 @@ export async function confirmVerificationDocumentUpload(
 
 export async function getVerificationDocumentViewUrl(
   requestId: number,
-  documentId: number
+  documentId: number,
 ) {
   const raw = await callBackofficeService<unknown>(
     "verifications",
-    `/api/verifications/admin/verifications/${requestId}/documents/${documentId}/view-url`
+    `/api/backoffice/verifications/${requestId}/documents/${documentId}/view-url`,
   );
 
   return verificationDocumentViewUrlResultSchema.parse(raw);
@@ -186,16 +203,16 @@ export async function getVerificationDocumentViewUrl(
 export async function reviewVerificationDocument(
   requestId: number,
   documentId: number,
-  input: VerificationDocumentReviewInput
+  input: VerificationDocumentReviewInput,
 ) {
   const payload = verificationDocumentReviewInputSchema.parse(input);
   const raw = await callBackofficeService<unknown>(
     "verifications",
-    `/api/verifications/admin/verifications/${requestId}/documents/${documentId}/review`,
+    `/api/backoffice/verifications/${requestId}/documents/${documentId}/review`,
     {
       method: "PATCH",
       body: payload,
-    }
+    },
   );
 
   return verificationDocumentReviewResultSchema.parse(raw);

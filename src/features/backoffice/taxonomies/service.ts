@@ -55,7 +55,7 @@ function paginationFallback(value: unknown) {
 
 function taxonomyPath(path = "") {
   const suffix = path ? `/${path.replace(/^\/+/, "")}` : "";
-  return `/api/companies/backoffice/taxonomies${suffix}`;
+  return `/api/backoffice/taxonomies${suffix}`;
 }
 
 export async function getBusinessTypesList(input: TaxonomyListFilters = {}) {
@@ -72,7 +72,9 @@ export async function getBusinessTypesList(input: TaxonomyListFilters = {}) {
     },
   );
 
-  return paginatedBusinessTypesSchema.parse(paginationFallback(unwrapData(raw)));
+  return paginatedBusinessTypesSchema.parse(
+    paginationFallback(unwrapData(raw)),
+  );
 }
 
 export async function getCategoriesList(input: TaxonomyListFilters = {}) {
@@ -107,7 +109,9 @@ export async function getSubcategoriesList(input: TaxonomyListFilters = {}) {
     },
   );
 
-  return paginatedSubcategoriesSchema.parse(paginationFallback(unwrapData(raw)));
+  return paginatedSubcategoriesSchema.parse(
+    paginationFallback(unwrapData(raw)),
+  );
 }
 
 export async function getServicesList(input: TaxonomyListFilters = {}) {
@@ -131,29 +135,37 @@ export async function getServicesList(input: TaxonomyListFilters = {}) {
 export async function getTaxonomiesDashboard(
   input: TaxonomiesDashboardFilters = {},
 ) {
-  const businessTypes = taxonomyListFiltersSchema.parse(input.businessTypes ?? {});
+  const businessTypes = taxonomyListFiltersSchema.parse(
+    input.businessTypes ?? {},
+  );
   const categories = taxonomyListFiltersSchema.parse(input.categories ?? {});
-  const subcategories = taxonomyListFiltersSchema.parse(input.subcategories ?? {});
+  const subcategories = taxonomyListFiltersSchema.parse(
+    input.subcategories ?? {},
+  );
   const services = taxonomyListFiltersSchema.parse(input.services ?? {});
 
-  const raw = await callBackofficeService<unknown>("companies", taxonomyPath(), {
-    query: {
-      btSearch: businessTypes.search,
-      btPage: businessTypes.page,
-      btPageSize: businessTypes.pageSize,
-      catSearch: categories.search,
-      catPage: categories.page,
-      catPageSize: categories.pageSize,
-      subSearch: subcategories.search,
-      subCategoryId: subcategories.categoryId,
-      subPage: subcategories.page,
-      subPageSize: subcategories.pageSize,
-      srvSearch: services.search,
-      srvActive: services.active,
-      srvPage: services.page,
-      srvPageSize: services.pageSize,
+  const raw = await callBackofficeService<unknown>(
+    "companies",
+    taxonomyPath(),
+    {
+      query: {
+        btSearch: businessTypes.search,
+        btPage: businessTypes.page,
+        btPageSize: businessTypes.pageSize,
+        catSearch: categories.search,
+        catPage: categories.page,
+        catPageSize: categories.pageSize,
+        subSearch: subcategories.search,
+        subCategoryId: subcategories.categoryId,
+        subPage: subcategories.page,
+        subPageSize: subcategories.pageSize,
+        srvSearch: services.search,
+        srvActive: services.active,
+        srvPage: services.page,
+        srvPageSize: services.pageSize,
+      },
     },
-  });
+  );
 
   const data = unwrapData<Record<string, unknown>>(raw);
   return taxonomiesDashboardDataSchema.parse({
@@ -198,7 +210,10 @@ export async function createCategory(input: CreateCategoryInput) {
   return unwrapData(raw);
 }
 
-export async function updateCategory(categoryId: number, input: UpdateCategoryInput) {
+export async function updateCategory(
+  categoryId: number,
+  input: UpdateCategoryInput,
+) {
   const payload = updateCategorySchema.parse(input);
   const raw = await callBackofficeService<unknown>(
     "companies",
@@ -241,7 +256,10 @@ export async function createService(input: CreateServiceInput) {
   return unwrapData(raw);
 }
 
-export async function updateService(serviceId: number, input: UpdateServiceInput) {
+export async function updateService(
+  serviceId: number,
+  input: UpdateServiceInput,
+) {
   const payload = updateServiceSchema.parse(input);
   const raw = await callBackofficeService<unknown>(
     "companies",

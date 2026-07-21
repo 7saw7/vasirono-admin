@@ -92,7 +92,7 @@ function toNumber(value: number | string | null | undefined): number {
 }
 
 function toNullableNumber(
-  value: number | string | null | undefined
+  value: number | string | null | undefined,
 ): number | null {
   if (value === null || value === undefined) return null;
   const parsed = Number(value);
@@ -143,7 +143,7 @@ export function mapClaimListRow(row: ClaimListRow): ClaimListItem {
 }
 
 export function mapClaimPublicContactRow(
-  row: ClaimPublicContactRow
+  row: ClaimPublicContactRow,
 ): ClaimPublicContact {
   return {
     publicContactVerificationId: toNumber(row.public_contact_verification_id),
@@ -160,7 +160,7 @@ export function mapClaimPublicContactRow(
 }
 
 export function mapClaimWhatsappVerificationRow(
-  row: ClaimWhatsappVerificationRow
+  row: ClaimWhatsappVerificationRow,
 ): ClaimWhatsappVerification {
   return {
     whatsappVerificationId: toNumber(row.whatsapp_verification_id),
@@ -182,7 +182,7 @@ export function mapClaimDetailRow(
   relations: {
     publicContacts: ClaimPublicContactRow[];
     whatsappVerifications: ClaimWhatsappVerificationRow[];
-  } = { publicContacts: [], whatsappVerifications: [] }
+  } = { publicContacts: [], whatsappVerifications: [] },
 ): ClaimDetail {
   return {
     claimRequestId: toNumber(row.claim_request_id),
@@ -223,13 +223,13 @@ export function mapClaimDetailRow(
     professionalFlowMetadata: row.professional_flow_metadata ?? null,
     publicContacts: relations.publicContacts.map(mapClaimPublicContactRow),
     whatsappVerifications: relations.whatsappVerifications.map(
-      mapClaimWhatsappVerificationRow
+      mapClaimWhatsappVerificationRow,
     ),
   };
 }
 
 export function mapClaimDecisionResult(
-  row: ClaimDecisionResultRow
+  row: ClaimDecisionResultRow,
 ): ClaimDecisionResult {
   return {
     claimRequestId: row.claimRequestId,

@@ -134,7 +134,7 @@ export const updateSubcategorySchema = z
     (value) => value.categoryId !== undefined || value.name !== undefined,
     {
       message: "Debes enviar al menos un campo para actualizar.",
-    }
+    },
   );
 
 export const createServiceSchema = z.object({
@@ -145,7 +145,7 @@ export const createServiceSchema = z.object({
     .max(80)
     .regex(
       /^[a-z0-9_]+$/,
-      "El código solo puede contener minúsculas, números y guion bajo."
+      "El código solo puede contener minúsculas, números y guion bajo.",
     ),
   name: z.string().trim().min(2).max(120),
   description: z.string().trim().max(500).nullable().optional(),
@@ -162,7 +162,7 @@ export const updateServiceSchema = z
       .max(80)
       .regex(
         /^[a-z0-9_]+$/,
-        "El código solo puede contener minúsculas, números y guion bajo."
+        "El código solo puede contener minúsculas, números y guion bajo.",
       )
       .optional(),
     name: z.string().trim().min(2).max(120).optional(),
@@ -179,5 +179,5 @@ export const updateServiceSchema = z
       value.isActive !== undefined,
     {
       message: "Debes enviar al menos un campo para actualizar.",
-    }
+    },
   );

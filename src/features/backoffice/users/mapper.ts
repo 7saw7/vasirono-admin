@@ -125,7 +125,7 @@ export function mapUserSessionRow(row: UserSessionRow): UserSessionItem {
 }
 
 export function mapUserNotificationRow(
-  row: UserNotificationRow
+  row: UserNotificationRow,
 ): UserNotificationItem {
   return {
     id: toNumber(row.id),
@@ -136,7 +136,9 @@ export function mapUserNotificationRow(
   };
 }
 
-export function mapUserFavoriteRow(row: UserFavoriteRow): UserFavoriteBranchItem {
+export function mapUserFavoriteRow(
+  row: UserFavoriteRow,
+): UserFavoriteBranchItem {
   return {
     branchId: toNumber(row.branch_id),
     branchName: row.branch_name,
@@ -146,7 +148,7 @@ export function mapUserFavoriteRow(row: UserFavoriteRow): UserFavoriteBranchItem
 }
 
 export function mapUserRecentViewRow(
-  row: UserRecentViewRow
+  row: UserRecentViewRow,
 ): UserRecentViewItem {
   return {
     viewId: toNumber(row.view_id),
@@ -184,7 +186,7 @@ export function mapUserDetailRow(
     recentViews: UserRecentViewRow[];
     badges: UserBadgeRow[];
     reviews: UserReviewRow[];
-  }
+  },
 ): UserDetail {
   return {
     id: row.id,

@@ -10,7 +10,7 @@ export function queryFromRequest(request: NextRequest) {
 export async function proxyBackofficeAnalytics(
   request: NextRequest,
   path: string,
-  fallbackError: string
+  fallbackError: string,
 ) {
   try {
     await getBackofficeContext("analytics.read");

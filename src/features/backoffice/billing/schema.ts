@@ -181,7 +181,7 @@ const promotionBaseSchema = z.object({
 
 function validateDates(
   value: { startDate?: string | null; endDate?: string | null },
-  ctx: z.RefinementCtx
+  ctx: z.RefinementCtx,
 ) {
   if (value.startDate && value.endDate) {
     const start = new Date(value.startDate);
@@ -231,8 +231,12 @@ export const createSubscriptionSchema = z
     idempotencyKey: z.string().trim().min(8).max(200).optional(),
   })
   .refine(
-    (value) => !value.startDate || !value.endDate || value.endDate >= value.startDate,
-    { path: ["endDate"], message: "La fecha final no puede ser anterior a la inicial." },
+    (value) =>
+      !value.startDate || !value.endDate || value.endDate >= value.startDate,
+    {
+      path: ["endDate"],
+      message: "La fecha final no puede ser anterior a la inicial.",
+    },
   );
 
 export const changeSubscriptionPlanSchema = z.object({

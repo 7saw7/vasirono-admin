@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export async function GET(request: NextRequest) {
   return proxyBackofficeAnalytics(
     request,
-    "/api/analytics/backoffice/analytics/rankings",
+    "/api/backoffice/analytics/rankings",
     "No se pudo obtener analytics."
   );
 }

@@ -35,12 +35,7 @@ export type PaginatedResult<T> = {
   total: number;
 };
 
-export type StatusTone =
-  | "neutral"
-  | "info"
-  | "success"
-  | "warning"
-  | "danger";
+export type StatusTone = "neutral" | "info" | "success" | "warning" | "danger";
 
 export type TableColumn<T> = {
   key: string;

@@ -75,7 +75,7 @@ function toNumber(value: number | string | null | undefined): number {
 }
 
 function toNullableNumber(
-  value: number | string | null | undefined
+  value: number | string | null | undefined,
 ): number | null {
   if (value === null || value === undefined) return null;
   const parsed = typeof value === "number" ? value : Number(value);
@@ -103,7 +103,7 @@ export function mapPaymentListRow(row: PaymentListRow): PaymentListItem {
 }
 
 export function mapSubscriptionListRow(
-  row: SubscriptionListRow
+  row: SubscriptionListRow,
 ): SubscriptionListItem {
   return {
     id: toNumber(row.id),
@@ -147,7 +147,7 @@ export function mapPromotionListRow(row: PromotionListRow): PromotionListItem {
 }
 
 export function mapPaymentFilterOptionRow(
-  row: PaymentFilterOptionRow
+  row: PaymentFilterOptionRow,
 ): PaymentFilterOption {
   return {
     label: row.name,
@@ -156,7 +156,7 @@ export function mapPaymentFilterOptionRow(
 }
 
 export function mapSubscriptionFilterOptionRow(
-  row: SubscriptionFilterOptionRow
+  row: SubscriptionFilterOptionRow,
 ): SubscriptionFilterOption {
   return {
     label: row.name,
@@ -173,7 +173,7 @@ export type PromotionBranchOptionRow = {
 };
 
 export function mapPromotionBranchOptionRow(
-  row: PromotionBranchOptionRow
+  row: PromotionBranchOptionRow,
 ): PromotionBranchOption {
   return {
     value: toNumber(row.branch_id),

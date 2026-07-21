@@ -18,7 +18,7 @@ export type ListResponse<T> = ApiSuccessResponse<PaginatedResult<T>>;
 
 export function successResponse<T>(
   data: T,
-  meta?: Record<string, unknown>
+  meta?: Record<string, unknown>,
 ): ApiSuccessResponse<T> {
   return {
     ok: true,
@@ -29,7 +29,7 @@ export function successResponse<T>(
 
 export function errorResponse(
   error: string,
-  details?: Record<string, unknown>
+  details?: Record<string, unknown>,
 ): ApiErrorResponse {
   return {
     ok: false,

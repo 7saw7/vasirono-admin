@@ -14,7 +14,7 @@ import {
   callBackofficeService,
 } from "@/lib/microservices/backoffice-client";
 
-const ADMIN_USERS_PATH = "/api/users/admin/users";
+const ADMIN_USERS_PATH = "/api/backoffice/users";
 
 type RecordLike = Record<string, unknown>;
 
@@ -32,14 +32,16 @@ function unwrapPayload(value: unknown): unknown {
 
 function toStringValue(value: unknown, fallback = ""): string {
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
   return fallback;
 }
 
 function toNullableString(value: unknown): string | null {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
   return null;
 }
 
@@ -63,7 +65,10 @@ function toBoolean(value: unknown, fallback = false): boolean {
   return fallback;
 }
 
-function toIsoString(value: unknown, fallback = new Date(0).toISOString()): string {
+function toIsoString(
+  value: unknown,
+  fallback = new Date(0).toISOString(),
+): string {
   if (value instanceof Date) return value.toISOString();
   if (typeof value === "string" && value.trim().length > 0) {
     const parsed = new Date(value);
@@ -105,8 +110,17 @@ function normalizeUsersList(value: unknown) {
       : [];
 
   const page = toNumber(payload.page ?? pagination.page, 1);
-  const pageSize = toNumber(payload.pageSize ?? payload.page_size ?? pagination.pageSize ?? pagination.page_size, 10);
-  const total = toNumber(payload.total ?? pagination.total ?? rawItems.length, rawItems.length);
+  const pageSize = toNumber(
+    payload.pageSize ??
+      payload.page_size ??
+      pagination.pageSize ??
+      pagination.page_size,
+    10,
+  );
+  const total = toNumber(
+    payload.total ?? pagination.total ?? rawItems.length,
+    rawItems.length,
+  );
 
   return {
     items: rawItems.map(normalizeUserListItem),
@@ -147,7 +161,10 @@ function normalizeFavorite(value: unknown) {
   return {
     branchId: toNumber(item.branchId ?? item.branch_id),
     branchName: toStringValue(item.branchName ?? item.branch_name, "Sucursal"),
-    companyName: toStringValue(item.companyName ?? item.company_name, "Empresa"),
+    companyName: toStringValue(
+      item.companyName ?? item.company_name,
+      "Empresa",
+    ),
     createdAt: toIsoString(item.createdAt ?? item.created_at),
   };
 }
@@ -203,9 +220,13 @@ function normalizeUserDetail(value: unknown) {
     createdAt,
     updatedAt: toIsoString(user.updatedAt ?? user.updated_at, createdAt),
     sessions: normalizeArray(payload.sessions).map(normalizeSession),
-    notifications: normalizeArray(payload.notifications).map(normalizeNotification),
+    notifications: normalizeArray(payload.notifications).map(
+      normalizeNotification,
+    ),
     favorites: normalizeArray(payload.favorites).map(normalizeFavorite),
-    recentViews: normalizeArray(payload.recentViews ?? payload.recent_views).map(normalizeRecentView),
+    recentViews: normalizeArray(
+      payload.recentViews ?? payload.recent_views,
+    ).map(normalizeRecentView),
     badges: normalizeArray(payload.badges).map(normalizeBadge),
     reviews: normalizeArray(payload.reviews).map(normalizeReview),
   };
@@ -224,7 +245,7 @@ export async function getUserDetail(userId: string) {
   try {
     const raw = await callBackofficeService<unknown>(
       "users",
-      `${ADMIN_USERS_PATH}/${encodeURIComponent(userId)}`
+      `${ADMIN_USERS_PATH}/${encodeURIComponent(userId)}`,
     );
 
     return userDetailSchema.parse(normalizeUserDetail(raw));
@@ -236,7 +257,6 @@ export async function getUserDetail(userId: string) {
     throw error;
   }
 }
-
 
 export async function updateAdminUserRole(
   userId: string,

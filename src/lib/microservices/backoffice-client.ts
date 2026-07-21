@@ -1,4 +1,6 @@
-import { getRawSessionTokenFromCookie, getCurrentSessionUser } from "@/lib/auth/session";
+import { randomUUID } from "crypto";
+import { headers as requestHeaders } from "next/headers";
+import { getRawSessionTokenFromCookie } from "@/lib/auth/session";
 
 export type BackofficeServiceName =
   | "analytics"
@@ -12,57 +14,55 @@ export type BackofficeServiceName =
   | "billing"
   | "notifications";
 
-const SERVICE_ENV: Record<BackofficeServiceName, string[]> = {
-  analytics: ["ANALYTICS_SERVICE_URL"],
-  companies: ["COMPANIES_SERVICE_URL"],
-  branches: ["BRANCH_SERVICE_URL", "BRANCHES_SERVICE_URL"],
-  verifications: ["VERIFICATIONS_SERVICE_URL"],
-  users: ["USERS_SERVICE_URL"],
-  reviews: ["REVIEWS_SERVICE_URL"],
-  reviewReports: ["REVIEWS_SERVICE_URL"],
-  promotions: ["PROMOTIONS_SERVICE_URL"],
-  billing: ["BILLING_SERVICE_URL"],
-  notifications: ["NOTIFICATIONS_SERVICE_URL"],
-};
-
 export class BackofficeServiceError extends Error {
   constructor(
     message: string,
     public readonly status = 500,
     public readonly code = "BACKOFFICE_SERVICE_ERROR",
-    public readonly details?: unknown
+    public readonly details?: unknown,
   ) {
     super(message);
     this.name = "BackofficeServiceError";
   }
 }
 
-function getBaseUrl(service: BackofficeServiceName): string {
-  const candidates = SERVICE_ENV[service];
+function getEdgeBaseUrl(): string {
+  const value = process.env.EDGE_API_URL?.trim();
 
-  for (const key of candidates) {
-    const value = process.env[key]?.trim();
-    if (value) return value.replace(/\/+$/, "");
+  if (!value) {
+    throw new BackofficeServiceError(
+      "Falta configurar EDGE_API_URL en el panel Admin.",
+      500,
+      "EDGE_API_URL_MISSING",
+    );
   }
 
-  throw new BackofficeServiceError(
-    `Falta configurar ${candidates.join(" o ")} en el panel admin.`,
-    500,
-    "BACKOFFICE_SERVICE_URL_MISSING",
-    { service, env: candidates }
-  );
+  const normalized = value.replace(/\/+$/, "");
+  const parsed = new URL(normalized);
+
+  if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") {
+    throw new BackofficeServiceError(
+      "EDGE_API_URL debe usar HTTPS en producción.",
+      500,
+      "EDGE_API_URL_INSECURE",
+    );
+  }
+
+  return normalized;
 }
 
-function buildUrl(baseUrl: string, path: string, query?: Record<string, unknown>) {
+function buildUrl(path: string, query?: Record<string, unknown>): string {
+  const baseUrl = getEdgeBaseUrl();
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const url = new URL(
     baseUrl.endsWith("/api") && normalizedPath.startsWith("/api/")
       ? `${baseUrl}${normalizedPath.slice(4)}`
-      : `${baseUrl}${normalizedPath}`
+      : `${baseUrl}${normalizedPath}`,
   );
 
   for (const [key, rawValue] of Object.entries(query ?? {})) {
-    if (rawValue === undefined || rawValue === null || rawValue === "") continue;
+    if (rawValue === undefined || rawValue === null || rawValue === "")
+      continue;
     url.searchParams.set(key, String(rawValue));
   }
 
@@ -77,8 +77,15 @@ function unwrapEnvelope<T>(payload: unknown): T {
   return payload as T;
 }
 
-function toBase64Json(value: unknown): string {
-  return Buffer.from(JSON.stringify(value), "utf8").toString("base64");
+async function resolveRequestId(): Promise<string> {
+  try {
+    const incoming = (await requestHeaders()).get("x-request-id")?.trim();
+    if (incoming && /^[A-Za-z0-9._:-]{8,128}$/.test(incoming)) return incoming;
+  } catch {
+    // The client can also be invoked outside a request context in tests/build tooling.
+  }
+
+  return randomUUID();
 }
 
 export async function callBackofficeService<T>(
@@ -88,71 +95,25 @@ export async function callBackofficeService<T>(
     method?: "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
     query?: Record<string, unknown>;
     body?: unknown;
-    actorUserId?: string | null;
     timeoutMs?: number;
-  } = {}
+  } = {},
 ): Promise<T> {
-  const baseUrl = getBaseUrl(service);
   const token = await getRawSessionTokenFromCookie();
-  const session = await getCurrentSessionUser().catch(() => ({
-    user: null,
-    sessionId: null,
-  }));
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 15_000);
-  const requestUrl = buildUrl(baseUrl, path, options.query);
+  const timeout = setTimeout(
+    () => controller.abort(),
+    options.timeoutMs ?? 15_000,
+  );
+  const requestUrl = buildUrl(path, options.query);
+  const requestId = await resolveRequestId();
 
   try {
     const headers: Record<string, string> = {
       accept: "application/json",
+      "x-request-id": requestId,
     };
 
     if (token) headers.authorization = `Bearer ${token}`;
-
-    const user = session.user;
-    const actorUserId = options.actorUserId ?? user?.id ?? null;
-
-    if (actorUserId) headers["x-user-id"] = actorUserId;
-
-    if (user) {
-      // Auth Service is the source of truth. Never reconstruct privileges here:
-      // an intentionally empty permission set must remain empty.
-      const permissions = [...new Set(user.permissions)];
-
-      headers["x-user-role"] = user.role;
-      headers["x-role-name"] = user.role;
-      headers["x-user-email"] = user.email;
-      headers["x-portal"] = "backoffice";
-      headers["x-user-permissions"] = permissions.join(",");
-      headers["x-user-scopes"] = permissions.join(",");
-      headers["x-user-claims"] = toBase64Json({
-        userId: actorUserId,
-        portal: "backoffice",
-        activeRole: user.role,
-        role: user.role,
-        permissions,
-        user: {
-          id: actorUserId,
-          name: user.name,
-          email: user.email,
-          globalRole: user.role,
-          verified: user.verified,
-        },
-        sessionId: session.sessionId,
-      });
-    }
-
-    // El panel admin representa a un usuario backoffice, no a un microservicio interno.
-    // No enviamos x-internal-service-secret aquí porque algunos micros priorizan
-    // ese header y reemplazan el actor de usuario por actor interno.
-
-    const edgeToken =
-      process.env.EDGE_AUTH_TOKEN?.trim() ||
-      process.env.EDGE_INTERNAL_TOKEN?.trim();
-
-    if (edgeToken) {
-      headers["x-edge-auth"] = edgeToken;
-    }
 
     let body: string | undefined;
     if (typeof options.body !== "undefined") {
@@ -166,37 +127,51 @@ export async function callBackofficeService<T>(
       body,
       cache: "no-store",
       signal: controller.signal,
+      redirect: "manual",
     });
 
     const payload = await response.json().catch(() => null);
 
-    if (!response.ok || (payload && typeof payload === "object" && (payload as { success?: boolean }).success === false)) {
-      const envelope = payload as { error?: { code?: string; message?: string }; message?: string } | null;
+    if (
+      !response.ok ||
+      (payload &&
+        typeof payload === "object" &&
+        (payload as { success?: boolean }).success === false)
+    ) {
+      const envelope = payload as {
+        error?: { code?: string; message?: string };
+        message?: string;
+      } | null;
       const message =
         envelope?.error?.message ||
         envelope?.message ||
         response.statusText ||
-        "Error consultando microservicio.";
+        "Error consultando el Gateway.";
       const code = envelope?.error?.code || "BACKOFFICE_SERVICE_REQUEST_FAILED";
 
-      console.error("backoffice.service.request_failed", {
+      console.error("backoffice.gateway.request_failed", {
         service,
-        path,
+        path: path.split("?", 1)[0],
+        requestId,
         status: response.status,
         code,
-        message,
-        details: payload,
       });
 
-      throw new BackofficeServiceError(
-        message,
-        response.status,
-        code,
-        payload
-      );
+      throw new BackofficeServiceError(message, response.status, code);
     }
 
     return unwrapEnvelope<T>(payload);
+  } catch (error) {
+    if (error instanceof BackofficeServiceError) throw error;
+
+    const aborted = error instanceof Error && error.name === "AbortError";
+    throw new BackofficeServiceError(
+      aborted
+        ? "El Gateway agotó el tiempo de respuesta."
+        : "El Gateway no está disponible.",
+      aborted ? 504 : 502,
+      aborted ? "EDGE_GATEWAY_TIMEOUT" : "EDGE_GATEWAY_UNAVAILABLE",
+    );
   } finally {
     clearTimeout(timeout);
   }

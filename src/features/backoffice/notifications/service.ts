@@ -11,7 +11,7 @@ import type {
   NotificationSummary,
 } from "./types";
 
-const NOTIFICATIONS_ADMIN_PATH = "/api/notifications/admin/notifications";
+const NOTIFICATIONS_ADMIN_PATH = "/api/backoffice/notifications";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -38,7 +38,8 @@ function toNumber(value: unknown, fallback = 0): number {
 }
 
 function toNullableNumber(value: unknown): number | null {
-  if (value === null || typeof value === "undefined" || value === "") return null;
+  if (value === null || typeof value === "undefined" || value === "")
+    return null;
   const parsed = toNumber(value, Number.NaN);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -78,21 +79,43 @@ function normalizeNotificationItem(value: unknown): NotificationListItem {
 function normalizeNotificationsList(raw: unknown) {
   const payload = unwrapData(raw);
   const source = isRecord(payload) ? payload : {};
-  const pagination = isRecord(source.pagination) ? source.pagination : isRecord(source.meta) ? source.meta : {};
-  const items = asArray(source.items ?? source.rows ?? source.notifications).map(normalizeNotificationItem);
+  const pagination = isRecord(source.pagination)
+    ? source.pagination
+    : isRecord(source.meta)
+      ? source.meta
+      : {};
+  const items = asArray(
+    source.items ?? source.rows ?? source.notifications,
+  ).map(normalizeNotificationItem);
 
   return notificationsListResultSchema.parse({
     items,
     page: toNumber(source.page ?? pagination.page, 1),
-    pageSize: toNumber(source.pageSize ?? source.page_size ?? pagination.pageSize ?? pagination.page_size, 10),
-    total: toNumber(source.total ?? pagination.total ?? items.length, items.length),
+    pageSize: toNumber(
+      source.pageSize ??
+        source.page_size ??
+        pagination.pageSize ??
+        pagination.page_size,
+      10,
+    ),
+    total: toNumber(
+      source.total ?? pagination.total ?? items.length,
+      items.length,
+    ),
   });
 }
 
 function normalizeTypeOption(value: unknown): NotificationFilterOption {
   const item = isRecord(value) ? value : {};
   return {
-    label: String(item.label ?? item.name ?? item.nameEs ?? item.name_es ?? item.code ?? "Sin tipo"),
+    label: String(
+      item.label ??
+        item.name ??
+        item.nameEs ??
+        item.name_es ??
+        item.code ??
+        "Sin tipo",
+    ),
     value: toNumber(item.value ?? item.id ?? item.typeId ?? item.type_id),
   };
 }
@@ -113,35 +136,64 @@ function normalizeSummary(raw: unknown): NotificationSummary {
   const summary = isRecord(source.summary) ? source.summary : source;
 
   return {
-    totalNotifications: toNumber(summary.totalNotifications ?? summary.total_notifications ?? summary.total, 0),
-    readNotifications: toNumber(summary.readNotifications ?? summary.read_notifications ?? summary.read, 0),
-    unreadNotifications: toNumber(summary.unreadNotifications ?? summary.unread_notifications ?? summary.unread, 0),
-    deliveredNotifications: toNumber(summary.deliveredNotifications ?? summary.delivered_notifications ?? summary.delivered, 0),
+    totalNotifications: toNumber(
+      summary.totalNotifications ??
+        summary.total_notifications ??
+        summary.total,
+      0,
+    ),
+    readNotifications: toNumber(
+      summary.readNotifications ?? summary.read_notifications ?? summary.read,
+      0,
+    ),
+    unreadNotifications: toNumber(
+      summary.unreadNotifications ??
+        summary.unread_notifications ??
+        summary.unread,
+      0,
+    ),
+    deliveredNotifications: toNumber(
+      summary.deliveredNotifications ??
+        summary.delivered_notifications ??
+        summary.delivered,
+      0,
+    ),
   };
 }
 
 export async function getNotificationsList(
-  input: NotificationListFilters = {}
+  input: NotificationListFilters = {},
 ) {
   const filters = notificationListFiltersSchema.parse(input);
-  const raw = await callBackofficeService<unknown>("notifications", NOTIFICATIONS_ADMIN_PATH, {
-    query: filters,
-  });
+  const raw = await callBackofficeService<unknown>(
+    "notifications",
+    NOTIFICATIONS_ADMIN_PATH,
+    {
+      query: filters,
+    },
+  );
 
   return normalizeNotificationsList(raw);
 }
 
 export async function getNotificationsDashboard(
-  input: NotificationListFilters = {}
+  input: NotificationListFilters = {},
 ) {
   const filters = notificationListFiltersSchema.parse(input);
 
   const [notifications, typesRaw, summaryRaw] = await Promise.all([
     getNotificationsList(filters),
-    callBackofficeService<unknown>("notifications", `${NOTIFICATIONS_ADMIN_PATH}/types`),
-    callBackofficeService<unknown>("notifications", `${NOTIFICATIONS_ADMIN_PATH}/dashboard`, {
-      query: filters,
-    }),
+    callBackofficeService<unknown>(
+      "notifications",
+      `${NOTIFICATIONS_ADMIN_PATH}/types`,
+    ),
+    callBackofficeService<unknown>(
+      "notifications",
+      `${NOTIFICATIONS_ADMIN_PATH}/dashboard`,
+      {
+        query: filters,
+      },
+    ),
   ]);
 
   return notificationsDashboardDataSchema.parse({
@@ -152,7 +204,6 @@ export async function getNotificationsDashboard(
     summary: normalizeSummary(summaryRaw),
   });
 }
-
 
 export async function markAdminNotificationRead(notificationId: number) {
   return callBackofficeService<unknown>(

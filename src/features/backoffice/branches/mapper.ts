@@ -119,7 +119,7 @@ function toNumber(value: number | string | null | undefined): number {
 }
 
 function toNullableNumber(
-  value: number | string | null | undefined
+  value: number | string | null | undefined,
 ): number | null {
   if (value === null || value === undefined) return null;
   const parsed = Number(value);
@@ -155,7 +155,7 @@ export function mapBranchListRow(row: BranchListRow): BranchListItem {
 }
 
 export function mapBranchDetailContactRow(
-  row: BranchDetailContactRow
+  row: BranchDetailContactRow,
 ): BranchDetailContact {
   return {
     contactId: toNumber(row.contact_id),
@@ -169,7 +169,7 @@ export function mapBranchDetailContactRow(
 }
 
 export function mapBranchDetailScheduleRow(
-  row: BranchDetailScheduleRow
+  row: BranchDetailScheduleRow,
 ): BranchDetailSchedule {
   return {
     scheduleId: toNumber(row.schedule_id),
@@ -182,7 +182,7 @@ export function mapBranchDetailScheduleRow(
 }
 
 export function mapBranchDetailServiceRow(
-  row: BranchDetailServiceRow
+  row: BranchDetailServiceRow,
 ): BranchDetailService {
   return {
     serviceId: toNumber(row.service_id),
@@ -195,7 +195,7 @@ export function mapBranchDetailServiceRow(
 }
 
 export function mapBranchDetailMediaRow(
-  row: BranchDetailMediaRow
+  row: BranchDetailMediaRow,
 ): BranchDetailMedia {
   return {
     mediaId: toNumber(row.media_id),
@@ -206,7 +206,7 @@ export function mapBranchDetailMediaRow(
 }
 
 export function mapBranchDetailAnalyticsRow(
-  row: BranchDetailAnalyticsRow | undefined
+  row: BranchDetailAnalyticsRow | undefined,
 ): BranchDetailAnalytics {
   return {
     visitsCount: toNumber(row?.visits_count),
@@ -225,7 +225,7 @@ export function mapBranchDetailAnalyticsRow(
 }
 
 export function mapBranchDetailAforoRow(
-  row: BranchDetailAforoRow
+  row: BranchDetailAforoRow,
 ): BranchDetailAforoReport {
   return {
     reportId: toNumber(row.report_id),
@@ -246,7 +246,7 @@ export function mapBranchDetailRow(
     media: BranchDetailMediaRow[];
     analytics: BranchDetailAnalyticsRow | undefined;
     aforo: BranchDetailAforoRow[];
-  }
+  },
 ): BranchDetail {
   return {
     branchId: toNumber(row.branch_id),

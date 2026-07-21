@@ -46,7 +46,7 @@ function toNumber(value: number | string | null | undefined): number {
 }
 
 export function mapBusinessTypeListRow(
-  row: BusinessTypeListRow
+  row: BusinessTypeListRow,
 ): BusinessTypeListItem {
   return {
     id: toNumber(row.id),
@@ -65,7 +65,7 @@ export function mapCategoryListRow(row: CategoryListRow): CategoryListItem {
 }
 
 export function mapSubcategoryListRow(
-  row: SubcategoryListRow
+  row: SubcategoryListRow,
 ): SubcategoryListItem {
   return {
     id: toNumber(row.id),

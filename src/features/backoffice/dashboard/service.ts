@@ -13,8 +13,7 @@ import {
 
 type RecordLike = Record<string, unknown>;
 type ProbeResult =
-  | { ok: true; data: unknown }
-  | { ok: false; message: string; status: number };
+  { ok: true; data: unknown } | { ok: false; message: string; status: number };
 
 function asRecord(value: unknown): RecordLike {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -74,9 +73,28 @@ function queueFromSummary(
   return {
     total: pick(["total", "totalCount", "total_count"]),
     pending: pick(["pending", "pendingCount", "pending_count"]),
-    inReview: pick(["inReview", "in_review", "inReviewCount", "in_review_count"]),
-    approved: pick(aliases.approved ?? ["approved", "approvedCount", "approved_count", "resolved"]),
-    rejected: pick(aliases.rejected ?? ["rejected", "rejectedCount", "rejected_count", "dismissed"]),
+    inReview: pick([
+      "inReview",
+      "in_review",
+      "inReviewCount",
+      "in_review_count",
+    ]),
+    approved: pick(
+      aliases.approved ?? [
+        "approved",
+        "approvedCount",
+        "approved_count",
+        "resolved",
+      ],
+    ),
+    rejected: pick(
+      aliases.rejected ?? [
+        "rejected",
+        "rejectedCount",
+        "rejected_count",
+        "dismissed",
+      ],
+    ),
     available: true,
   };
 }
@@ -97,7 +115,8 @@ async function probe(
     }
     return {
       ok: false,
-      message: error instanceof Error ? error.message : "Servicio no disponible.",
+      message:
+        error instanceof Error ? error.message : "Servicio no disponible.",
       status: 500,
     };
   }
@@ -129,17 +148,23 @@ function recentActivity(value: unknown): RecentActivityItem[] {
     const item = asRecord(raw);
     const occurredAt = String(item.occurredAt ?? item.occurred_at ?? "");
     if (!occurredAt) return [];
-    return [{
-      id: String(item.id ?? index),
-      type: String(item.type ?? "analytics"),
-      title: String(item.title ?? "Actividad registrada"),
-      description: String(item.description ?? "Evento registrado en la plataforma."),
-      occurredAt,
-    }];
+    return [
+      {
+        id: String(item.id ?? index),
+        type: String(item.type ?? "analytics"),
+        title: String(item.title ?? "Actividad registrada"),
+        description: String(
+          item.description ?? "Evento registrado en la plataforma.",
+        ),
+        occurredAt,
+      },
+    ];
   });
 }
 
-function revenueFrom(result: ProbeResult): BackofficeDashboardData["revenueSummary"] {
+function revenueFrom(
+  result: ProbeResult,
+): BackofficeDashboardData["revenueSummary"] {
   if (!result.ok) {
     return {
       totalPayments: 0,
@@ -152,11 +177,18 @@ function revenueFrom(result: ProbeResult): BackofficeDashboardData["revenueSumma
   }
 
   const summary = summaryOf(result.data);
-  const totalCount = asNumber(summary.totalPayments ?? summary.total_payments ?? summary.total);
-  const paidCount = asNumber(
-    summary.completedPayments ?? summary.completed_payments ?? summary.paidPayments ?? summary.paid_payments,
+  const totalCount = asNumber(
+    summary.totalPayments ?? summary.total_payments ?? summary.total,
   );
-  const pendingCount = asNumber(summary.pendingPayments ?? summary.pending_payments);
+  const paidCount = asNumber(
+    summary.completedPayments ??
+      summary.completed_payments ??
+      summary.paidPayments ??
+      summary.paid_payments,
+  );
+  const pendingCount = asNumber(
+    summary.pendingPayments ?? summary.pending_payments,
+  );
   const failedCount = asNumber(
     summary.failedPayments ?? summary.failed_payments,
     Math.max(0, totalCount - paidCount - pendingCount),
@@ -178,20 +210,34 @@ function sevenDaysAgo(): string {
 }
 
 export async function getBackofficeDashboardData(): Promise<BackofficeDashboardData> {
-  const [companies, branches, users, analytics, verifications, claims, reports, billing] =
-    await Promise.all([
-      probe("companies", "/api/backoffice/companies", { page: 1, pageSize: 1 }),
-      probe("branches", "/api/backoffice/branches", { page: 1, pageSize: 1 }),
-      probe("users", "/api/users/admin/users", { page: 1, pageSize: 1 }),
-      probe("analytics", "/api/analytics/backoffice/analytics/dashboard", {
-        from: sevenDaysAgo(),
-        to: new Date().toISOString().slice(0, 10),
-      }),
-      probe("verifications", "/api/verifications/admin/verifications", { page: 1, pageSize: 1 }),
-      probe("verifications", "/api/verifications/admin/claims", { page: 1, pageSize: 1 }),
-      probe("reviewReports", "/api/reviews/admin/review-reports", { page: 1, pageSize: 1 }),
-      probe("billing", "/api/billing/admin/billing/payments/dashboard"),
-    ]);
+  const [
+    companies,
+    branches,
+    users,
+    analytics,
+    verifications,
+    claims,
+    reports,
+    billing,
+  ] = await Promise.all([
+    probe("companies", "/api/backoffice/companies", { page: 1, pageSize: 1 }),
+    probe("branches", "/api/backoffice/branches", { page: 1, pageSize: 1 }),
+    probe("users", "/api/backoffice/users", { page: 1, pageSize: 1 }),
+    probe("analytics", "/api/backoffice/analytics/dashboard", {
+      from: sevenDaysAgo(),
+      to: new Date().toISOString().slice(0, 10),
+    }),
+    probe("verifications", "/api/backoffice/verifications", {
+      page: 1,
+      pageSize: 1,
+    }),
+    probe("verifications", "/api/backoffice/claims", { page: 1, pageSize: 1 }),
+    probe("reviewReports", "/api/backoffice/review-reports", {
+      page: 1,
+      pageSize: 1,
+    }),
+    probe("billing", "/api/backoffice/payments/dashboard"),
+  ]);
 
   const analyticsRecord = analytics.ok ? asRecord(unwrap(analytics.data)) : {};
   const overview = asRecord(analyticsRecord.overview);
@@ -201,7 +247,9 @@ export async function getBackofficeDashboardData(): Promise<BackofficeDashboardD
       companies: {
         label: "Empresas",
         value: companies.ok ? listTotal(companies.data) : null,
-        subtitle: companies.ok ? "Registro empresarial total" : companies.message,
+        subtitle: companies.ok
+          ? "Registro empresarial total"
+          : companies.message,
         available: companies.ok,
       },
       branches: {
@@ -218,8 +266,12 @@ export async function getBackofficeDashboardData(): Promise<BackofficeDashboardD
       },
       events7d: {
         label: "Eventos 7 días",
-        value: analytics.ok ? asNumber(overview.totalEvents ?? overview.total_events) : null,
-        subtitle: analytics.ok ? "Actividad analítica registrada" : analytics.message,
+        value: analytics.ok
+          ? asNumber(overview.totalEvents ?? overview.total_events)
+          : null,
+        subtitle: analytics.ok
+          ? "Actividad analítica registrada"
+          : analytics.message,
         available: analytics.ok,
       },
     },

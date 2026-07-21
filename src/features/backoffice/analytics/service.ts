@@ -1,4 +1,7 @@
-import { analyticsFiltersSchema, backofficeAnalyticsDataSchema } from "./schema";
+import {
+  analyticsFiltersSchema,
+  backofficeAnalyticsDataSchema,
+} from "./schema";
 import type { AnalyticsFilters } from "./types";
 import { callBackofficeService } from "@/lib/microservices/backoffice-client";
 
@@ -8,7 +11,8 @@ function normalizeDashboard(raw: unknown) {
       ? (raw as { data: unknown }).data
       : raw;
 
-  const row = data && typeof data === "object" ? (data as Record<string, unknown>) : {};
+  const row =
+    data && typeof data === "object" ? (data as Record<string, unknown>) : {};
 
   return {
     overview:
@@ -36,8 +40,8 @@ export async function getBackofficeAnalytics(input: AnalyticsFilters = {}) {
 
   const raw = await callBackofficeService<unknown>(
     "analytics",
-    "/api/analytics/backoffice/analytics/dashboard",
-    { query: filters }
+    "/api/backoffice/analytics/dashboard",
+    { query: filters },
   );
 
   return backofficeAnalyticsDataSchema.parse(normalizeDashboard(raw));

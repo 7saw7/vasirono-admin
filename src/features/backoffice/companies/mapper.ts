@@ -46,7 +46,6 @@ export type CompanyDetailRow = {
   updated_at: Date | string;
 };
 
-
 export type CompanyBusinessTypeRow = {
   type_id: number | string;
   name: string | null;
@@ -140,7 +139,7 @@ function toNumber(value: number | string | null | undefined): number {
 }
 
 function toNullableNumber(
-  value: number | string | null | undefined
+  value: number | string | null | undefined,
 ): number | null {
   if (value === null || value === undefined) return null;
   const parsed = Number(value);
@@ -182,9 +181,8 @@ export function mapCompanyListRow(row: CompanyListRow): CompanyListItem {
   };
 }
 
-
 export function mapCompanyBusinessTypeRow(
-  row: CompanyBusinessTypeRow
+  row: CompanyBusinessTypeRow,
 ): CompanyBusinessType {
   return {
     typeId: toNumber(row.type_id),
@@ -193,7 +191,7 @@ export function mapCompanyBusinessTypeRow(
 }
 
 export function mapCompanySubcategoryRow(
-  row: CompanySubcategoryRow
+  row: CompanySubcategoryRow,
 ): CompanySubcategory {
   return {
     subcategoryId: toNumber(row.subcategory_id),
@@ -205,7 +203,7 @@ export function mapCompanySubcategoryRow(
 }
 
 export function mapCompanyDetailBranchRow(
-  row: CompanyDetailBranchRow
+  row: CompanyDetailBranchRow,
 ): CompanyDetailBranch {
   return {
     branchId: toNumber(row.branch_id),
@@ -222,7 +220,7 @@ export function mapCompanyDetailBranchRow(
 }
 
 export function mapCompanyDetailMediaRow(
-  row: CompanyDetailMediaRow
+  row: CompanyDetailMediaRow,
 ): CompanyDetailMediaItem {
   return {
     mediaId: toNumber(row.media_id),
@@ -233,7 +231,7 @@ export function mapCompanyDetailMediaRow(
 }
 
 export function mapCompanyDetailVerificationRow(
-  row: CompanyDetailVerificationRow | undefined
+  row: CompanyDetailVerificationRow | undefined,
 ): CompanyDetailVerification {
   return {
     statusLabel: row?.status_label ?? "Sin estado",
@@ -253,7 +251,7 @@ export function mapCompanyDetailVerificationRow(
 }
 
 export function mapCompanyDetailSubscriptionRow(
-  row: CompanyDetailSubscriptionRow | undefined
+  row: CompanyDetailSubscriptionRow | undefined,
 ): CompanyDetailSubscription {
   return {
     subscriptionId: toNullableNumber(row?.subscription_id),
@@ -265,7 +263,7 @@ export function mapCompanyDetailSubscriptionRow(
 }
 
 export function mapCompanyDetailPaymentRow(
-  row: CompanyDetailPaymentRow
+  row: CompanyDetailPaymentRow,
 ): CompanyDetailPayment {
   return {
     paymentId: toNumber(row.payment_id),
@@ -277,7 +275,7 @@ export function mapCompanyDetailPaymentRow(
 }
 
 export function mapCompanyDetailClaimRow(
-  row: CompanyDetailClaimRow
+  row: CompanyDetailClaimRow,
 ): CompanyDetailClaim {
   return {
     claimRequestId: toNumber(row.claim_request_id),
@@ -290,7 +288,7 @@ export function mapCompanyDetailClaimRow(
 }
 
 export function mapCompanyDetailAuditRow(
-  row: CompanyDetailAuditRow
+  row: CompanyDetailAuditRow,
 ): CompanyDetailAuditItem {
   return {
     auditLogId: toNumber(row.audit_log_id),
@@ -314,7 +312,7 @@ export function mapCompanyDetailRow(
     audit: CompanyDetailAuditRow[];
     businessTypes?: CompanyBusinessTypeRow[];
     subcategories?: CompanySubcategoryRow[];
-  }
+  },
 ): CompanyDetail {
   return {
     companyId: toNumber(row.company_id),

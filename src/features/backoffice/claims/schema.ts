@@ -59,7 +59,10 @@ export const claimListItemSchema = z.object({
   notes: z.string().nullable(),
   evidenceUrl: z.string().nullable(),
   hasVerificationRequest: z.boolean(),
-  professionalFlowMetadata: z.record(z.string(), z.unknown()).nullable().optional(),
+  professionalFlowMetadata: z
+    .record(z.string(), z.unknown())
+    .nullable()
+    .optional(),
   invitationId: z.number().int().nullable().optional(),
   invitationStatus: z.string().nullable().optional(),
 });

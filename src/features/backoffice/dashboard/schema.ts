@@ -56,4 +56,6 @@ export const backofficeDashboardSchema = z.object({
   recentActivity: z.array(recentActivityItemSchema),
 });
 
-export type BackofficeDashboardSchema = z.infer<typeof backofficeDashboardSchema>;
+export type BackofficeDashboardSchema = z.infer<
+  typeof backofficeDashboardSchema
+>;

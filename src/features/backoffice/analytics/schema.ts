@@ -19,7 +19,7 @@ export const analyticsFiltersSchema = z
     {
       message: "El rango de fechas no es válido.",
       path: ["to"],
-    }
+    },
   );
 
 export const analyticsKpiSchema = z.object({

@@ -102,7 +102,6 @@ export type CompanyDetailAuditItem = {
   createdAt: string;
 };
 
-
 export type CompanyBusinessType = {
   typeId: number;
   name: string | null;
