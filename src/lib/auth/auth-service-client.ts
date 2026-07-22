@@ -1,9 +1,15 @@
-import type { AuthUser } from "@/features/auth/types";
 import { randomUUID } from "crypto";
 import { headers as nextHeaders } from "next/headers";
+import type {
+  AuthenticatedLoginResult,
+  AuthUser,
+  MfaEnrollment,
+  MfaPendingLoginResult,
+  UserSessionItem,
+} from "@/features/auth/types";
 import { normalizeRoleName } from "@/lib/constants/roles";
-const EDGE_API_URL = process.env.EDGE_API_URL?.trim() || "";
 
+const EDGE_API_URL = process.env.EDGE_API_URL?.trim() || "";
 const AUTH_SERVICE_TIMEOUT_MS = Number(
   process.env.AUTH_SERVICE_TIMEOUT_MS ?? 10_000,
 );
@@ -34,26 +40,49 @@ type AuthServicePrincipal = {
   permissions?: string[];
 };
 
-type AuthServiceLoginData = {
-  principal: AuthServicePrincipal;
-  session: {
-    sessionId: number;
-    token: string;
-    expiresAt: string;
-  };
-  refreshToken?: string;
+type AuthServiceSession = {
+  sessionId: number;
+  token: string;
+  expiresAt: string;
+  absoluteExpiresAt?: string;
 };
+
+type AuthServiceAuthenticatedData = {
+  status?: "AUTHENTICATED";
+  principal: AuthServicePrincipal;
+  session: AuthServiceSession;
+  refreshToken: string;
+  refreshTokenExpiresAt: string;
+  recoveryCodes?: string[];
+};
+
+type AuthServiceMfaPendingData = {
+  status: "MFA_REQUIRED" | "MFA_ENROLLMENT_REQUIRED";
+  mfaRequired: true;
+  enrollmentRequired: boolean;
+  challengeId: string;
+  expiresAt: string;
+};
+
+type AuthServiceLoginData =
+  | AuthServiceAuthenticatedData
+  | AuthServiceMfaPendingData;
 
 type AuthServiceMeData = {
   principal: AuthServicePrincipal | null;
   session: {
     sessionId: number | null;
     expiresAt: string | null;
+    absoluteExpiresAt?: string | null;
+    mfa?: boolean;
+    authTime?: string | null;
+    stepUpUntil?: string | null;
+    amr?: string[];
   };
 };
 
 type AuthServiceRequestOptions = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   rawToken?: string | null;
   headers?: Record<string, string>;
@@ -61,14 +90,12 @@ type AuthServiceRequestOptions = {
 
 function buildPublicRequestHeaders(source?: Headers): Record<string, string> {
   if (!source) return {};
-  const headers: Record<string, string> = {};
+  const result: Record<string, string> = {};
   const userAgent = source.get("user-agent");
   const requestId = source.get("x-request-id");
-  // The Edge Worker is the only component allowed to construct trusted IP
-  // forwarding headers. The Admin BFF forwards only ordinary client metadata.
-  if (userAgent) headers["user-agent"] = userAgent;
-  if (requestId) headers["x-request-id"] = requestId;
-  return headers;
+  if (userAgent) result["user-agent"] = userAgent;
+  if (requestId) result["x-request-id"] = requestId;
+  return result;
 }
 
 function getAuthServiceBaseUrl(): string {
@@ -87,11 +114,9 @@ function getAuthServiceBaseUrl(): string {
 function buildAuthServiceUrl(path: string): string {
   const baseUrl = getAuthServiceBaseUrl();
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
   if (baseUrl.endsWith("/api") && normalizedPath.startsWith("/api/")) {
     return `${baseUrl}${normalizedPath.slice(4)}`;
   }
-
   return `${baseUrl}${normalizedPath}`;
 }
 
@@ -103,37 +128,35 @@ async function authServiceFetch<T>(
   const timeout = setTimeout(() => controller.abort(), AUTH_SERVICE_TIMEOUT_MS);
 
   try {
-    const headers: Record<string, string> = {
+    const requestHeaders: Record<string, string> = {
       accept: "application/json",
       ...options.headers,
     };
 
-    if (!headers["x-request-id"]) {
+    if (!requestHeaders["x-request-id"]) {
       try {
         const incoming = (await nextHeaders()).get("x-request-id")?.trim();
-        headers["x-request-id"] =
+        requestHeaders["x-request-id"] =
           incoming && /^[A-Za-z0-9._:-]{8,128}$/.test(incoming)
             ? incoming
             : randomUUID();
       } catch {
-        headers["x-request-id"] = randomUUID();
+        requestHeaders["x-request-id"] = randomUUID();
       }
     }
 
     let body: string | undefined;
-
     if (typeof options.body !== "undefined") {
-      headers["content-type"] = "application/json";
+      requestHeaders["content-type"] = "application/json";
       body = JSON.stringify(options.body);
     }
-
     if (options.rawToken) {
-      headers.authorization = `Bearer ${options.rawToken}`;
+      requestHeaders.authorization = `Bearer ${options.rawToken}`;
     }
 
     const response = await fetch(buildAuthServiceUrl(path), {
       method: options.method ?? "GET",
-      headers,
+      headers: requestHeaders,
       body,
       cache: "no-store",
       signal: controller.signal,
@@ -167,10 +190,7 @@ function mapPrincipalToAuthUser(principal: AuthServicePrincipal): AuthUser {
   const role = normalizeRoleName(
     principal.activeRole || principal.user.globalRole,
   );
-
-  if (!role) {
-    throw new Error("FORBIDDEN");
-  }
+  if (!role) throw new Error("FORBIDDEN");
 
   if (principal.portal !== "backoffice") {
     const error = new Error("AUTH_PORTAL_MISMATCH");
@@ -203,17 +223,47 @@ function mapPrincipalToAuthUser(principal: AuthServicePrincipal): AuthUser {
   };
 }
 
-export async function loginBackofficeWithAuthService(input: {
-  email: string;
-  password: string;
-}): Promise<{
-  user: AuthUser;
-  session: {
-    sessionId: number;
-    token: string;
-    expiresAt: string;
+function mapAuthenticated(
+  data: AuthServiceAuthenticatedData,
+): AuthenticatedLoginResult {
+  if (
+    !data.principal ||
+    !data.session?.token ||
+    !data.refreshToken ||
+    !data.refreshTokenExpiresAt
+  ) {
+    throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
+  }
+
+  return {
+    status: "AUTHENTICATED",
+    user: mapPrincipalToAuthUser(data.principal),
+    session: {
+      sessionId: data.session.sessionId,
+      token: data.session.token,
+      expiresAt: data.session.expiresAt,
+      absoluteExpiresAt:
+        data.session.absoluteExpiresAt ?? data.refreshTokenExpiresAt,
+    },
+    refreshToken: data.refreshToken,
+    refreshTokenExpiresAt: data.refreshTokenExpiresAt,
+    recoveryCodes: data.recoveryCodes,
   };
-}> {
+}
+
+function isMfaPending(
+  data: AuthServiceLoginData,
+): data is AuthServiceMfaPendingData {
+  return (
+    data.status === "MFA_REQUIRED" ||
+    data.status === "MFA_ENROLLMENT_REQUIRED"
+  );
+}
+
+export async function loginBackofficeWithAuthService(
+  input: { email: string; password: string },
+  requestHeaders?: Headers,
+): Promise<AuthenticatedLoginResult | MfaPendingLoginResult> {
   const payload = await authServiceFetch<AuthServiceLoginData>(
     "/api/auth/login",
     {
@@ -223,23 +273,72 @@ export async function loginBackofficeWithAuthService(input: {
         password: input.password,
         portal: "backoffice",
       },
+      headers: buildPublicRequestHeaders(requestHeaders),
     },
   );
-
   const data = payload.data;
+  if (!data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
+  return isMfaPending(data) ? data : mapAuthenticated(data);
+}
 
-  if (!data?.principal || !data.session?.token) {
-    throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
-  }
-
-  return {
-    user: mapPrincipalToAuthUser(data.principal),
-    session: {
-      sessionId: data.session.sessionId,
-      token: data.session.token,
-      expiresAt: data.session.expiresAt,
+export async function getMfaEnrollment(
+  challengeId: string,
+  requestHeaders?: Headers,
+): Promise<MfaEnrollment> {
+  const payload = await authServiceFetch<MfaEnrollment>(
+    "/api/auth/mfa/enroll",
+    {
+      method: "POST",
+      body: { challengeId },
+      headers: buildPublicRequestHeaders(requestHeaders),
     },
-  };
+  );
+  if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
+  return payload.data;
+}
+
+async function completeMfa(
+  path: "/api/auth/mfa/confirm" | "/api/auth/mfa/verify",
+  input: { challengeId: string; code: string },
+  requestHeaders?: Headers,
+): Promise<AuthenticatedLoginResult> {
+  const payload = await authServiceFetch<AuthServiceAuthenticatedData>(path, {
+    method: "POST",
+    body: input,
+    headers: buildPublicRequestHeaders(requestHeaders),
+  });
+  if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
+  return mapAuthenticated(payload.data);
+}
+
+export function confirmMfaEnrollment(
+  input: { challengeId: string; code: string },
+  requestHeaders?: Headers,
+): Promise<AuthenticatedLoginResult> {
+  return completeMfa("/api/auth/mfa/confirm", input, requestHeaders);
+}
+
+export function verifyMfaLogin(
+  input: { challengeId: string; code: string },
+  requestHeaders?: Headers,
+): Promise<AuthenticatedLoginResult> {
+  return completeMfa("/api/auth/mfa/verify", input, requestHeaders);
+}
+
+export async function refreshBackofficeSession(
+  refreshToken: string,
+  requestHeaders?: Headers,
+): Promise<AuthenticatedLoginResult> {
+  const payload = await authServiceFetch<AuthServiceAuthenticatedData>(
+    "/api/auth/session/refresh",
+    {
+      method: "POST",
+      body: { refreshToken },
+      headers: buildPublicRequestHeaders(requestHeaders),
+    },
+  );
+  if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
+  return mapAuthenticated(payload.data);
 }
 
 export async function getBackofficeSessionFromAuthService(
@@ -247,34 +346,49 @@ export async function getBackofficeSessionFromAuthService(
 ): Promise<{
   user: AuthUser | null;
   sessionId: number | null;
+  expiresAt: string | null;
+  absoluteExpiresAt: string | null;
+  mfa: boolean;
+  stepUpUntil: string | null;
 }> {
   if (!rawToken) {
-    return { user: null, sessionId: null };
+    return {
+      user: null,
+      sessionId: null,
+      expiresAt: null,
+      absoluteExpiresAt: null,
+      mfa: false,
+      stepUpUntil: null,
+    };
   }
 
   const payload = await authServiceFetch<AuthServiceMeData>(
     "/api/auth/me?portal=backoffice",
-    {
-      method: "GET",
-      rawToken,
-    },
+    { method: "GET", rawToken },
   ).catch((error) => {
     const status = (error as { status?: number }).status;
-
-    if (status === 401 || status === 403 || status === 404) {
-      return null;
-    }
-
+    if (status === 401 || status === 403 || status === 404) return null;
     throw error;
   });
 
   if (!payload?.data?.principal || !payload.data.session.sessionId) {
-    return { user: null, sessionId: null };
+    return {
+      user: null,
+      sessionId: null,
+      expiresAt: null,
+      absoluteExpiresAt: null,
+      mfa: false,
+      stepUpUntil: null,
+    };
   }
 
   return {
     user: mapPrincipalToAuthUser(payload.data.principal),
     sessionId: payload.data.session.sessionId,
+    expiresAt: payload.data.session.expiresAt,
+    absoluteExpiresAt: payload.data.session.absoluteExpiresAt ?? null,
+    mfa: payload.data.session.mfa === true,
+    stepUpUntil: payload.data.session.stepUpUntil ?? null,
   };
 }
 
@@ -282,13 +396,70 @@ export async function logoutBackofficeFromAuthService(
   rawToken: string | null,
 ): Promise<void> {
   if (!rawToken) return;
-
-  await authServiceFetch<null>("/api/auth/logout", {
+  await authServiceFetch<null>("/api/auth/logout?portal=backoffice", {
     method: "POST",
     rawToken,
-  }).catch(() => {
-    // El panel siempre debe limpiar su cookie local aunque el token ya no exista.
+  }).catch(() => undefined);
+}
+
+export async function stepUpBackofficeSession(
+  rawToken: string,
+  code: string,
+  requestHeaders?: Headers,
+): Promise<{ stepUpUntil: string; mfa: true; amr: string[] }> {
+  const payload = await authServiceFetch<{
+    stepUpUntil: string;
+    mfa: true;
+    amr: string[];
+  }>("/api/auth/mfa/step-up?portal=backoffice", {
+    method: "POST",
+    rawToken,
+    body: { code },
+    headers: buildPublicRequestHeaders(requestHeaders),
   });
+  if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
+  return payload.data;
+}
+
+export async function listBackofficeSessions(
+  rawToken: string,
+): Promise<UserSessionItem[]> {
+  const payload = await authServiceFetch<UserSessionItem[]>(
+    "/api/auth/sessions?portal=backoffice",
+    { method: "GET", rawToken },
+  );
+  return Array.isArray(payload.data) ? payload.data : [];
+}
+
+export async function revokeBackofficeSession(
+  rawToken: string,
+  sessionId: number,
+): Promise<{ revoked: boolean }> {
+  const payload = await authServiceFetch<{ revoked: boolean }>(
+    `/api/auth/sessions/${sessionId}?portal=backoffice`,
+    { method: "DELETE", rawToken },
+  );
+  return payload.data ?? { revoked: false };
+}
+
+export async function revokeOtherBackofficeSessions(
+  rawToken: string,
+): Promise<{ revokedSessions: number }> {
+  const payload = await authServiceFetch<{ revokedSessions: number }>(
+    "/api/auth/sessions/revoke-others?portal=backoffice",
+    { method: "POST", rawToken },
+  );
+  return payload.data ?? { revokedSessions: 0 };
+}
+
+export async function revokeAllBackofficeSessions(
+  rawToken: string,
+): Promise<{ revokedSessions: number }> {
+  const payload = await authServiceFetch<{ revokedSessions: number }>(
+    "/api/auth/sessions/revoke-all?portal=backoffice",
+    { method: "POST", rawToken },
+  );
+  return payload.data ?? { revokedSessions: 0 };
 }
 
 export async function requestBackofficePasswordReset(
@@ -305,11 +476,7 @@ export async function requestBackofficePasswordReset(
 export async function verifyBackofficePasswordResetToken(
   token: string,
   requestHeaders?: Headers,
-): Promise<{
-  valid: true;
-  clientId: "admin";
-  expiresAt: string;
-}> {
+): Promise<{ valid: true; clientId: "admin"; expiresAt: string }> {
   const payload = await authServiceFetch<{
     valid: true;
     clientId: "admin";
@@ -319,16 +486,12 @@ export async function verifyBackofficePasswordResetToken(
     body: { token, clientId: "admin" },
     headers: buildPublicRequestHeaders(requestHeaders),
   });
-
   if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
   return payload.data;
 }
 
 export async function confirmBackofficePasswordReset(
-  input: {
-    token: string;
-    newPassword: string;
-  },
+  input: { token: string; newPassword: string },
   requestHeaders?: Headers,
 ): Promise<{ reset: boolean; revokedSessions: boolean }> {
   const payload = await authServiceFetch<{
@@ -339,7 +502,6 @@ export async function confirmBackofficePasswordReset(
     body: { ...input, clientId: "admin" },
     headers: buildPublicRequestHeaders(requestHeaders),
   });
-
   if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
   return payload.data;
 }

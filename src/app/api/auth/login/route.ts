@@ -1,76 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ZodError } from "zod";
 import { loginWithCredentials } from "@/features/auth/service";
+import { mapAuthRouteError } from "@/lib/auth/route-error";
 
 export const runtime = "nodejs";
 
-function getStatusAndMessage(error: unknown) {
-  if (error instanceof ZodError) {
-    return {
-      status: 400,
-      message: error.issues[0]?.message ?? "Datos inválidos.",
-    };
-  }
-
-  if (error instanceof Error) {
-    if (error.message === "INVALID_CREDENTIALS") {
-      return {
-        status: 401,
-        message: "Correo o contraseña incorrectos.",
-      };
-    }
-
-    if (
-      error.message === "FORBIDDEN" ||
-      error.message === "AUTH_PORTAL_MISMATCH" ||
-      error.message === "AUTH_PERMISSIONS_MISSING"
-    ) {
-      return {
-        status: 403,
-        message: "Tu sesión no tiene un contexto administrativo válido.",
-      };
-    }
-  }
-
-  return {
-    status: 500,
-    message: "No se pudo iniciar sesión.",
-  };
-}
-
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const result = await loginWithCredentials(body);
+    const result = await loginWithCredentials(
+      await request.json(),
+      request.headers,
+    );
+
+    if (result.status !== "AUTHENTICATED") {
+      return NextResponse.json({ ok: true, data: result }, { status: 200 });
+    }
 
     return NextResponse.json(
       {
         ok: true,
         data: {
+          status: result.status,
           user: result.user,
           session: {
             sessionId: result.session.sessionId,
             expiresAt: result.session.expiresAt,
+            absoluteExpiresAt: result.session.absoluteExpiresAt,
           },
         },
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("[backoffice-login-error]", {
       message: error instanceof Error ? error.message : String(error),
       name: error instanceof Error ? error.name : undefined,
-      stack: error instanceof Error ? error.stack : undefined,
     });
-
-    const mapped = getStatusAndMessage(error);
-
+    const mapped = mapAuthRouteError(error, "No se pudo iniciar sesión.");
     return NextResponse.json(
-      {
-        ok: false,
-        error: mapped.message,
-      },
-      { status: mapped.status }
+      { ok: false, error: mapped.message, code: mapped.code },
+      { status: mapped.status },
     );
   }
 }

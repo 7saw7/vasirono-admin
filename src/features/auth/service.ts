@@ -1,10 +1,10 @@
 import { loginSchema } from "./schema";
 import type { CurrentUserResult, LoginInput, LoginResult } from "./types";
 import {
-  clearSessionCookie,
+  clearAuthCookies,
   getCurrentSessionUser,
   revokeCurrentSession,
-  setSessionCookie,
+  setAuthCookies,
 } from "@/lib/auth/session";
 import { loginBackofficeWithAuthService } from "@/lib/auth/auth-service-client";
 
@@ -14,7 +14,7 @@ function normalizeAuthError(error: unknown): Error {
   const message = error instanceof Error ? error.message : String(error);
 
   if (status === 401 || code === "INVALID_CREDENTIALS") {
-    return new Error("INVALID_CREDENTIALS");
+    return new Error(code || "INVALID_CREDENTIALS");
   }
 
   if (
@@ -23,24 +23,35 @@ function normalizeAuthError(error: unknown): Error {
     code === "FORBIDDEN" ||
     message === "FORBIDDEN"
   ) {
-    return new Error("FORBIDDEN");
+    return new Error(code || "FORBIDDEN");
   }
 
   return error instanceof Error ? error : new Error(message);
 }
 
 export async function loginWithCredentials(
-  input: LoginInput
+  input: LoginInput,
+  requestHeaders?: Headers,
 ): Promise<LoginResult> {
   const parsed = loginSchema.parse(input);
 
   try {
-    const result = await loginBackofficeWithAuthService({
-      email: parsed.email,
-      password: parsed.password,
-    });
+    const result = await loginBackofficeWithAuthService(
+      {
+        email: parsed.email,
+        password: parsed.password,
+      },
+      requestHeaders,
+    );
 
-    await setSessionCookie(result.session.token, new Date(result.session.expiresAt));
+    if (result.status === "AUTHENTICATED") {
+      await setAuthCookies({
+        accessToken: result.session.token,
+        accessExpiresAt: new Date(result.session.expiresAt),
+        refreshToken: result.refreshToken,
+        refreshExpiresAt: new Date(result.refreshTokenExpiresAt),
+      });
+    }
 
     return result;
   } catch (error) {
@@ -50,15 +61,10 @@ export async function loginWithCredentials(
 
 export async function logoutCurrentUser(): Promise<void> {
   await revokeCurrentSession();
-  await clearSessionCookie();
+  await clearAuthCookies();
 }
 
 export async function getCurrentUser(): Promise<CurrentUserResult> {
   const session = await getCurrentSessionUser();
-
-  if (!session.user) {
-    return { user: null };
-  }
-
   return { user: session.user };
 }

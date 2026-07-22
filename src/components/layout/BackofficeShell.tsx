@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { BackofficeHeader } from "./BackofficeHeader";
 import { BackofficeSidebar } from "./BackofficeSidebar";
+import { AuthSessionHeartbeat } from "@/components/auth/AuthSessionHeartbeat";
 import type { AuthUser } from "@/features/auth/types";
 import type { BackofficeNavItem } from "@/config/nav/backoffice-nav";
 
@@ -18,6 +19,7 @@ export function BackofficeShell({ user, navItems, children }: BackofficeShellPro
 
   return (
     <div className="bo-theme min-h-screen bg-[#f6f7fb] text-slate-950 transition-colors dark:bg-[#080b12] dark:text-slate-100">
+      <AuthSessionHeartbeat />
       <div className="flex min-h-screen">
         <BackofficeSidebar
           items={navItems}

@@ -1,4 +1,5 @@
 import { SettingsFilters } from "./SettingsFilters";
+import { SecuritySessionsPanel } from "./SecuritySessionsPanel";
 import type { SettingsDashboardData } from "@/features/backoffice/settings/types";
 
 type SettingsViewProps = {
@@ -21,6 +22,8 @@ export function SettingsView({ data }: SettingsViewProps) {
       <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-800">
         <strong>Configuración de solo lectura:</strong> cada catálogo se administra desde su microservicio propietario. No se expone una escritura genérica sobre tablas compartidas.
       </div>
+
+      <SecuritySessionsPanel />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <SummaryCard label="Roles" value={String(data.summary.totalRoles)} />
