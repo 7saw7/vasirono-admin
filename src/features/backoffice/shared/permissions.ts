@@ -1,21 +1,31 @@
 import type { BackofficePermission } from "@/lib/auth/permissions";
-import { hasPermission } from "@/lib/auth/permissions";
 import type { AppRole } from "@/lib/constants/roles";
 
-export function can(role: AppRole, permission: BackofficePermission): boolean {
-  return hasPermission(role, permission);
+/**
+ * Deprecated compatibility helpers.
+ *
+ * Permissions must never be reconstructed from a role. These helpers remain
+ * only so an old checkout cannot fail TypeScript compilation after an overlay;
+ * they deliberately fail closed. New code must call userHasPermission() with
+ * the authenticated user's explicit permission array.
+ */
+export function can(
+  _role: AppRole,
+  _permission: BackofficePermission,
+): boolean {
+  return false;
 }
 
 export function canSome(
-  role: AppRole,
-  permissions: BackofficePermission[]
+  _role: AppRole,
+  _permissions: BackofficePermission[],
 ): boolean {
-  return permissions.some((permission) => hasPermission(role, permission));
+  return false;
 }
 
 export function canAll(
-  role: AppRole,
-  permissions: BackofficePermission[]
+  _role: AppRole,
+  _permissions: BackofficePermission[],
 ): boolean {
-    return permissions.every((permission) => hasPermission(role, permission));
+  return false;
 }
