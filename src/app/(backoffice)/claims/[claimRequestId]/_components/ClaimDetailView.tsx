@@ -1,12 +1,11 @@
-import type { ReactNode } from "react";
+﻿import type { ReactNode } from "react";
 import Link from "next/link";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatDateTime } from "@/lib/utils/dates";
 import { ClaimEvidencePreview } from "../../_components/ClaimEvidencePreview";
 import type { ClaimDetail } from "@/features/backoffice/claims/types";
-import { ClaimProfessionalFlowPanel } from "./ClaimProfessionalFlowPanel";
-import { ClaimDecisionForm } from "../../_components/ClaimDecisionForm";
+import { ClaimWorkflowCommandPanel } from "./ClaimWorkflowCommandPanel";
 
 type ClaimDetailViewProps = {
   data: ClaimDetail;
@@ -35,7 +34,7 @@ const TERMINAL_CLAIM_STATUSES = new Set([
 ]);
 
 export function ClaimDetailView({ data, canReview }: ClaimDetailViewProps) {
-  const isTerminal = TERMINAL_CLAIM_STATUSES.has(data.statusCode.toLowerCase());
+  const isTerminal = TERMINAL_CLAIM_STATUSES.has(data.workflowState);
   return (
     <div className="space-y-6">
       <div>
@@ -136,13 +135,7 @@ export function ClaimDetailView({ data, canReview }: ClaimDetailViewProps) {
           bloqueadas para evitar decisiones duplicadas.
         </div>
       ) : canReview ? (
-        <>
-          <ClaimProfessionalFlowPanel claim={data} />
-          <ClaimDecisionForm
-            claimId={data.claimRequestId}
-            showReject={false}
-          />
-        </>
+        <ClaimWorkflowCommandPanel claim={data} />
       ) : (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Tienes acceso de consulta. Las decisiones y cambios del reclamo requieren el permiso de revisión.
@@ -158,43 +151,12 @@ export function ClaimDetailView({ data, canReview }: ClaimDetailViewProps) {
         </SectionCard>
 
         <SectionCard
-          title="Historial de canal oficial"
-          description="Últimos canales públicos y códigos WhatsApp asociados a esta solicitud."
+          title="Desafío de canal"
+          description="Solo se conserva en la interfaz el destino enmascarado y la vigencia."
         >
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-semibold text-neutral-900">Contactos públicos registrados</p>
-              {data.publicContacts.length > 0 ? (
-                <div className="mt-2 space-y-2">
-                  {data.publicContacts.map((contact) => (
-                    <div key={contact.publicContactVerificationId} className="rounded-2xl border border-neutral-100 p-3 text-sm">
-                      <p className="font-medium text-neutral-900">{contact.contactSource} · {contact.contactValue}</p>
-                      <p className="mt-1 text-neutral-500">Evidencia: {contact.evidenceUrl ?? "—"}</p>
-                      <p className="mt-1 text-neutral-500">Verificado por: {contact.verifiedByName ?? "—"}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-2 text-sm text-neutral-500">Aún no se registró canal oficial.</p>
-              )}
-            </div>
-
-            <div>
-              <p className="text-sm font-semibold text-neutral-900">WhatsApp OTP</p>
-              {data.whatsappVerifications.length > 0 ? (
-                <div className="mt-2 space-y-2">
-                  {data.whatsappVerifications.map((item) => (
-                    <div key={item.whatsappVerificationId} className="rounded-2xl border border-neutral-100 p-3 text-sm">
-                      <p className="font-medium text-neutral-900">{item.publicPhone} · {item.status}</p>
-                      <p className="mt-1 text-neutral-500">Enviado/preparado: {formatDateTime(item.sentAt)}</p>
-                      <p className="mt-1 text-neutral-500">Vence: {formatDateTime(item.expiresAt)}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-2 text-sm text-neutral-500">No hay códigos WhatsApp generados.</p>
-              )}
-            </div>
+          <div className="grid gap-3 text-sm text-neutral-700">
+            <Field label="Destino" value={data.otpDestinationMasked ?? "—"} />
+            <Field label="Vencimiento" value={formatDateTime(data.otpExpiresAt)} />
           </div>
         </SectionCard>
       </div>

@@ -1,22 +1,9 @@
-import {
-  claimDecisionResultSchema,
-  claimDecisionSchema,
+﻿import {
   claimDetailSchema,
-  claimFlowActionResultSchema,
   claimListFiltersSchema,
   claimListResultSchema,
-  officialChannelChallengeResultSchema,
-  officialChannelSchema,
-  onsiteApprovalSchema,
-  onsiteRequiredSchema,
 } from "./schema";
-import type {
-  ClaimDecisionInput,
-  ClaimListFilters,
-  OfficialChannelInput,
-  OnsiteApprovalInput,
-  OnsiteRequiredInput,
-} from "./types";
+import type { ClaimListFilters } from "./types";
 import { callBackofficeService } from "@/lib/microservices/backoffice-client";
 
 function asNumber(value: unknown): number {
@@ -42,6 +29,23 @@ function maybeIso(value: unknown): string | null {
   if (!value) return null;
   const d = new Date(String(value));
   return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+const WORKFLOW_STATES = new Set([
+  "submitted",
+  "identity_pending",
+  "channel_pending",
+  "onsite_scheduled",
+  "onsite_completed",
+  "review_pending",
+  "approved",
+  "rejected",
+  "changes_required",
+]);
+
+function asWorkflowState(value: unknown, fallback: unknown) {
+  const candidate = String(value ?? fallback ?? "submitted").toLowerCase();
+  return WORKFLOW_STATES.has(candidate) ? candidate : "submitted";
 }
 
 function normalizeClaimItem(row: any) {
@@ -87,6 +91,20 @@ function normalizeClaimItem(row: any) {
     statusCode: String(
       row.statusCode ?? row.status_code ?? "unknown",
     ).toLowerCase(),
+    workflowState: asWorkflowState(
+      row.workflowState ?? row.workflow_state,
+      row.statusCode ?? row.status_code,
+    ),
+    version: Math.max(1, asNumber(row.version ?? 1)),
+    assignedReviewerId:
+      row.assignedReviewerId ?? row.assigned_reviewer_id ?? null,
+    firstReviewerId: row.firstReviewerId ?? row.first_reviewer_id ?? null,
+    secondReviewerId: row.secondReviewerId ?? row.second_reviewer_id ?? null,
+    sensitiveCase: Boolean(row.sensitiveCase ?? row.sensitive_case ?? false),
+    otpChallengeId: row.otpChallengeId ?? row.otp_challenge_id ?? null,
+    otpDestinationMasked:
+      row.otpDestinationMasked ?? row.otp_destination_masked ?? null,
+    otpExpiresAt: maybeIso(row.otpExpiresAt ?? row.otp_expires_at),
     submittedAt: asIso(row.submittedAt ?? row.submitted_at),
     reviewedAt: maybeIso(row.reviewedAt ?? row.reviewed_at),
     reviewedByName: row.reviewedByName ?? row.reviewed_by_name ?? null,
@@ -120,44 +138,6 @@ function normalizeClaimList(raw: any, page: number, pageSize: number) {
   };
 }
 
-function normalizePublicContact(row: any) {
-  return {
-    publicContactVerificationId: asNumber(
-      row.publicContactVerificationId ?? row.public_contact_verification_id,
-    ),
-    contactSource: String(row.contactSource ?? row.contact_source ?? "manual"),
-    contactLabel: row.contactLabel ?? row.contact_label ?? null,
-    contactValue: String(row.contactValue ?? row.contact_value ?? ""),
-    normalizedContactValue:
-      row.normalizedContactValue ?? row.normalized_contact_value ?? null,
-    matchedWithBranchContact: Boolean(
-      row.matchedWithBranchContact ?? row.matched_with_branch_contact ?? false,
-    ),
-    evidenceUrl: row.evidenceUrl ?? row.evidence_url ?? null,
-    verifiedAt: maybeIso(row.verifiedAt ?? row.verified_at),
-    verifiedByName: row.verifiedByName ?? row.verified_by_name ?? null,
-    createdAt: asIso(row.createdAt ?? row.created_at),
-  };
-}
-
-function normalizeWhatsappVerification(row: any) {
-  return {
-    whatsappVerificationId: asNumber(
-      row.whatsappVerificationId ?? row.whatsapp_verification_id,
-    ),
-    publicPhone: String(row.publicPhone ?? row.public_phone ?? ""),
-    normalizedPhone: String(row.normalizedPhone ?? row.normalized_phone ?? ""),
-    attemptsCount: asNumber(row.attemptsCount ?? row.attempts_count),
-    maxAttempts: asNumber(row.maxAttempts ?? row.max_attempts ?? 5),
-    status: String(row.status ?? "pending"),
-    sentAt: maybeIso(row.sentAt ?? row.sent_at),
-    expiresAt: maybeIso(row.expiresAt ?? row.expires_at),
-    verifiedAt: maybeIso(row.verifiedAt ?? row.verified_at),
-    providerName: row.providerName ?? row.provider_name ?? null,
-    failureReason: row.failureReason ?? row.failure_reason ?? null,
-  };
-}
-
 function normalizeClaimDetail(raw: any) {
   if (!raw) return null;
   const base = normalizeClaimItem(raw);
@@ -184,16 +164,6 @@ function normalizeClaimDetail(raw: any) {
     verificationStatusCode:
       raw.verificationStatusCode ?? raw.verification_status_code ?? null,
     verificationLevel: raw.verificationLevel ?? raw.verification_level ?? null,
-    publicContacts: Array.isArray(raw.publicContacts)
-      ? raw.publicContacts.map(normalizePublicContact)
-      : Array.isArray(raw.public_contacts)
-        ? raw.public_contacts.map(normalizePublicContact)
-        : [],
-    whatsappVerifications: Array.isArray(raw.whatsappVerifications)
-      ? raw.whatsappVerifications.map(normalizeWhatsappVerification)
-      : Array.isArray(raw.whatsapp_verifications)
-        ? raw.whatsapp_verifications.map(normalizeWhatsappVerification)
-        : [],
     professionalFlowMetadata:
       raw.professionalFlowMetadata ??
       raw.professional_flow_metadata ??
@@ -239,119 +209,26 @@ export async function getClaimDetail(claimRequestId: number) {
   return normalized ? claimDetailSchema.parse(normalized) : null;
 }
 
-export async function sendOfficialChannelCode(
-  claimRequestId: number,
-  _reviewerUserId: string,
-  input: OfficialChannelInput,
-) {
-  const parsed = officialChannelSchema.parse(input);
-  const raw = await callBackofficeService<unknown>(
-    "verifications",
-    `/api/backoffice/claims/${claimRequestId}/official-channel`,
-    {
-      method: "PATCH",
-      body: parsed,
-    },
-  );
-  return officialChannelChallengeResultSchema.parse(raw);
-}
+export const CLAIM_WORKFLOW_COMMANDS = [
+  "start-channel-verification",
+  "schedule-visit",
+  "complete-visit",
+  "submit-review",
+  "approve",
+  "reject",
+  "request-changes",
+] as const;
 
-export async function markClaimOnsiteRequired(
-  claimRequestId: number,
-  _reviewerUserId: string,
-  input: OnsiteRequiredInput,
-) {
-  const parsed = onsiteRequiredSchema.parse(input);
-  const raw = await callBackofficeService<unknown>(
-    "verifications",
-    `/api/backoffice/claims/${claimRequestId}/onsite-required`,
-    {
-      method: "PATCH",
-      body: parsed,
-    },
-  );
-  return claimFlowActionResultSchema.parse(raw);
-}
+export type ClaimWorkflowCommand = (typeof CLAIM_WORKFLOW_COMMANDS)[number];
 
-export async function approveOnsiteVerification(
+export async function executeClaimWorkflowCommand(
   claimRequestId: number,
-  _reviewerUserId: string,
-  input: OnsiteApprovalInput,
+  command: ClaimWorkflowCommand,
+  input: unknown,
 ) {
-  const parsed = onsiteApprovalSchema.parse(input);
-  const raw = await callBackofficeService<unknown>(
+  return callBackofficeService<unknown>(
     "verifications",
-    `/api/backoffice/claims/${claimRequestId}/onsite-approve`,
-    {
-      method: "PATCH",
-      body: parsed,
-    },
+    `/api/backoffice/claims/${claimRequestId}/commands/${command}`,
+    { method: "POST", body: input },
   );
-  return claimFlowActionResultSchema.parse(raw);
-}
-
-export async function requestMoreEvidenceClaim(
-  claimRequestId: number,
-  _reviewerUserId: string,
-  notes?: string | null,
-) {
-  const raw = await callBackofficeService<unknown>(
-    "verifications",
-    `/api/backoffice/claims/${claimRequestId}/needs-more-evidence`,
-    {
-      method: "PATCH",
-      body: { notes },
-    },
-  );
-  return claimFlowActionResultSchema.parse(raw);
-}
-
-export async function approveClaim(
-  claimRequestId: number,
-  _reviewerUserId: string,
-  input: ClaimDecisionInput,
-) {
-  const parsed = claimDecisionSchema.parse(input);
-  const raw = await callBackofficeService<unknown>(
-    "verifications",
-    `/api/backoffice/claims/${claimRequestId}/approve`,
-    {
-      method: "PATCH",
-      body: { notes: parsed.notes },
-    },
-  );
-  return claimDecisionResultSchema.parse({
-    claimRequestId,
-    statusName:
-      (raw as any)?.statusName ?? (raw as any)?.status_name ?? "Aprobado",
-    verificationRequestId: nullableNumber(
-      (raw as any)?.verificationRequestId ??
-        (raw as any)?.verification_request_id,
-    ),
-  });
-}
-
-export async function rejectClaim(
-  claimRequestId: number,
-  _reviewerUserId: string,
-  input: ClaimDecisionInput,
-) {
-  const parsed = claimDecisionSchema.parse(input);
-  const raw = await callBackofficeService<unknown>(
-    "verifications",
-    `/api/backoffice/claims/${claimRequestId}/reject`,
-    {
-      method: "PATCH",
-      body: { reason: parsed.notes ?? "Rechazado desde backoffice" },
-    },
-  );
-  return claimDecisionResultSchema.parse({
-    claimRequestId,
-    statusName:
-      (raw as any)?.statusName ?? (raw as any)?.status_name ?? "Rechazado",
-    verificationRequestId: nullableNumber(
-      (raw as any)?.verificationRequestId ??
-        (raw as any)?.verification_request_id,
-    ),
-  });
 }

@@ -1,4 +1,15 @@
-import type { PaginatedResult } from "@/features/backoffice/shared/types";
+﻿import type { PaginatedResult } from "@/features/backoffice/shared/types";
+
+export type ClaimWorkflowState =
+  | "submitted"
+  | "identity_pending"
+  | "channel_pending"
+  | "onsite_scheduled"
+  | "onsite_completed"
+  | "review_pending"
+  | "approved"
+  | "rejected"
+  | "changes_required";
 
 export type ClaimListFilters = {
   search?: string;
@@ -26,6 +37,15 @@ export type ClaimListItem = {
   preferredVerificationRoute: string | null;
   statusName: string;
   statusCode: string;
+  workflowState: ClaimWorkflowState;
+  version: number;
+  assignedReviewerId: string | null;
+  firstReviewerId: string | null;
+  secondReviewerId: string | null;
+  sensitiveCase: boolean;
+  otpChallengeId: string | null;
+  otpDestinationMasked: string | null;
+  otpExpiresAt: string | null;
   submittedAt: string;
   reviewedAt: string | null;
   reviewedByName: string | null;
@@ -38,94 +58,6 @@ export type ClaimListItem = {
 };
 
 export type ClaimListResult = PaginatedResult<ClaimListItem>;
-
-export type ClaimDecisionInput = {
-  decision: "approve" | "reject";
-  notes?: string;
-};
-
-export type OfficialChannelInput = {
-  channelType:
-    | "email"
-    | "whatsapp"
-    | "phone"
-    | "website"
-    | "instagram"
-    | "facebook"
-    | "tiktok"
-    | "manual";
-  channelValue: string;
-  evidenceUrl?: string | null;
-  reviewerNotes?: string | null;
-  matchedWithBranchContact?: boolean;
-};
-
-export type OfficialChannelChallengeResult = {
-  claimRequestId: number;
-  verificationRequestId: number;
-  verificationCheckId: number;
-  channel: "email" | "whatsapp";
-  to: string;
-  codeExpiresAt: string;
-  notification: {
-    sent: boolean;
-    prepared: boolean;
-    manualActionRequired: boolean;
-    provider?: string | null;
-    deliveryMode?: string | null;
-    manualSendUrl?: string | null;
-    messageText?: string | null;
-    error?: string | null;
-  };
-};
-
-export type OnsiteRequiredInput = {
-  scheduledAt?: string | null;
-  visitAddress?: string | null;
-  contactPerson?: string | null;
-  contactPhone?: string | null;
-  notes?: string | null;
-};
-
-export type OnsiteApprovalInput = {
-  notes: string;
-  documentsReviewed?: boolean;
-  addressVerified?: boolean;
-};
-
-export type ClaimFlowActionResult = {
-  claimRequestId: number;
-  statusName: string;
-  statusCode: string;
-  verificationRequestId: number | null;
-};
-
-export type ClaimPublicContact = {
-  publicContactVerificationId: number;
-  contactSource: string;
-  contactLabel: string | null;
-  contactValue: string;
-  normalizedContactValue: string | null;
-  matchedWithBranchContact: boolean;
-  evidenceUrl: string | null;
-  verifiedAt: string | null;
-  verifiedByName: string | null;
-  createdAt: string;
-};
-
-export type ClaimWhatsappVerification = {
-  whatsappVerificationId: number;
-  publicPhone: string;
-  normalizedPhone: string;
-  attemptsCount: number;
-  maxAttempts: number;
-  status: string;
-  sentAt: string | null;
-  expiresAt: string | null;
-  verifiedAt: string | null;
-  providerName: string | null;
-  failureReason: string | null;
-};
 
 export type ClaimDetail = {
   claimRequestId: number;
@@ -153,6 +85,15 @@ export type ClaimDetail = {
   statusId: number | null;
   statusName: string;
   statusCode: string;
+  workflowState: ClaimWorkflowState;
+  version: number;
+  assignedReviewerId: string | null;
+  firstReviewerId: string | null;
+  secondReviewerId: string | null;
+  sensitiveCase: boolean;
+  otpChallengeId: string | null;
+  otpDestinationMasked: string | null;
+  otpExpiresAt: string | null;
   submittedAt: string;
   reviewedAt: string | null;
   reviewedById: string | null;
@@ -163,17 +104,9 @@ export type ClaimDetail = {
   verificationStatusName: string | null;
   verificationStatusCode: string | null;
   verificationLevel: string | null;
-  publicContacts: ClaimPublicContact[];
-  whatsappVerifications: ClaimWhatsappVerification[];
   professionalFlowMetadata: Record<string, unknown> | null;
   invitationId?: number | null;
   invitationStatus?: string | null;
   invitationExpiresAt?: string | null;
   invitationAcceptedAt?: string | null;
-};
-
-export type ClaimDecisionResult = {
-  claimRequestId: number;
-  statusName: string;
-  verificationRequestId: number | null;
 };

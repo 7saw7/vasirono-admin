@@ -1,4 +1,16 @@
-import { z } from "zod";
+﻿import { z } from "zod";
+
+export const claimWorkflowStateSchema = z.enum([
+  "submitted",
+  "identity_pending",
+  "channel_pending",
+  "onsite_scheduled",
+  "onsite_completed",
+  "review_pending",
+  "approved",
+  "rejected",
+  "changes_required",
+]);
 
 export const claimListFiltersSchema = z.object({
   search: z.string().trim().optional(),
@@ -6,33 +18,6 @@ export const claimListFiltersSchema = z.object({
   companyId: z.coerce.number().int().positive().optional(),
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(10),
-});
-
-export const claimPublicContactSchema = z.object({
-  publicContactVerificationId: z.number().int(),
-  contactSource: z.string(),
-  contactLabel: z.string().nullable(),
-  contactValue: z.string(),
-  normalizedContactValue: z.string().nullable(),
-  matchedWithBranchContact: z.boolean(),
-  evidenceUrl: z.string().nullable(),
-  verifiedAt: z.string().nullable(),
-  verifiedByName: z.string().nullable(),
-  createdAt: z.string(),
-});
-
-export const claimWhatsappVerificationSchema = z.object({
-  whatsappVerificationId: z.number().int(),
-  publicPhone: z.string(),
-  normalizedPhone: z.string(),
-  attemptsCount: z.number().int(),
-  maxAttempts: z.number().int(),
-  status: z.string(),
-  sentAt: z.string().nullable(),
-  expiresAt: z.string().nullable(),
-  verifiedAt: z.string().nullable(),
-  providerName: z.string().nullable(),
-  failureReason: z.string().nullable(),
 });
 
 export const claimListItemSchema = z.object({
@@ -53,6 +38,15 @@ export const claimListItemSchema = z.object({
   preferredVerificationRoute: z.string().nullable(),
   statusName: z.string(),
   statusCode: z.string(),
+  workflowState: claimWorkflowStateSchema,
+  version: z.number().int().positive(),
+  assignedReviewerId: z.string().nullable(),
+  firstReviewerId: z.string().nullable(),
+  secondReviewerId: z.string().nullable(),
+  sensitiveCase: z.boolean(),
+  otpChallengeId: z.string().nullable(),
+  otpDestinationMasked: z.string().nullable(),
+  otpExpiresAt: z.string().nullable(),
   submittedAt: z.string(),
   reviewedAt: z.string().nullable(),
   reviewedByName: z.string().nullable(),
@@ -74,81 +68,7 @@ export const claimListResultSchema = z.object({
   total: z.number().int(),
 });
 
-export const claimDecisionSchema = z.object({
-  decision: z.enum(["approve", "reject"]),
-  notes: z.string().trim().max(2000).optional(),
-});
-
-export const officialChannelSchema = z
-  .object({
-    channelType: z.enum([
-      "email",
-      "whatsapp",
-      "phone",
-      "website",
-      "instagram",
-      "facebook",
-      "tiktok",
-      "manual",
-    ]),
-    channelValue: z.string().trim().min(3).max(300),
-    evidenceUrl: z.string().trim().max(1000).nullable().optional(),
-    reviewerNotes: z.string().trim().max(2000).nullable().optional(),
-    matchedWithBranchContact: z.boolean().optional(),
-  })
-  .superRefine((value, ctx) => {
-    if (!["email", "whatsapp"].includes(value.channelType)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["channelType"],
-        message:
-          "Para enviar código semi profesional el canal debe ser email o WhatsApp. Si no existe, coordina visita presencial.",
-      });
-    }
-  });
-
-export const onsiteRequiredSchema = z.object({
-  scheduledAt: z.string().trim().nullable().optional(),
-  visitAddress: z.string().trim().max(500).nullable().optional(),
-  contactPerson: z.string().trim().max(180).nullable().optional(),
-  contactPhone: z.string().trim().max(60).nullable().optional(),
-  notes: z.string().trim().max(3000).nullable().optional(),
-});
-
-export const onsiteApprovalSchema = z.object({
-  notes: z.string().trim().min(5).max(4000),
-  documentsReviewed: z.boolean().optional(),
-  addressVerified: z.boolean().optional(),
-});
-
-export const claimFlowActionResultSchema = z.object({
-  claimRequestId: z.number().int(),
-  statusName: z.string(),
-  statusCode: z.string(),
-  verificationRequestId: z.number().int().nullable(),
-});
-
-export const officialChannelChallengeResultSchema = z.object({
-  claimRequestId: z.number().int(),
-  verificationRequestId: z.number().int(),
-  verificationCheckId: z.number().int(),
-  channel: z.enum(["email", "whatsapp"]),
-  to: z.string(),
-  codeExpiresAt: z.string(),
-  notification: z.object({
-    sent: z.boolean(),
-    prepared: z.boolean(),
-    manualActionRequired: z.boolean(),
-    provider: z.string().nullable().optional(),
-    deliveryMode: z.string().nullable().optional(),
-    manualSendUrl: z.string().nullable().optional(),
-    messageText: z.string().nullable().optional(),
-    error: z.string().nullable().optional(),
-  }),
-});
-
 export type ClaimListFiltersSchema = z.infer<typeof claimListFiltersSchema>;
-export type ClaimDecisionSchema = z.infer<typeof claimDecisionSchema>;
 
 export const claimDetailSchema = z.object({
   claimRequestId: z.number().int(),
@@ -176,6 +96,15 @@ export const claimDetailSchema = z.object({
   statusId: z.number().int().nullable(),
   statusName: z.string(),
   statusCode: z.string(),
+  workflowState: claimWorkflowStateSchema,
+  version: z.number().int().positive(),
+  assignedReviewerId: z.string().nullable(),
+  firstReviewerId: z.string().nullable(),
+  secondReviewerId: z.string().nullable(),
+  sensitiveCase: z.boolean(),
+  otpChallengeId: z.string().nullable(),
+  otpDestinationMasked: z.string().nullable(),
+  otpExpiresAt: z.string().nullable(),
   submittedAt: z.string(),
   reviewedAt: z.string().nullable(),
   reviewedById: z.string().nullable(),
@@ -186,17 +115,9 @@ export const claimDetailSchema = z.object({
   verificationStatusName: z.string().nullable(),
   verificationStatusCode: z.string().nullable(),
   verificationLevel: z.string().nullable(),
-  publicContacts: z.array(claimPublicContactSchema),
-  whatsappVerifications: z.array(claimWhatsappVerificationSchema),
   professionalFlowMetadata: z.record(z.string(), z.unknown()).nullable(),
   invitationId: z.number().int().nullable().optional(),
   invitationStatus: z.string().nullable().optional(),
   invitationExpiresAt: z.string().nullable().optional(),
   invitationAcceptedAt: z.string().nullable().optional(),
-});
-
-export const claimDecisionResultSchema = z.object({
-  claimRequestId: z.number().int(),
-  statusName: z.string(),
-  verificationRequestId: z.number().int().nullable(),
 });
