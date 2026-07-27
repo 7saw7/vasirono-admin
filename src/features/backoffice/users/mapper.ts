@@ -22,6 +22,7 @@ export type UserListRow = {
   sessions_count: number | string | null;
   last_session_at: Date | string | null;
   created_at: Date | string;
+  version: number | string;
 };
 
 export type UserDetailRow = {
@@ -35,6 +36,7 @@ export type UserDetailRow = {
   is_active: boolean | null;
   created_at: Date | string;
   updated_at: Date | string;
+  version: number | string;
 };
 
 export type UserSessionRow = {
@@ -111,6 +113,7 @@ export function mapUserListRow(row: UserListRow): UserListItem {
     sessionsCount: toNumber(row.sessions_count),
     lastSessionAt: toIsoString(row.last_session_at),
     createdAt: toIsoString(row.created_at) ?? new Date(0).toISOString(),
+    version: toNumber(row.version),
   };
 }
 
@@ -199,6 +202,7 @@ export function mapUserDetailRow(
     isActive: row.is_active !== false,
     createdAt: toIsoString(row.created_at) ?? new Date(0).toISOString(),
     updatedAt: toIsoString(row.updated_at) ?? new Date(0).toISOString(),
+    version: toNumber(row.version),
     sessions: input.sessions.map(mapUserSessionRow),
     notifications: input.notifications.map(mapUserNotificationRow),
     favorites: input.favorites.map(mapUserFavoriteRow),

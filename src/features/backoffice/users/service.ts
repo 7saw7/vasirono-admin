@@ -97,6 +97,7 @@ function normalizeUserListItem(value: unknown) {
         ? toIsoString(item.lastSessionAt ?? item.last_session_at)
         : null,
     createdAt: toIsoString(item.createdAt ?? item.created_at),
+    version: toNumber(item.version, 1),
   };
 }
 
@@ -219,6 +220,7 @@ function normalizeUserDetail(value: unknown) {
     isActive: toBoolean(user.isActive ?? user.is_active, true),
     createdAt,
     updatedAt: toIsoString(user.updatedAt ?? user.updated_at, createdAt),
+    version: toNumber(user.version, 1),
     sessions: normalizeArray(payload.sessions).map(normalizeSession),
     notifications: normalizeArray(payload.notifications).map(
       normalizeNotification,

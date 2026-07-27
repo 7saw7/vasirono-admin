@@ -8,5 +8,48 @@ import { UserReviewsPanel } from "./UserReviewsPanel";
 import { UserBadgesPanel } from "../../_components/UserBadgesPanel";
 import type { UserDetail } from "@/features/backoffice/users/types";
 import type { SelectOption } from "@/components/ui/Select";
-type Props={data:UserDetail;canManage:boolean;roles:SelectOption[]};
-export function UserDetailView({data,canManage,roles}:Props){return <div className="space-y-6"><div><p className="text-sm font-medium text-neutral-500">Usuarios</p><h1 className="mt-1 text-3xl font-semibold tracking-tight text-neutral-950">{data.name}</h1></div><UserProfilePanel data={data}/>{canManage?<UserManagementPanel user={data} roles={roles}/>:null}<div className="grid gap-6 xl:grid-cols-2"><UserSessionsPanel sessions={data.sessions}/><UserNotificationsPanel notifications={data.notifications}/></div><div className="grid gap-6 xl:grid-cols-2"><UserFavoritesPanel favorites={data.favorites}/><UserRecentViewsPanel recentViews={data.recentViews}/></div><div className="grid gap-6 xl:grid-cols-2"><UserBadgesPanel badges={data.badges}/><UserReviewsPanel reviews={data.reviews}/></div></div>}
+
+type Props = {
+  data: UserDetail;
+  roles: SelectOption[];
+  permissions: {
+    canChangeRole: boolean;
+    canChangeStatus: boolean;
+    canVerify: boolean;
+  };
+};
+
+export function UserDetailView({ data, permissions, roles }: Props) {
+  const canManage = Object.values(permissions).some(Boolean);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-neutral-500">Usuarios</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-neutral-950">
+          {data.name}
+        </h1>
+      </div>
+      <UserProfilePanel data={data} />
+      {canManage ? (
+        <UserManagementPanel
+          user={data}
+          roles={roles}
+          permissions={permissions}
+        />
+      ) : null}
+      <div className="grid gap-6 xl:grid-cols-2">
+        <UserSessionsPanel sessions={data.sessions} />
+        <UserNotificationsPanel notifications={data.notifications} />
+      </div>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <UserFavoritesPanel favorites={data.favorites} />
+        <UserRecentViewsPanel recentViews={data.recentViews} />
+      </div>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <UserBadgesPanel badges={data.badges} />
+        <UserReviewsPanel reviews={data.reviews} />
+      </div>
+    </div>
+  );
+}

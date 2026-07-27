@@ -21,6 +21,7 @@ export type UserListItem = {
   sessionsCount: number;
   lastSessionAt: string | null;
   createdAt: string;
+  version: number;
 };
 
 export type UsersListResult = PaginatedResult<UserListItem>;
@@ -81,6 +82,7 @@ export type UserDetail = {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  version: number;
   sessions: UserSessionItem[];
   notifications: UserNotificationItem[];
   favorites: UserFavoriteBranchItem[];
@@ -89,6 +91,20 @@ export type UserDetail = {
   reviews: UserReviewItem[];
 };
 
-export type UpdateAdminUserRoleInput = { roleId: number };
-export type UpdateAdminUserVerificationInput = { verified: boolean };
-export type UpdateAdminUserActiveInput = { active: boolean };
+export type AdminUserCommandMetadata = {
+  expectedVersion: number;
+  reasonCode: string;
+  reason: string;
+  supportReference?: string;
+  idempotencyKey: string;
+};
+
+export type UpdateAdminUserRoleInput = AdminUserCommandMetadata & {
+  targetRoleId: number;
+};
+export type UpdateAdminUserVerificationInput = AdminUserCommandMetadata & {
+  verified: boolean;
+};
+export type UpdateAdminUserActiveInput = AdminUserCommandMetadata & {
+  active: boolean;
+};

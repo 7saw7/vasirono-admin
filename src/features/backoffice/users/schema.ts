@@ -32,6 +32,7 @@ export const userListItemSchema = z.object({
   sessionsCount: z.number().int(),
   lastSessionAt: z.string().nullable(),
   createdAt: z.string(),
+  version: z.number().int().positive(),
 });
 
 export const usersListResultSchema = z.object({
@@ -97,6 +98,7 @@ export const userDetailSchema = z.object({
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  version: z.number().int().positive(),
   sessions: z.array(userSessionSchema),
   notifications: z.array(userNotificationSchema),
   favorites: z.array(userFavoriteBranchSchema),
@@ -109,14 +111,36 @@ export const userIdParamSchema = z.object({
   userId: z.string().uuid(),
 });
 
-export const updateAdminUserRoleSchema = z.object({
-  roleId: z.coerce.number().int().positive(),
-});
+const adminUserCommandMetadataSchema = {
+  expectedVersion: z.number().int().positive(),
+  reasonCode: z
+    .string()
+    .trim()
+    .min(3)
+    .max(64)
+    .regex(/^[A-Z][A-Z0-9_]*$/),
+  reason: z.string().trim().min(10).max(500),
+  supportReference: z.string().trim().min(3).max(100).optional(),
+  idempotencyKey: z.string().uuid(),
+};
 
-export const updateAdminUserVerificationSchema = z.object({
-  verified: z.boolean(),
-});
+export const updateAdminUserRoleSchema = z
+  .object({
+    targetRoleId: z.coerce.number().int().positive(),
+    ...adminUserCommandMetadataSchema,
+  })
+  .strict();
 
-export const updateAdminUserActiveSchema = z.object({
-  active: z.boolean(),
-});
+export const updateAdminUserVerificationSchema = z
+  .object({
+    verified: z.boolean(),
+    ...adminUserCommandMetadataSchema,
+  })
+  .strict();
+
+export const updateAdminUserActiveSchema = z
+  .object({
+    active: z.boolean(),
+    ...adminUserCommandMetadataSchema,
+  })
+  .strict();

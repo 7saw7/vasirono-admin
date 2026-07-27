@@ -8,22 +8,36 @@ type Props = { params: Promise<{ userId: string }> };
 export const dynamic = "force-dynamic";
 
 const ADMIN_ASSIGNABLE_ROLES = new Set([
-  "super_admin", "admin", "moderator", "analyst", "support",
-  "business_owner", "company_owner", "company_manager",
-  "business_manager", "business_admin", "user",
+  "super_admin",
+  "admin",
+  "moderator",
+  "analyst",
+  "support",
+  "business_owner",
+  "company_owner",
+  "company_manager",
+  "business_manager",
+  "business_admin",
+  "user",
 ]);
 
 function normalizeRole(value: string) {
-  return value.trim().toLowerCase().replace(/-/g, "_").replace(/\s+/g, "_");
+  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_");
 }
 
 export default async function UserDetailPage({ params }: Props) {
   const context = await requireBackofficePage("users.read");
   const { userId } = await params;
-  const canManage = context.hasPermission("users.manage");
+  const permissions = {
+    canChangeRole: context.hasPermission("users.changeRole"),
+    canChangeStatus: context.hasPermission("users.changeStatus"),
+    canVerify: context.hasPermission("users.verify"),
+  };
   const [data, settings] = await Promise.all([
     getUserDetail(userId),
-    canManage ? getSettingsDashboard({ page: 1, pageSize: 100 }) : Promise.resolve(null),
+    permissions.canChangeRole
+      ? getSettingsDashboard({ page: 1, pageSize: 100 })
+      : Promise.resolve(null),
   ]);
   if (!data) notFound();
 
@@ -36,5 +50,11 @@ export default async function UserDetailPage({ params }: Props) {
     })
     .map((item) => ({ value: item.id, label: item.name }));
 
-  return <UserDetailView data={data} canManage={canManage} roles={roles} />;
+  return (
+    <UserDetailView
+      data={data}
+      permissions={permissions}
+      roles={roles}
+    />
+  );
 }

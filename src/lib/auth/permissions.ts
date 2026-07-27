@@ -19,6 +19,9 @@ export type BackofficePermission =
   | "reviewReports.resolve"
   | "users.read"
   | "users.manage"
+  | "users.changeRole"
+  | "users.changeStatus"
+  | "users.verify"
   | "analytics.read"
   | "taxonomies.read"
   | "taxonomies.manage"
@@ -82,6 +85,12 @@ const BACKEND_PERMISSIONS_BY_UI_PERMISSION: Record<
     "admin:users:activate",
     "admin:users:deactivate",
   ],
+  "users.changeRole": ["admin:users:update-role"],
+  "users.changeStatus": [
+    "admin:users:activate",
+    "admin:users:deactivate",
+  ],
+  "users.verify": ["admin:users:verify"],
 
   "analytics.read": ["analytics.backoffice.read"],
 
