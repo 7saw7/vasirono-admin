@@ -53,6 +53,9 @@ export const verificationDocumentSchema = z.object({
   documentType: z.string().nullable(),
   reviewStatus: z.string().nullable(),
   fileName: z.string(),
+  mediaAssetId: z.string().uuid().nullable(),
+  assetStatus: z.string().nullable(),
+  detectedMimeType: z.string().nullable(),
   filePath: z.string(),
   fileBucket: z.string(),
   mimeType: z.string().nullable(),
@@ -278,4 +281,10 @@ export const verificationDocumentReviewResultSchema = z.object({
   verificationRequestId: z.number().int(),
   verificationDocumentId: z.number().int(),
   reviewStatus: z.string(),
+});
+
+export const privateAssetSignedUrlResultSchema = z.object({
+  url: z.string().url(),
+  expiresAt: z.string(),
+  ttlSeconds: z.number().int().min(15).max(300),
 });

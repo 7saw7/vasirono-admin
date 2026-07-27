@@ -9,9 +9,23 @@ type VerificationDocumentsTableProps = {
 
 function mapTone(status: string | null) {
   const code = (status ?? "").toLowerCase();
-  if (["approved", "accepted", "verified"].includes(code)) return "success" as const;
-  if (["pending", "submitted", "in_review"].includes(code)) return "warning" as const;
-  if (["rejected", "failed"].includes(code)) return "danger" as const;
+  if (["approved", "accepted", "verified", "clean"].includes(code))
+    return "success" as const;
+  if (
+    [
+      "pending",
+      "submitted",
+      "in_review",
+      "pending_upload",
+      "uploaded",
+      "pending_scan",
+    ].includes(code)
+  )
+    return "warning" as const;
+  if (
+    ["rejected", "failed", "quarantined", "deleted", "expired"].includes(code)
+  )
+    return "danger" as const;
   return "neutral" as const;
 }
 
@@ -45,15 +59,18 @@ export function VerificationDocumentsTable({
                   <p className="mt-1 text-sm text-neutral-500">
                     Subido: {formatDateTime(document.uploadedAt)}
                   </p>
-                  <p className="mt-1 break-all text-xs text-neutral-400">
-                    {document.fileBucket}/{document.filePath}
-                  </p>
                 </div>
 
-                <StatusBadge
-                  label={document.reviewStatus ?? "Sin review"}
-                  tone={mapTone(document.reviewStatus)}
-                />
+                <div className="flex flex-col gap-2">
+                  <StatusBadge
+                    label={`Archivo: ${document.assetStatus ?? "sin estado"}`}
+                    tone={mapTone(document.assetStatus)}
+                  />
+                  <StatusBadge
+                    label={document.reviewStatus ?? "Sin review"}
+                    tone={mapTone(document.reviewStatus)}
+                  />
+                </div>
               </div>
 
               {document.reviewNotes ? (

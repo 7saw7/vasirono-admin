@@ -13,6 +13,7 @@ import {
   verificationDocumentUploadUrlInputSchema,
   verificationDocumentUploadUrlResultSchema,
   verificationDocumentViewUrlResultSchema,
+  privateAssetSignedUrlResultSchema,
 } from "./schema";
 import type {
   VerificationAssignInput,
@@ -216,4 +217,13 @@ export async function reviewVerificationDocument(
   );
 
   return verificationDocumentReviewResultSchema.parse(raw);
+}
+
+export async function createPrivateAssetSignedUrl(assetId: string) {
+  const raw = await callBackofficeService<unknown>(
+    "media",
+    `/api/backoffice/media/admin/assets/${assetId}/signed-url`,
+    { method: "POST" },
+  );
+  return privateAssetSignedUrlResultSchema.parse(raw);
 }

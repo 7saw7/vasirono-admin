@@ -52,14 +52,39 @@ const DOCUMENT_TYPES = [
 function statusTone(status: string | null) {
   const code = (status ?? "").toLowerCase();
 
-  if (["approved", "accepted", "verified", "aprobado"].includes(code)) return "success" as const;
-  if (["pending", "submitted", "in_review", "pendiente"].includes(code)) return "warning" as const;
-  if (["rejected", "failed", "needs_reupload", "rechazado"].includes(code)) return "danger" as const;
+  if (["approved", "accepted", "verified", "aprobado", "clean"].includes(code))
+    return "success" as const;
+  if (
+    [
+      "pending",
+      "submitted",
+      "in_review",
+      "pendiente",
+      "pending_upload",
+      "uploaded",
+      "pending_scan",
+    ].includes(code)
+  )
+    return "warning" as const;
+  if (
+    [
+      "rejected",
+      "failed",
+      "needs_reupload",
+      "rechazado",
+      "quarantined",
+      "deleted",
+      "expired",
+    ].includes(code)
+  )
+    return "danger" as const;
   return "neutral" as const;
 }
 
 async function readApi<T>(response: Response): Promise<T> {
-  const payload = (await response.json().catch(() => null)) as ApiResponse<T> | null;
+  const payload = (await response
+    .json()
+    .catch(() => null)) as ApiResponse<T> | null;
 
   if (!response.ok || !payload?.ok) {
     throw new Error(payload?.error ?? `HTTP ${response.status}`);
@@ -83,19 +108,31 @@ export function VerificationDocumentActionsPanel({
   const stats = useMemo(() => {
     const total = documents.length;
     const approved = documents.filter((item) =>
-      ["approved", "accepted", "verified", "aprobado"].includes(
-        (item.reviewStatus ?? "").toLowerCase()
-      )
+      ["approved", "accepted", "verified", "aprobado", "clean"].includes(
+        (item.reviewStatus ?? "").toLowerCase(),
+      ),
     ).length;
     const pending = documents.filter((item) =>
-      ["pending", "submitted", "in_review", "pendiente"].includes(
-        (item.reviewStatus ?? "").toLowerCase()
-      )
+      [
+        "pending",
+        "submitted",
+        "in_review",
+        "pendiente",
+        "pending_upload",
+        "uploaded",
+        "pending_scan",
+      ].includes((item.reviewStatus ?? "").toLowerCase()),
     ).length;
     const rejected = documents.filter((item) =>
-      ["rejected", "failed", "needs_reupload", "rechazado"].includes(
-        (item.reviewStatus ?? "").toLowerCase()
-      )
+      [
+        "rejected",
+        "failed",
+        "needs_reupload",
+        "rechazado",
+        "quarantined",
+        "deleted",
+        "expired",
+      ].includes((item.reviewStatus ?? "").toLowerCase()),
     ).length;
 
     return { total, approved, pending, rejected };
@@ -129,17 +166,20 @@ export function VerificationDocumentActionsPanel({
 
     try {
       const upload = await readApi<UploadUrlResult>(
-        await fetch(`/api/backoffice/verifications/${requestId}/documents/upload-url`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            documentTypeCode,
-            fileName: file.name,
-            mimeType: file.type || "application/octet-stream",
-            fileSizeBytes: file.size,
-            notes: notes || null,
-          }),
-        })
+        await fetch(
+          `/api/backoffice/verifications/${requestId}/documents/upload-url`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              documentTypeCode,
+              fileName: file.name,
+              mimeType: file.type || "application/octet-stream",
+              fileSizeBytes: file.size,
+              notes: notes || null,
+            }),
+          },
+        ),
       );
 
       const uploadResponse = await fetch(upload.uploadUrl, {
@@ -159,28 +199,33 @@ export function VerificationDocumentActionsPanel({
       }
 
       await readApi(
-        await fetch(`/api/backoffice/verifications/${requestId}/documents/confirm`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            documentTypeCode,
-            fileName: upload.fileName,
-            fileBucket: upload.bucket,
-            filePath: upload.path,
-            mimeType: upload.mimeType,
-            fileExtension: upload.fileExtension,
-            fileSizeBytes: upload.fileSizeBytes,
-            notes: notes || null,
-          }),
-        })
+        await fetch(
+          `/api/backoffice/verifications/${requestId}/documents/confirm`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              documentTypeCode,
+              fileName: upload.fileName,
+              fileBucket: upload.bucket,
+              filePath: upload.path,
+              mimeType: upload.mimeType,
+              fileExtension: upload.fileExtension,
+              fileSizeBytes: upload.fileSizeBytes,
+              notes: notes || null,
+            }),
+          },
+        ),
       );
 
       setFile(null);
       setNotes("");
-      setMessage("Documento cargado y registrado correctamente.");
+      setMessage("Documento validado, sanitizado y registrado correctamente.");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo subir el documento.");
+      setError(
+        err instanceof Error ? err.message : "No se pudo subir el documento.",
+      );
     } finally {
       setLoading(false);
     }
@@ -190,23 +235,34 @@ export function VerificationDocumentActionsPanel({
     setError(null);
     setMessage(null);
 
+    if (!document.mediaAssetId || document.assetStatus !== "clean") {
+      setError("Solo los documentos con estado clean pueden abrirse.");
+      return;
+    }
+
     try {
-      const result = await readApi<{ url: string }>(
+      const result = await readApi<{
+        url: string;
+        expiresAt: string;
+        ttlSeconds: number;
+      }>(
         await fetch(
-          `/api/backoffice/verifications/${requestId}/documents/${document.verificationDocumentId}/view-url`,
-          { cache: "no-store" }
-        )
+          `/api/backoffice/media/admin/assets/${document.mediaAssetId}/signed-url`,
+          { method: "POST", cache: "no-store" },
+        ),
       );
 
       window.open(result.url, "_blank", "noopener,noreferrer");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo abrir el documento.");
+      setError(
+        err instanceof Error ? err.message : "No se pudo abrir el documento.",
+      );
     }
   }
 
   async function reviewDocument(
     document: VerificationDocument,
-    statusCode: "approved" | "rejected" | "needs_reupload"
+    statusCode: "approved" | "rejected" | "needs_reupload",
   ) {
     setError(null);
     setMessage(null);
@@ -229,14 +285,16 @@ export function VerificationDocumentActionsPanel({
             method: "PATCH",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ statusCode, reviewNotes }),
-          }
-        )
+          },
+        ),
       );
 
       setMessage("Estado del documento actualizado.");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No se pudo revisar el documento.");
+      setError(
+        err instanceof Error ? err.message : "No se pudo revisar el documento.",
+      );
     }
   }
 
@@ -253,10 +311,15 @@ export function VerificationDocumentActionsPanel({
           <MetricCard label="Observados" value={String(stats.rejected)} />
         </div>
 
-        <form onSubmit={onUpload} className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
+        <form
+          onSubmit={onUpload}
+          className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4"
+        >
           <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
             <label className="space-y-1 text-sm">
-              <span className="font-medium text-neutral-800">Tipo de documento</span>
+              <span className="font-medium text-neutral-800">
+                Tipo de documento
+              </span>
               <select
                 value={documentTypeCode}
                 onChange={(event) => setDocumentTypeCode(event.target.value)}
@@ -294,7 +357,8 @@ export function VerificationDocumentActionsPanel({
 
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-neutral-500">
-              Formatos permitidos: PDF, JPG, PNG o WEBP. Tamaño máximo definido por el micro de verificación.
+              Formatos permitidos: PDF, JPG, PNG o WEBP. Tamaño máximo definido
+              por el micro de verificación.
             </p>
             <Button type="submit" loading={loading} disabled={!file || loading}>
               Subir documento
@@ -315,23 +379,39 @@ export function VerificationDocumentActionsPanel({
         ) : null}
 
         {documents.length === 0 ? (
-          <p className="text-sm text-neutral-500">Todavía no hay documentos registrados.</p>
+          <p className="text-sm text-neutral-500">
+            Todavía no hay documentos registrados.
+          </p>
         ) : (
           <div className="space-y-4">
             {documents.map((document) => (
-              <article key={document.verificationDocumentId} className="rounded-2xl border border-neutral-100 p-4">
+              <article
+                key={document.verificationDocumentId}
+                className="rounded-2xl border border-neutral-100 p-4"
+              >
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-neutral-900">{document.fileName}</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      <MetaPill label="Tipo" value={document.documentType ?? "Sin tipo"} />
-                      <MetaPill label="MIME" value={document.mimeType ?? "Sin MIME"} />
-                      <MetaPill label="Subido" value={formatDateTime(document.uploadedAt)} />
-                      <MetaPill label="Revisado" value={formatDateTime(document.reviewedAt)} />
-                    </div>
-                    <p className="mt-3 break-all text-xs text-neutral-400">
-                      {document.fileBucket}/{document.filePath}
+                    <p className="truncate text-sm font-semibold text-neutral-900">
+                      {document.fileName}
                     </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <MetaPill
+                        label="Tipo"
+                        value={document.documentType ?? "Sin tipo"}
+                      />
+                      <MetaPill
+                        label="MIME detectado"
+                        value={document.detectedMimeType ?? "Pendiente"}
+                      />
+                      <MetaPill
+                        label="Subido"
+                        value={formatDateTime(document.uploadedAt)}
+                      />
+                      <MetaPill
+                        label="Revisado"
+                        value={formatDateTime(document.reviewedAt)}
+                      />
+                    </div>
                     {document.reviewNotes ? (
                       <p className="mt-2 rounded-xl bg-neutral-50 p-3 text-sm text-neutral-600">
                         {document.reviewNotes}
@@ -340,17 +420,46 @@ export function VerificationDocumentActionsPanel({
                   </div>
 
                   <div className="flex flex-col gap-2 sm:flex-row xl:flex-col">
-                    <StatusBadge label={document.reviewStatus ?? "Sin revisión"} tone={statusTone(document.reviewStatus)} />
-                    <Button type="button" variant="secondary" size="sm" onClick={() => viewDocument(document)}>
+                    <StatusBadge
+                      label={`Archivo: ${document.assetStatus ?? "sin estado"}`}
+                      tone={statusTone(document.assetStatus)}
+                    />
+                    <StatusBadge
+                      label={document.reviewStatus ?? "Sin revisión"}
+                      tone={statusTone(document.reviewStatus)}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={document.assetStatus !== "clean"}
+                      onClick={() => viewDocument(document)}
+                    >
                       Ver documento
                     </Button>
-                    <Button type="button" variant="secondary" size="sm" onClick={() => reviewDocument(document, "approved")}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      disabled={document.assetStatus !== "clean"}
+                      onClick={() => reviewDocument(document, "approved")}
+                    >
                       Aprobar
                     </Button>
-                    <Button type="button" variant="secondary" size="sm" onClick={() => reviewDocument(document, "needs_reupload")}>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => reviewDocument(document, "needs_reupload")}
+                    >
                       Observar
                     </Button>
-                    <Button type="button" variant="danger" size="sm" onClick={() => reviewDocument(document, "rejected")}>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
+                      onClick={() => reviewDocument(document, "rejected")}
+                    >
                       Rechazar
                     </Button>
                   </div>
@@ -367,7 +476,9 @@ export function VerificationDocumentActionsPanel({
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-      <p className="text-xs uppercase tracking-wide text-neutral-500">{label}</p>
+      <p className="text-xs uppercase tracking-wide text-neutral-500">
+        {label}
+      </p>
       <p className="mt-2 text-2xl font-semibold text-neutral-950">{value}</p>
     </div>
   );

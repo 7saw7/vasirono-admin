@@ -54,6 +54,9 @@ export type VerificationDocumentRow = {
   document_type: string | null;
   review_status: string | null;
   file_name: string;
+  media_asset_id?: string | null;
+  asset_status?: string | null;
+  detected_mime_type?: string | null;
   file_path: string;
   file_bucket: string;
   mime_type: string | null;
@@ -194,6 +197,9 @@ export function mapVerificationDocumentRow(
     documentType: row.document_type,
     reviewStatus: row.review_status,
     fileName: row.file_name,
+    mediaAssetId: row.media_asset_id ?? null,
+    assetStatus: row.asset_status ?? null,
+    detectedMimeType: row.detected_mime_type ?? null,
     filePath: row.file_path,
     fileBucket: row.file_bucket,
     mimeType: row.mime_type,

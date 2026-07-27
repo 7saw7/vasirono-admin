@@ -49,6 +49,9 @@ export type VerificationDocument = {
   documentType: string | null;
   reviewStatus: string | null;
   fileName: string;
+  mediaAssetId: string | null;
+  assetStatus: string | null;
+  detectedMimeType: string | null;
   filePath: string;
   fileBucket: string;
   mimeType: string | null;
@@ -238,4 +241,10 @@ export type VerificationDocumentReviewResult = {
   verificationRequestId: number;
   verificationDocumentId: number;
   reviewStatus: string;
+};
+
+export type PrivateAssetSignedUrlResult = {
+  url: string;
+  expiresAt: string;
+  ttlSeconds: number;
 };

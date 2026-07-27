@@ -12,8 +12,8 @@ export type BackofficeServiceName =
   | "reviewReports"
   | "promotions"
   | "billing"
-  | "notifications";
-
+  | "notifications"
+  | "media";
 export class BackofficeServiceError extends Error {
   constructor(
     message: string,
