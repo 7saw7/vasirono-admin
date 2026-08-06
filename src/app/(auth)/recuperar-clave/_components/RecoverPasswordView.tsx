@@ -11,6 +11,7 @@ export function RecoverPasswordView() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
   const [error, setError] = useState("");
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -25,6 +26,7 @@ export function RecoverPasswordView() {
       });
       const payload = (await response.json()) as { ok?: boolean; error?: string };
       if (!response.ok || !payload.ok) throw new Error(payload.error || "No se pudo procesar la solicitud.");
+      setSubmittedEmail(email.trim());
       setSent(true);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "No se pudo procesar la solicitud.");
@@ -42,16 +44,22 @@ export function RecoverPasswordView() {
           </span>
           <h1 className="mt-7 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">Recuperar acceso</h1>
           <p className="mt-3 text-sm leading-6 text-slate-500 dark:text-slate-400">
-            Te enviaremos un enlace personal y de un solo uso para crear una nueva contraseña.
+            Te enviaremos un código de 6 dígitos para crear una nueva contraseña.
           </p>
 
           {sent ? (
             <div className="mt-7 space-y-5">
               <div className="flex gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
                 <AppIcon name="check" className="mt-0.5 h-5 w-5 shrink-0" />
-                Si el correo existe, recibirás un enlace de recuperación. Revisa también spam.
+                Si el correo existe, recibirás un código de recuperación. Revisa también spam.
               </div>
-              <button type="button" onClick={() => setSent(false)} className="text-xs font-bold text-indigo-600 dark:text-indigo-300">Solicitar otro enlace</button>
+              <Link
+                href={`/recuperar-clave/confirmar?email=${encodeURIComponent(submittedEmail)}`}
+                className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-indigo-600 text-xs font-bold text-white"
+              >
+                Ingresar código
+              </Link>
+              <button type="button" onClick={() => setSent(false)} className="text-xs font-bold text-indigo-600 dark:text-indigo-300">Solicitar otro código</button>
             </div>
           ) : (
             <form onSubmit={onSubmit} className="mt-7 space-y-5">
@@ -66,7 +74,7 @@ export function RecoverPasswordView() {
                 leadingIcon={<AppIcon name="mail" className="h-4 w-4" />}
               />
               {error ? <p className="rounded-xl bg-rose-50 p-3 text-xs text-rose-700" role="alert">{error}</p> : null}
-              <Button type="submit" className="w-full" size="lg" loading={loading}>Enviar enlace seguro</Button>
+              <Button type="submit" className="w-full" size="lg" loading={loading}>Enviar código</Button>
             </form>
           )}
 

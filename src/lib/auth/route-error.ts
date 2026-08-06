@@ -15,6 +15,10 @@ const AUTH_MESSAGES: Record<string, { status: number; message: string }> = {
   SESSION_REVOKED: { status: 401, message: "La sesión fue revocada." },
   REFRESH_TOKEN_REUSE_DETECTED: { status: 401, message: "La sesión fue cerrada por seguridad. Inicia sesión nuevamente." },
   REFRESH_TOKEN_MISSING: { status: 401, message: "No existe una sesión renovable." },
+  PASSWORD_RESET_CODE_INVALID: { status: 400, message: "El código de recuperación no es válido." },
+  PASSWORD_RESET_CODE_EXPIRED: { status: 400, message: "El código de recuperación expiró. Solicita uno nuevo." },
+  PASSWORD_RESET_CODE_USED: { status: 400, message: "El código de recuperación ya fue utilizado. Solicita uno nuevo." },
+  PASSWORD_RESET_TOO_MANY_ATTEMPTS: { status: 429, message: "Se agotaron los intentos permitidos. Solicita un código nuevo." },
 };
 
 export function mapAuthRouteError(

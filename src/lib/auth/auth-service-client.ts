@@ -473,25 +473,24 @@ export async function requestBackofficePasswordReset(
   });
 }
 
-export async function verifyBackofficePasswordResetToken(
-  token: string,
+export async function verifyBackofficePasswordResetCode(
+  input: { email: string; code: string },
   requestHeaders?: Headers,
-): Promise<{ valid: true; clientId: "admin"; expiresAt: string }> {
-  const payload = await authServiceFetch<{
-    valid: true;
-    clientId: "admin";
-    expiresAt: string;
-  }>("/api/auth/verify-reset-token", {
-    method: "POST",
-    body: { token, clientId: "admin" },
-    headers: buildPublicRequestHeaders(requestHeaders),
-  });
+): Promise<{ valid: boolean }> {
+  const payload = await authServiceFetch<{ valid: boolean }>(
+    "/api/auth/verify-reset-code",
+    {
+      method: "POST",
+      body: input,
+      headers: buildPublicRequestHeaders(requestHeaders),
+    },
+  );
   if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");
   return payload.data;
 }
 
 export async function confirmBackofficePasswordReset(
-  input: { token: string; newPassword: string },
+  input: { email: string; code: string; newPassword: string },
   requestHeaders?: Headers,
 ): Promise<{ reset: boolean; revokedSessions: boolean }> {
   const payload = await authServiceFetch<{
@@ -499,7 +498,7 @@ export async function confirmBackofficePasswordReset(
     revokedSessions: boolean;
   }>("/api/auth/reset-password", {
     method: "POST",
-    body: { ...input, clientId: "admin" },
+    body: input,
     headers: buildPublicRequestHeaders(requestHeaders),
   });
   if (!payload.data) throw new Error("AUTH_SERVICE_INVALID_RESPONSE");

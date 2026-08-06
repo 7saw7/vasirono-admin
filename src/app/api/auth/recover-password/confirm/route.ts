@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { confirmPasswordResetSchema } from "@/features/auth/schema";
 import { confirmBackofficePasswordReset } from "@/lib/auth/auth-service-client";
+import { mapAuthRouteError } from "@/lib/auth/route-error";
 
 export const runtime = "nodejs";
 
@@ -12,9 +13,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, data });
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json({ ok: false, error: error.issues[0]?.message ?? "Solicitud inválida." }, { status: 400 });
+      return NextResponse.json(
+        {
+          ok: false,
+          error: error.issues[0]?.message ?? "Solicitud inválida.",
+          code: "VALIDATION_ERROR",
+        },
+        { status: 400 },
+      );
     }
-    const status = Number((error as { status?: number })?.status ?? 400);
-    return NextResponse.json({ ok: false, error: "No se pudo cambiar la contraseña. Solicita un nuevo enlace." }, { status: status >= 500 ? 502 : status });
+    const mapped = mapAuthRouteError(
+      error,
+      "No se pudo cambiar la contraseña. Solicita un código nuevo.",
+    );
+    return NextResponse.json(
+      { ok: false, error: mapped.message, code: mapped.code },
+      { status: mapped.status >= 500 ? 502 : mapped.status },
+    );
   }
 }

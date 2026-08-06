@@ -7,10 +7,10 @@ export const metadata: Metadata = {
   referrer: "no-referrer",
 };
 
-type Props = { searchParams?: Promise<{ token?: string }> };
+type Props = { searchParams?: Promise<{ email?: string }> };
 
 export default async function ConfirmPasswordResetPage({ searchParams }: Props) {
   const params = await searchParams;
-  const token = typeof params?.token === "string" ? params.token : "";
-  return <ConfirmPasswordResetView token={token} />;
+  const email = typeof params?.email === "string" ? params.email : "";
+  return <ConfirmPasswordResetView initialEmail={email} />;
 }
